@@ -1,0 +1,25 @@
+# ===== temporários / editores =====
+*~
+*.swp
+*.swo
+*.bak
+*.save
+*.tmp
+
+# ===== caches =====
+.cache/
+**/.cache/
+**/Cache/
+**/cache/
+
+# ===== logs =====
+*.log
+
+# ===== segredos (segurança) =====
+.env
+*.key
+*.pem
+id_rsa
+id_ed25519
+known_hosts
+

@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+
+# =========================
+# Configurações gerais
+# =========================
+BACKEND=wayland
+TITLE="OCR • Tradução"
+
+IMG="/tmp/ocr_$(date +%s).png"
+
+# =========================
+# Evita múltiplas instâncias
+# =========================
+if pidof yad >/dev/null; then
+  pkill yad
+fi
+
+# =========================
+# Seleção da área
+# =========================
+AREA=$(slurp) || exit 1
+grim -g "$AREA" "$IMG" || exit 1
+
+# =========================
+# OCR
+# =========================
+OCR_TEXT=$(tesseract "$IMG" stdout -l eng+por 2>/dev/null | sed '/^$/d')
+
+if [[ -z "$OCR_TEXT" ]]; then
+  notify-send "OCR" "Nenhum texto reconhecido"
+  exit 1
+fi
+
+# =========================
+# Tradução (auto → PT)
+# =========================
+TRANSLATED=$(echo "$OCR_TEXT" | trans -brief :pt)
+
+# =========================
+# Interface YAD (GRANDE)
+# =========================
+
+GDK_BACKEND=wayland yad \
+  --class="ocr_yad" \
+  --title="OCR_TRANSLATE" \
+  --center \
+  --width=900 --height=650 \
+  --text-info --wrap --scroll \
+  --fontname="Sans 16" \
+  --button="Copiar":0 \
+  --button="Fechar":1 \
+  <<<"$TRANSLATED"
+
+# =========================
+# Copiar se solicitado
+# =========================
+if [[ $? -eq 0 ]]; then
+  echo "$TRANSLATED" | wl-copy
+  notify-send "OCR + Tradução" "Texto copiado para a área de transferência"
+fi
