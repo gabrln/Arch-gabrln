@@ -1,0 +1,12 @@
+[templates.sddm]
+input_path="/usr/share/sddm/themes/noctalia/theme.template.conf"
+output_path="/usr/share/sddm/themes/noctalia/theme.conf"
+
+[templates.rofi]
+input_path="/home/gsouza/.config/hypr/noctalia/rofi.template.rasi"
+output_path="/home/gsouza/.config/rofi/noctalia.rasi"
+
+[templates.nvim-base16]
+input_path = "/home/gsouza/.config/nvim/lua/matugen-template.lua"
+output_path = "/home/gsouza/.config/nvim/lua/matugen.lua"
+post_hook = "pkill -SIGUSR1 nvim"
