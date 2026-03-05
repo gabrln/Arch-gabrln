@@ -1,0 +1,33 @@
+menu:
+  - name: "󰖟 Web Apps"
+    items:
+      - name: "󱂬 Dockhand"
+        exec: "brave --app=https://localhost:3000/"
+      - name: "󱎓 Mcsmanager"
+        exec: "brave --app=https://localhost:23333"
+      - name: "󰑩 Playit.gg"
+        exec: "brave --app=https://playit.gg/account/agents"
+      - name: "󰗃 YouTube"
+        exec: "brave --app=https://www.youtube.com"
+      - name: "󰗃 Pobreflix"
+        exec: "brave --app=https://www.pobreflixtv.stream/"
+      - name: "󰊤 GitHub"
+        exec: "brave --app=https://github.com"
+  - name: " Terminal Commands"
+    items:
+      - name: "󰚰 System Update"
+        exec: "kitty -e paru -Syu"
+      - name: " Check Usage (btop)"
+        exec: "kitty -e btop"
+      - name: "󰞔 Fastfetch"
+        exec: "kitty -e bash -c 'fastfetch; read'"
+      - name: "󰞔 IP Address"
+        exec: "ip_addr=$(ip addr show | grep -w inet | grep -v 127.0.0.1 | awk '{print $2}' | cut -d/ -f1); notify-send \"IP Address\" \"$ip_addr\""
+  - name: " Service"
+    items:
+      - name: " Docker"
+        exec: 'kitty -e bash -c "if [ \"$(systemctl is-active docker)\" = \"active\" ]; then sudo systemctl stop docker && notify-send \"Docker\" \"Desligado\"; else sudo systemctl start docker && notify-send \"Docker\" \"Ligado\"; fi"'
+  - name: "Configs"
+    items:
+      - name: "Rofi Menu"
+        exec: "kitty -e nvim ~/.config/rofi/menu.yaml"
