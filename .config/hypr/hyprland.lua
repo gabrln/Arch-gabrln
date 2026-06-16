@@ -52,11 +52,11 @@ hl.config({
 	},
 	dwindle = { preserve_split = true },
 	scrolling = {
-		column_width = 1.0,
+		column_width = 0.7,
 		fullscreen_on_one_column = true,
 		follow_focus = true,
 		focus_fit_method = 0,
-		explicit_column_widths = "0.333, 0.5, 0.667, 1.0",
+		explicit_column_widths = "0.3, 0.5, 0.7, 1.0",
 	},
 	binds = {
 		allow_workspace_cycles = true,
@@ -175,18 +175,6 @@ hl.bind(mainMod .. " + SHIFT + d", hl.dsp.exec_cmd(scriptsDir .. "/WindowInfo.sh
 -- --- Window Management ---
 hl.bind(mainMod .. " + q", hl.dsp.window.close(), { repeating = true })
 
-local protected_processes = {
-	["noctalia"] = true,
-	["hyprland"] = true,
-	["systemd"] = true,
-	["udevd"] = true,
-	["dbus-daemon"] = true,
-	["polkitd"] = true,
-	["pipewire"] = true,
-	["wireplumber"] = true,
-	["waybar"] = true,
-}
-
 hl.bind("ALT + F4", function()
 	local w = hl.get_active_window()
 	if w and w.pid then
@@ -199,14 +187,16 @@ hl.bind("ALT + F4", function()
 		end
 
 		-- 2. Validar pelo executável lido no /proc/<pid>/comm
+		local proc_name = w.class or "Desconhecido"
 		local f = io.open("/proc/" .. w.pid .. "/comm", "r")
 		if f then
 			local comm = f:read("*l")
 			f:close()
 			if comm then
+				proc_name = comm
 				comm = comm:lower():gsub("%s+", "")
-				if protected_processes[comm] or comm:find("noctalia") or comm:find("hyprland") then
-					hl.exec_cmd("notify-send 'Ação Bloqueada' 'Não é permitido encerrar o processo protegido: " .. comm .. "' -u critical -t 3000")
+				if comm:find("noctalia") or comm:find("hyprland") then
+					hl.exec_cmd("notify-send 'Ação Bloqueada' 'Não é permitido encerrar o processo: " .. proc_name .. "' -u critical -t 3000")
 					return
 				end
 			end
@@ -214,7 +204,7 @@ hl.bind("ALT + F4", function()
 
 		-- 3. Executar encerramento agressivo
 		hl.exec_cmd("kill -9 " .. w.pid)
-		hl.exec_cmd("notify-send 'Processo Encerrado' 'Janela encerrada agressivamente (PID: " .. w.pid .. ")' -t 2000")
+		hl.exec_cmd("notify-send 'Processo Encerrado' 'Processo \"" .. proc_name .. "\" (PID: " .. w.pid .. ") encerrado agressivamente.' -t 2000")
 	end
 end)
 
