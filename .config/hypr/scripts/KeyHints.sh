@@ -53,7 +53,7 @@ yad --center \
     "SUPER + CTRL + [0-9]" "Move Window Silently to Workspace" "movetoworkspacesilent" \
     "SUPER + TAB / SHIFT + TAB" "Next / Prev Workspace" "workspace e+/-1" \
     "SUPER + Mouse Scroll" "Next / Prev Workspace" "workspace e+/-1" \
-    "ALT + TAB" "Scroll Overview" "Toggle ScrollOverview" \
+    "ALT + TAB" "Window Switcher" "Snappy Switcher" \
     "" "" "" \
     "SUPER + N" "Toggle Night Light (Azul)" "Noctalia nightlight" \
     "SUPER + Y" "Toggle Caffeine (Idle Inhibitor)" "Noctalia caffeine" \

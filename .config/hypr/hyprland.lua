@@ -77,22 +77,7 @@ hl.config({
 	},
 	misc = { disable_hyprland_logo = true, focus_on_activate = false },
 	cursor = { no_warps = true, inactive_timeout = 3, hide_on_key_press = true },
-	plugin = {
-		scrolloverview = {
-			gesture_distance = 300, -- how far is the "max" for the gesture
-			scale = 0.5, -- preferred overview scale
-			workspace_gap = 100,
-			wallpaper = 0, -- 0: global only, 1: per-workspace only, 2: both
-			blur = false, -- blur only the main overview wallpaper
 
-			shadow = {
-				enabled = false,
-				range = 50,
-				render_power = 3,
-				color = 0xee1a1a1a,
-			},
-		},
-	},
 })
 
 -- -----------------------------------------------------------------------------
@@ -256,11 +241,8 @@ end
 hl.bind(mainMod .. " + TAB", hl.dsp.focus({ workspace = "e+1" }))
 hl.bind(mainMod .. " + SHIFT + TAB", hl.dsp.focus({ workspace = "e-1" }))
 
--- --- Window Switcher (Scroll Overview) ---
-hl.bind("ALT + Tab", function()
-	hl.dispatch(hl.plugin.scrolloverview.overview("toggle"))
-	hl.exec_cmd("sleep 0.1 && hyprctl dispatch focuswindow active")
-end)
+-- --- Window Switcher (Snappy Switcher) ---
+hl.bind("ALT + Tab", hl.dsp.exec_cmd("snappy-switcher next --mod alt"))
 
 -- --- Mouse Bindings ---
 -- Inverted scroll direction: Up -> Prev (e-1), Down -> Next (e+1)
@@ -410,4 +392,5 @@ hl.on("hyprland.start", function()
 	hl.exec_cmd("gnome-keyring-daemon --start --components=secrets")
 	hl.exec_cmd("noctalia")
 	hl.exec_cmd("wl-paste --watch cliphist store")
+	hl.exec_cmd("snappy-switcher --daemon")
 end)
