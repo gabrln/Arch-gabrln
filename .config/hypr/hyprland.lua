@@ -324,7 +324,7 @@ hl.bind(mainMod .. " + SHIFT + period", hl.dsp.layout("swapcol r"))
 hl.bind(mainMod .. " + SHIFT + comma", hl.dsp.layout("swapcol l"))
 hl.bind(mainMod .. " + ALT + period", hl.dsp.layout("colresize +conf"))
 hl.bind(mainMod .. " + ALT + comma", hl.dsp.layout("colresize -conf"))
-hl.bind(mainMod .. " + c", hl.dsp.layout("centerview"))
+hl.bind(mainMod .. " + c", hl.dsp.layout("fit active"))
 hl.bind(mainMod .. " + SHIFT + x", hl.dsp.layout("consume_or_expel"))
 hl.bind(mainMod .. " + SHIFT + p", hl.dsp.layout("promote"))
 
