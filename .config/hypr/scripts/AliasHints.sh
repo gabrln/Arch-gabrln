@@ -14,7 +14,7 @@ yad_args=(
   --title="Zsh Aliases, Custom Commands & Nix Quick Cheat Sheet"
   --no-buttons
   --list
-  --column="Alias/Command:M"
+  --column="Alias/Command"
   --column="Description"
   --column="Equivalent/Action"
   --width=1000
@@ -24,7 +24,7 @@ yad_args=(
   "ESC" "Close this Cheat Sheet" ""
   "" "" ""
   
-  "<b>[ ZSH SHORTCUTS ]</b>" "" ""
+  "▶▶ ZSH SHORTCUTS ◀◀" "" ""
   "c" "Clear terminal" "clear"
   "q" "Exit terminal" "exit"
   ".." "Go up one directory" "cd .."
@@ -39,7 +39,7 @@ yad_args=(
   "zj" "Zellij multiplexer" "zellij"
   "" "" ""
   
-  "<b>[ CONFIG SHORTCUTS ]</b>" "" ""
+  "▶▶ CONFIG SHORTCUTS ◀◀" "" ""
   "conf-hypr" "Edit Hyprland config" "nvim ~/.config/hypr/hyprland.lua"
   "conf-zsh" "Edit Zsh config" "nvim ~/.config/zsh/.zshrc"
   "conf-zj" "Edit Zellij config" "nvim ~/.config/zellij/config.kdl"
@@ -47,20 +47,20 @@ yad_args=(
   "reload-zsh" "Reload Zsh config" "source ~/.config/zsh/.zshrc"
   "" "" ""
   
-  "<b>[ PACKAGE MANAGEMENT ]</b>" "" ""
+  "▶▶ PACKAGE MANAGEMENT ◀◀" "" ""
   "update" "System update" "paru -Syu"
   "install" "Install system package" "paru -S"
   "remove" "Remove package + configs" "paru -Rns"
   "search" "Search system package" "paru -Ss"
   "" "" ""
   
-  "<b>[ DOCKER CONTROLS ]</b>" "" ""
+  "▶▶ DOCKER CONTROLS ◀◀" "" ""
   "dk-start" "Start Docker daemon" "sudo systemctl start docker"
   "dk-stop" "Stop Docker daemon" "sudo systemctl stop docker"
   "dk-status" "Check Docker status" "systemctl status docker"
   "" "" ""
   
-  "<b>[ NIX PACKAGE MANAGER ]</b>" "" ""
+  "▶▶ NIX PACKAGE MANAGER ◀◀" "" ""
   "nxi <pkg>" "Install Nix package" "nix profile install nixpkgs#<pkg>"
   "nxu <pkg>" "Remove Nix package" "nix profile remove <pkg>"
   "nxl" "List installed Nix packages" "nix profile list"
@@ -70,7 +70,7 @@ yad_args=(
   "nxd" "Develop Nix environment" "nix develop"
   "" "" ""
   
-  "<b>[ GIT COMMANDS ]</b>" "" ""
+  "▶▶ GIT COMMANDS ◀◀" "" ""
   "g" "Git wrapper" "git"
   "gst" "Git status (short format)" "git status -sb"
   "gd" "Git diff" "git diff"
