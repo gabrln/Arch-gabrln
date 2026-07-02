@@ -18,8 +18,8 @@ zvm_after_init() {
 
   bindkey '^R' atuin-search
 
-  bindkey '^[[A' history-substring-search-up
-  bindkey '^[[B' history-substring-search-down
+  bindkey '^[[A' atuin-up-search
+  bindkey '^[OA' atuin-up-search
 }
 
 bindkey '^[[1;5C' forward-word
@@ -29,5 +29,5 @@ if command -v fzf &>/dev/null && command -v fd &>/dev/null; then
 fi
 bindkey '^\' autosuggest-toggle
 bindkey '^R' atuin-search
-bindkey '^[[A' history-substring-search-up
-bindkey '^[[B' history-substring-search-down
+bindkey '^[[A' atuin-up-search
+bindkey '^[OA' atuin-up-search
