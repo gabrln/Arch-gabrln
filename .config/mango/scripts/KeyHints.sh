@@ -35,7 +35,7 @@ shortcuts=(
 
   "Noctalia  ::  SUPER + D                  ::  App Launcher                  ::  noctalia msg panel-toggle launcher"
   "Noctalia  ::  SUPER + V                  ::  Clipboard Manager             ::  noctalia msg panel-toggle clipboard"
-  "Noctalia  ::  SUPER + P                  ::  Control Center / Audio        ::  noctalia msg panel-toggle control-center"
+  "Noctalia  ::  SUPER + P                  ::  Control Center                ::  noctalia msg panel-toggle control-center"
   "Noctalia  ::  SUPER + SHIFT + P          ::  Logout Menu                   ::  noctalia msg panel-toggle session"
   "Noctalia  ::  SUPER + I                  ::  Noctalia Settings             ::  noctalia msg settings-toggle"
   "Noctalia  ::  SUPER + SHIFT + N          ::  Notification Panel            ::  noctalia msg panel-toggle control-center notifications"
