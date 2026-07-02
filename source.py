@@ -51,10 +51,17 @@ decman.aur.packages |= {
 decman.systemd.enabled_units |= {
     "docker.service",
     "bluetooth.service",
-    "NetworkManager.service"
+    "NetworkManager.service",
+    "greetd.service"
 }
 
 # 5. Declarar Arquivos Individuais
+# Greetd / Noctalia Greeter Configuration
+decman.files["/etc/greetd/config.toml"] = File(
+    source_file=f"{repo_dir}/.config/greetd/config.toml",
+    owner="root"
+)
+
 # .zshenv do Zsh
 decman.files[f"{user_home}/.zshenv"] = File(
     source_file=f"{repo_dir}/.zshenv",
