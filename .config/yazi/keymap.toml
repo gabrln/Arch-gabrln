@@ -1,5 +1,5 @@
 [manager]
-keymap = [
+prepend_keymap = [
   { on = ["k"],       run = "arrow -1",         desc = "Up" },
   { on = ["j"],       run = "arrow 1",          desc = "Down" },
   { on = ["h"],       run = "leave",            desc = "Parent dir" },
@@ -22,8 +22,8 @@ keymap = [
   { on = ["x"],       run = "yank --cut",       desc = "Cut" },
   { on = ["p"],       run = "paste",            desc = "Paste" },
   { on = ["P"],       run = "paste --force",    desc = "Paste (overwrite)" },
-  { on = ["d"],       run = "remove --permanently", desc = "Delete permanently" },
-  { on = ["D"],       run = "remove",           desc = "Trash" },
+  { on = ["d"],       run = "remove",           desc = "Trash" },
+  { on = ["D"],       run = "remove --permanently", desc = "Delete permanently" },
   { on = ["r"],       run = "rename",           desc = "Rename" },
   { on = ["a"],       run = "create",           desc = "Create file/dir" },
   { on = ["Y"],       run = "copy path",        desc = "Copy path" },
@@ -47,7 +47,7 @@ keymap = [
 ]
 
 [tasks]
-keymap = [
+prepend_keymap = [
   { on = ["<Esc>"], run = "close", desc = "Close task manager" },
   { on = ["w"],     run = "close", desc = "Close task manager" },
   { on = ["k"],     run = "arrow -1", desc = "Up" },
@@ -55,7 +55,7 @@ keymap = [
 ]
 
 [select]
-keymap = [
+prepend_keymap = [
   { on = ["<Esc>"],   run = "close",           desc = "Cancel" },
   { on = ["k"],       run = "arrow -1",        desc = "Up" },
   { on = ["j"],       run = "arrow 1",         desc = "Down" },
@@ -63,7 +63,7 @@ keymap = [
 ]
 
 [input]
-keymap = [
+prepend_keymap = [
   { on = ["<Esc>"],      run = "close",                  desc = "Cancel" },
   { on = ["<Enter>"],    run = "close --submit",         desc = "Confirm" },
   { on = ["<Backspace>"], run = "backspace",             desc = "Backspace" },

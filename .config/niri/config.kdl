@@ -62,7 +62,6 @@ workspace "6" { }
 workspace "7" { }
 workspace "8" { }
 workspace "9" { }
-workspace "stash" { }
 
 // Overview: stationary wallpaper (Option 2 from Noctalia docs)
 // The wallpaper layer is placed on the backdrop so it shows in overview
@@ -87,6 +86,10 @@ spawn-at-startup "sh" "-c" "sleep 3 && flatpak run com.github.wwmm.easyeffects -
 window-rule {
     geometry-corner-radius 5
     clip-to-geometry true
+    background-effect {
+        blur true
+        xray false
+    }
 }
 
 // File dialogs - Open/Save/Select
@@ -165,13 +168,6 @@ layer-rule {
 layer-rule {
     match namespace="^noctalia-(bar-[^\"]+|notification|dock|panel|attached-panel|osd)$"
     background-effect {
-        xray false
-    }
-}
-
-window-rule {
-    background-effect {
-        blur true
         xray false
     }
 }
@@ -264,22 +260,12 @@ binds {
     Mod+Shift+R { reset-window-height; }
     
     // Navigation
-    Mod+Left  { focus-column-left; }
-    Mod+Right { focus-column-right; }
-    Mod+Down  { focus-window-or-workspace-down; }
-    Mod+Up    { focus-window-or-workspace-up; }
-    
     Mod+H     { focus-column-left; }
     Mod+L     { focus-column-right; }
     Mod+J     { focus-window-or-workspace-down; }
     Mod+K     { focus-window-or-workspace-up; }
     
     // Moving windows
-    Mod+Shift+Left  { move-column-left; }
-    Mod+Shift+Right { move-column-right; }
-    Mod+Shift+Down  { move-window-down; }
-    Mod+Shift+Up    { move-window-up; }
-    
     Mod+Shift+H     { move-column-left; }
     Mod+Shift+L     { move-column-right; }
     Mod+Shift+J     { move-window-down; }
