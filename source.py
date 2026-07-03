@@ -36,7 +36,7 @@ decman.pacman.packages |= {
     # Temas, Protons e Ferramentas CachyOS/Arch
     "wl-clip-persist", "papirus-icon-theme", "adw-gtk-theme",
     "protonup-qt", "prismlauncher", "spotify-launcher",
-    "gnome-keyring", "seahorse"
+    "gnome-keyring", "seahorse", "rtkit"
 }
 
 # 3. Declarar Pacotes do AUR (via yay/paru)
