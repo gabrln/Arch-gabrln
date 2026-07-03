@@ -96,6 +96,18 @@ decman.files[f"{user_home}/.config/noctalia/user-templates.toml"] = File(
     owner=sudo_user
 )
 
+# Niri Scripts (com permissão de execução explícita)
+decman.files[f"{user_home}/.config/niri/scripts/ToggleScratchpad.py"] = File(
+    source_file=f"{repo_dir}/.config/niri/scripts/ToggleScratchpad.py",
+    permissions=0o755,
+    owner=sudo_user
+)
+
+decman.files[f"{user_home}/.config/niri/scripts/KeyHints.sh"] = File(
+    source_file=f"{repo_dir}/.config/niri/scripts/KeyHints.sh",
+    permissions=0o755,
+    owner=sudo_user
+)
 
 # Mimeapps e Starship (arquivos avulsos em ~/.config)
 decman.files[f"{user_home}/.config/mimeapps.list"] = File(
