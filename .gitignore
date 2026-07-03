@@ -35,6 +35,9 @@ known_hosts
 # ===== Mango generated =====
 .config/mango/noctalia.conf
 
+# ===== Niri generated =====
+.config/niri/noctalia.kdl
+
 # ===== OpenCode generated =====
 .config/opencode/node_modules/
 .config/opencode/package.json
