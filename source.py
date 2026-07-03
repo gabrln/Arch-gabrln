@@ -109,6 +109,23 @@ decman.files[f"{user_home}/.config/niri/scripts/KeyHints.sh"] = File(
     owner=sudo_user
 )
 
+# Mango Scripts (com permissão de execução explícita)
+mango_scripts = [
+    "AltF4.sh",
+    "KeyHints.sh",
+    "ToggleBlur.sh",
+    "ToggleGamemode.sh",
+    "WindowInfo.sh"
+]
+
+for script in mango_scripts:
+    decman.files[f"{user_home}/.config/mango/scripts/{script}"] = File(
+        source_file=f"{repo_dir}/.config/mango/scripts/{script}",
+        permissions=0o755,
+        owner=sudo_user
+    )
+
+
 # Mimeapps e Starship (arquivos avulsos em ~/.config)
 decman.files[f"{user_home}/.config/mimeapps.list"] = File(
     source_file=f"{repo_dir}/.config/mimeapps.list",
