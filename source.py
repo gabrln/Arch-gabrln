@@ -84,6 +84,13 @@ decman.files["/etc/pam.d/greetd"] = File(
     owner="root"
 )
 
+# Noctalia Greeter settings (Theme, cursor, session)
+decman.files["/var/lib/noctalia-greeter/greeter.toml"] = File(
+    source_file=f"{repo_dir}/.config/greetd/greeter.toml",
+    owner="greeter",
+    group="greeter"
+)
+
 # Niri session desktop entry
 decman.files["/usr/share/wayland-sessions/niri.desktop"] = File(
     source_file=f"{repo_dir}/.config/niri/niri.desktop",
