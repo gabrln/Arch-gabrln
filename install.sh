@@ -1,0 +1,136 @@
+#!/usr/bin/env bash
+# install.sh - Installation & bootstrap script for Arch-gabrln setup
+# Assumes Arch Linux or CachyOS.
+
+set -euo pipefail
+
+# Output colors
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m'
+
+echo -e "${BLUE}=== Starting Arch-gabrln Setup Installation ===${NC}"
+
+# Ensure we are not running as root directly (script will request sudo when needed)
+if [[ $EUID -eq 0 ]]; then
+   echo -e "${RED}Do not run this script as root/sudo directly. Run it as normal user.${NC}" 1>&2
+   exit 1
+fi
+
+# 1. Install/Update yay (AUR helper)
+if ! command -v yay &>/dev/null; then
+    echo -e "${YELLOW}Installing 'yay' for AUR package support...${NC}"
+    sudo pacman -S --needed --noconfirm base-devel git
+    git clone https://aur.archlinux.org/yay.git /tmp/yay
+    (cd /tmp/yay && makepkg -si --noconfirm)
+    rm -rf /tmp/yay
+fi
+
+# 2. Install Pacman Packages (Official repositories)
+echo -e "${BLUE}Installing official Pacman packages...${NC}"
+OFFICIAL_PKGS=(
+    # Base system
+    base base-devel linux-cachyos linux-cachyos-headers git git-delta docker flatpak brightnessctl zsh snapper just
+    # Zsh and terminal tooling
+    atuin bat eza fzf ripgrep fd zoxide starship direnv fastfetch btop grim slurp
+    # User applications
+    neovim kitty zellij yazi nautilus vesktop cliphist wl-clipboard duf gping tealdeer procs cava
+    # Media and files
+    mpv swayimg zathura file-roller rclone firefox obsidian pavucontrol nwg-look xdg-desktop-portal-gnome xdg-desktop-portal-gtk
+    # Themes and tools
+    wl-clip-persist papirus-icon-theme adw-gtk-theme protonup-qt prismlauncher spotify-launcher gnome-keyring seahorse rtkit niri
+)
+sudo pacman -S --needed --noconfirm "${OFFICIAL_PKGS[@]}"
+
+# 3. Install AUR Packages
+echo -e "${BLUE}Installing AUR packages...${NC}"
+AUR_PKGS=(
+    noctalia-git
+    noctalia-greeter-git
+    bibata-cursor-theme
+    niri-scratchpad-rs-git
+)
+yay -S --needed --noconfirm "${AUR_PKGS[@]}"
+
+# 4. Install Flatpak Packages
+if command -v flatpak &>/dev/null; then
+    echo -e "${BLUE}Installing Flatpak packages...${NC}"
+    flatpak install -y flathub com.github.wwmm.easyeffects
+fi
+
+# 5. Create Symlinks for User Configurations
+echo -e "${BLUE}Setting up configuration symlinks...${NC}"
+REPO_DIR="$HOME/projects/Arch-gabrln"
+mkdir -p "$HOME/.config"
+
+CONFIGS=(
+    zsh
+    kitty
+    zellij
+    yazi
+    fastfetch
+    opencode
+    gtk-3.0
+    gtk-4.0
+    xdg-desktop-portal
+    niri
+)
+
+for cfg in "${CONFIGS[@]}"; do
+    TARGET_PATH="$HOME/.config/$cfg"
+    # Backup physical directories if they exist and are not symlinks
+    if [ -d "$TARGET_PATH" ] && [ ! -L "$TARGET_PATH" ]; then
+        echo -e "${YELLOW}Backing up existing directory: $cfg -> ${cfg}.backup${NC}"
+        mv "$TARGET_PATH" "${TARGET_PATH}.backup"
+    fi
+    ln -sfT "$REPO_DIR/.config/$cfg" "$TARGET_PATH"
+done
+
+# Single configuration files
+ln -sf "$REPO_DIR/.zshenv" "$HOME/.zshenv"
+ln -sf "$REPO_DIR/.config/mimeapps.list" "$HOME/.config/mimeapps.list"
+ln -sf "$REPO_DIR/.config/user-dirs.dirs" "$HOME/.config/user-dirs.dirs"
+ln -sf "$REPO_DIR/.config/user-dirs.locale" "$HOME/.config/user-dirs.locale"
+
+# Make sure scripts are executable
+find "$REPO_DIR/.config/niri/scripts" -type f -name "*.sh" -exec chmod +x {} +
+
+# 6. Copy System Configurations (Requires sudo)
+echo -e "${BLUE}Deploying system configuration files...${NC}"
+sudo mkdir -p /etc/greetd
+sudo cp "$REPO_DIR/.config/greetd/config.toml" /etc/greetd/config.toml
+sudo cp "$REPO_DIR/.config/greetd/pam_greetd" /etc/pam.d/greetd
+
+# Wayland Session desktop entry
+sudo cp "$REPO_DIR/.config/niri/niri.desktop" /usr/share/wayland-sessions/niri.desktop
+
+# Noctalia Greeter settings
+sudo mkdir -p /var/lib/noctalia-greeter
+sudo cp "$REPO_DIR/.config/greetd/greeter.toml" /var/lib/noctalia-greeter/greeter.toml
+sudo chown greeter:greeter /var/lib/noctalia-greeter/greeter.toml
+sudo chmod 644 /var/lib/noctalia-greeter/greeter.toml
+
+# 7. Symlink themes for Root user (GParted, btrfs-assistant, Greetd Greeter compatibility)
+echo -e "${BLUE}Linking user themes for root application accessibility...${NC}"
+sudo mkdir -p /root/.config
+sudo ln -sf "$HOME/.config/gtk-3.0" /root/.config/gtk-3.0
+sudo ln -sf "$HOME/.config/gtk-4.0" /root/.config/gtk-4.0
+sudo ln -sf "$HOME/.config/qt6ct" /root/.config/qt6ct
+sudo mkdir -p /root/.local/share
+sudo ln -sf "$HOME/.local/share/icons" /root/.local/share/icons
+
+# 8. Enable Systemd Services
+echo -e "${BLUE}Enabling Systemd units...${NC}"
+SERVICES=(
+    docker.service
+    bluetooth.service
+    NetworkManager.service
+    greetd.service
+)
+for svc in "${SERVICES[@]}"; do
+    sudo systemctl enable "$svc"
+done
+
+echo -e "${GREEN}=== Setup Installation & Sync Completed successfully! ===${NC}"
