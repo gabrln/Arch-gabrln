@@ -146,6 +146,11 @@ debug {
     honor-xdg-activation-with-invalid-serial
 }
 
+// Suprimir overlay de atalhos padrão do Niri no startup
+hotkey-overlay {
+    skip-at-startup
+}
+
 binds {
     // Core shell & apps
     Mod+Return { spawn "kitty" "--title" "Kitty"; }
