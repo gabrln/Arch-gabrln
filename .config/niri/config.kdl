@@ -48,6 +48,17 @@ layout {
 }
 
 
+// 9 workspaces fixos + 1 dinamico do Niri = 10 total (igual as 10 tags do MangoWM)
+workspace "1" { }
+workspace "2" { }
+workspace "3" { }
+workspace "4" { }
+workspace "5" { }
+workspace "6" { }
+workspace "7" { }
+workspace "8" { }
+workspace "9" { }
+
 // Overview: stationary wallpaper (Option 2 from Noctalia docs)
 // The wallpaper layer is placed on the backdrop so it shows in overview
 layer-rule {
