@@ -25,7 +25,7 @@ input {
 }
 
 output "eDP-1" {
-    scale 1.5
+    scale 1.0
 }
 
 layout {
@@ -121,19 +121,19 @@ debug {
 }
 
 binds {
-    // Core shell & apps launcher
+    // Core shell & apps
     Mod+Return { spawn "kitty" "--title" "Kitty"; }
     Mod+B { spawn "firefox"; }
     Mod+E { spawn "kitty" "-e" "yazi"; }
     Mod+Shift+E { spawn "nautilus"; }
     
-    // Noctalia interfaces
-    Mod+Space { spawn "noctalia" "msg" "panel-toggle" "launcher"; }
+    // Noctalia interfaces (matching MangoWM binds)
+    Mod+D { spawn "noctalia" "msg" "panel-toggle" "launcher"; }
     Mod+V { spawn "noctalia" "msg" "panel-toggle" "clipboard"; }
     Mod+P { spawn "noctalia" "msg" "panel-toggle" "control-center"; }
     Mod+Shift+P { spawn "noctalia" "msg" "panel-toggle" "session"; }
     Mod+Shift+N { spawn "noctalia" "msg" "panel-toggle" "control-center" "notifications"; }
-    Mod+Comma { spawn "noctalia" "msg" "settings-toggle"; }
+    Mod+I { spawn "noctalia" "msg" "settings-toggle"; }
     Mod+N { spawn "noctalia" "msg" "nightlight-toggle"; }
     Mod+Y { spawn "noctalia" "msg" "caffeine-toggle"; }
     Mod+W { spawn "noctalia" "msg" "wallpaper-random"; }
@@ -176,6 +176,7 @@ binds {
     Mod+F { fullscreen-window; }
     Mod+M { maximize-column; }
     Mod+C { center-window; }
+    Mod+Space { toggle-window-floating; }
     
     // Column width resizing
     Mod+R { switch-preset-column-width; }
@@ -226,7 +227,7 @@ binds {
     Mod+Shift+Tab { focus-workspace-up; }
     
     // Overview mode
-    Alt+Tab { toggle-preview; }
+    Alt+Tab { toggle-overview; }
     
     // Exit session
     Ctrl+Alt+Delete { quit; }
