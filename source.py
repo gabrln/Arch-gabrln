@@ -135,10 +135,12 @@ decman.files[f"{user_home}/.config/mimeapps.list"] = File(
     owner=sudo_user
 )
 
-decman.files[f"{user_home}/.config/starship.toml"] = File(
-    source_file=f"{repo_dir}/.config/starship.toml",
-    owner=sudo_user
-)
+# Only copy starship.toml if it doesn't exist, as Noctalia manages its palette dynamically
+if not os.path.exists(f"{user_home}/.config/starship.toml"):
+    decman.files[f"{user_home}/.config/starship.toml"] = File(
+        source_file=f"{repo_dir}/.config/starship.toml",
+        owner=sudo_user
+    )
 
 # User Dirs configurations
 decman.files[f"{user_home}/.config/user-dirs.dirs"] = File(
