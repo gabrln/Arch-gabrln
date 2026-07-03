@@ -37,6 +37,8 @@ alias ninja="ninja -j\$(nproc)"
 alias conf-mango="nvim ~/.config/mango/mango.conf"
 alias conf-zsh="nvim ~/.config/zsh/.zshrc"
 alias conf-kitty="nvim ~/.config/kitty/kitty.conf"
+alias conf-decman="nvim ~/projects/Arch-gabrln/source.py"
+alias decman-sync="sudo decman --source ~/projects/Arch-gabrln/source.py"
 alias reload-zsh="source ~/.config/zsh/.zshrc && echo 'Zsh config reloaded!'"
 
 alias g="git"
