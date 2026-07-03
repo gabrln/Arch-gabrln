@@ -29,7 +29,7 @@ output "eDP-1" {
 }
 
 layout {
-    gaps 8
+    gaps 5
     background-color "transparent"
     default-column-width { proportion 0.5; }
     preset-column-widths {
@@ -79,9 +79,8 @@ spawn-at-startup "wl-clip-persist" "--clipboard" "regular" "--reconnect-tries" "
 spawn-at-startup "wl-paste" "--watch" "cliphist" "store"
 spawn-at-startup "flatpak" "run" "com.github.wwmm.easyeffects" "--gapplication-service"
 
-// Window rules for rounded corners & clipping
 window-rule {
-    geometry-corner-radius 20
+    geometry-corner-radius 5
     clip-to-geometry true
 }
 
@@ -184,8 +183,6 @@ binds {
     
     // Auxiliary scripts adapted from MangoWM
     Alt+F4 { spawn "/home/gabrln/.config/niri/scripts/AltF4.sh"; }
-    Mod+Shift+B { spawn "/home/gabrln/.config/niri/scripts/ToggleBlur.sh"; }
-    Mod+Shift+G { spawn "/home/gabrln/.config/niri/scripts/ToggleGamemode.sh"; }
     
     // Hardware and media controls
     XF86AudioRaiseVolume { spawn "noctalia" "msg" "volume-up"; }
