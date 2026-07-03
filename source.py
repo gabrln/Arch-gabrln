@@ -84,6 +84,12 @@ decman.files["/etc/pam.d/greetd"] = File(
     owner="root"
 )
 
+# Niri session silent launch
+decman.files["/usr/share/wayland-sessions/niri.desktop"] = File(
+    source_file=f"{repo_dir}/.config/niri/niri.desktop",
+    owner="root"
+)
+
 # .zshenv do Zsh
 decman.files[f"{user_home}/.zshenv"] = File(
     source_file=f"{repo_dir}/.zshenv",
