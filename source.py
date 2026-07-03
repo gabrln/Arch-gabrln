@@ -39,7 +39,7 @@ decman.pacman.packages |= {
     # Temas, Protons e Ferramentas CachyOS/Arch
     "wl-clip-persist", "papirus-icon-theme", "adw-gtk-theme",
     "protonup-qt", "prismlauncher", "spotify-launcher",
-    "gnome-keyring", "seahorse", "rtkit"
+    "gnome-keyring", "seahorse", "rtkit", "niri"
 }
 
 # 3. Declarar Pacotes do AUR (via yay/paru)
@@ -104,7 +104,8 @@ configs = [
     "fastfetch",
     "nvim",
     "noctalia",
-    "opencode"
+    "opencode",
+    "niri"
 ]
 
 for cfg in configs:
