@@ -182,6 +182,11 @@ binds {
     // Window Info Script
     Mod+Shift+D { spawn "/home/gabrln/.config/niri/scripts/WindowInfo.sh"; }
     
+    // Auxiliary scripts adapted from MangoWM
+    Alt+F4 { spawn "/home/gabrln/.config/niri/scripts/AltF4.sh"; }
+    Mod+Shift+B { spawn "/home/gabrln/.config/niri/scripts/ToggleBlur.sh"; }
+    Mod+Shift+G { spawn "/home/gabrln/.config/niri/scripts/ToggleGamemode.sh"; }
+    
     // Hardware and media controls
     XF86AudioRaiseVolume { spawn "noctalia" "msg" "volume-up"; }
     XF86AudioLowerVolume { spawn "noctalia" "msg" "volume-down"; }

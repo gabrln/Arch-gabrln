@@ -115,6 +115,24 @@ decman.files[f"{user_home}/.config/niri/scripts/WindowInfo.sh"] = File(
     owner=sudo_user
 )
 
+decman.files[f"{user_home}/.config/niri/scripts/AltF4.sh"] = File(
+    source_file=f"{repo_dir}/.config/niri/scripts/AltF4.sh",
+    permissions=0o755,
+    owner=sudo_user
+)
+
+decman.files[f"{user_home}/.config/niri/scripts/ToggleBlur.sh"] = File(
+    source_file=f"{repo_dir}/.config/niri/scripts/ToggleBlur.sh",
+    permissions=0o755,
+    owner=sudo_user
+)
+
+decman.files[f"{user_home}/.config/niri/scripts/ToggleGamemode.sh"] = File(
+    source_file=f"{repo_dir}/.config/niri/scripts/ToggleGamemode.sh",
+    permissions=0o755,
+    owner=sudo_user
+)
+
 # Mango Scripts (com permissão de execução explícita)
 mango_scripts = [
     "AltF4.sh",
