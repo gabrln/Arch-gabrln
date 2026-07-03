@@ -13,6 +13,7 @@ input {
         xkb {
             layout "br"
         }
+        numlock
     }
     touchpad {
         tap
@@ -77,7 +78,7 @@ spawn-at-startup "systemctl" "--user" "import-environment" "WAYLAND_DISPLAY" "XD
 spawn-at-startup "noctalia"
 spawn-at-startup "wl-clip-persist" "--clipboard" "regular" "--reconnect-tries" "0"
 spawn-at-startup "wl-paste" "--watch" "cliphist" "store"
-spawn-at-startup "flatpak" "run" "com.github.wwmm.easyeffects" "--gapplication-service"
+spawn-at-startup "sh" "-c" "sleep 3 && flatpak run com.github.wwmm.easyeffects --gapplication-service"
 
 window-rule {
     geometry-corner-radius 5
