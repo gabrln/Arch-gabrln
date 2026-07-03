@@ -11,7 +11,12 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m'
 
-echo -e "${BLUE}=== Starting Arch-gabrln Setup Installation ===${NC}"
+print_step() {
+    echo -e "${BLUE}$1${NC}"
+    sleep 2
+}
+
+print_step "=== Starting Arch-gabrln Setup Installation ==="
 
 # Ensure we are not running as root directly (script will request sudo when needed)
 if [[ $EUID -eq 0 ]]; then
@@ -42,7 +47,7 @@ if ! command -v yay &>/dev/null; then
 fi
 
 # 3. Install Pacman Packages (Official repositories)
-echo -e "${BLUE}Installing official Pacman packages...${NC}"
+print_step "Installing official Pacman packages..."
 OFFICIAL_PKGS=(
     # Base system
     base base-devel linux-cachyos linux-cachyos-headers git git-delta docker flatpak brightnessctl zsh snapper just
@@ -58,7 +63,7 @@ OFFICIAL_PKGS=(
 sudo pacman -S --needed --noconfirm "${OFFICIAL_PKGS[@]}"
 
 # 4. Install AUR Packages
-echo -e "${BLUE}Installing AUR packages...${NC}"
+print_step "Installing AUR packages..."
 AUR_PKGS=(
     noctalia-git
     noctalia-greeter-git
@@ -69,12 +74,12 @@ yay -S --needed --noconfirm "${AUR_PKGS[@]}"
 
 # 5. Install Flatpak Packages
 if command -v flatpak &>/dev/null; then
-    echo -e "${BLUE}Installing Flatpak packages...${NC}"
+    print_step "Installing Flatpak packages..."
     flatpak install -y --system flathub com.github.wwmm.easyeffects
 fi
 
 # 6. Create Symlinks for User Configurations
-echo -e "${BLUE}Setting up configuration symlinks...${NC}"
+print_step "Setting up configuration symlinks..."
 REPO_DIR="$HOME/projects/Arch-gabrln"
 mkdir -p "$HOME/.config"
 
@@ -111,7 +116,7 @@ ln -sf "$REPO_DIR/.config/user-dirs.locale" "$HOME/.config/user-dirs.locale"
 find "$REPO_DIR/.config/niri/scripts" -type f -name "*.sh" -exec chmod +x {} +
 
 # 7. Setup Neovim (LazyVim & Noctalia theme integration)
-echo -e "${BLUE}Setting up Neovim with LazyVim & Noctalia integration...${NC}"
+print_step "Setting up Neovim with LazyVim & Noctalia integration..."
 NVIM_DIR="$HOME/.config/nvim"
 
 if [ ! -d "$NVIM_DIR" ]; then
@@ -194,7 +199,7 @@ EOF
 fi
 
 # 8. Copy System Configurations (Requires sudo)
-echo -e "${BLUE}Deploying system configuration files...${NC}"
+print_step "Deploying system configuration files..."
 sudo mkdir -p /etc/greetd
 sudo cp "$REPO_DIR/.config/greetd/config.toml" /etc/greetd/config.toml
 sudo cp "$REPO_DIR/.config/greetd/pam_greetd" /etc/pam.d/greetd
@@ -209,7 +214,7 @@ sudo chown greeter:greeter /var/lib/noctalia-greeter/greeter.toml
 sudo chmod 644 /var/lib/noctalia-greeter/greeter.toml
 
 # 9. Symlink themes for Root user (GParted, btrfs-assistant, Greetd Greeter compatibility)
-echo -e "${BLUE}Linking user themes for root application accessibility...${NC}"
+print_step "Linking user themes for root application accessibility..."
 sudo mkdir -p /root/.config
 sudo ln -sf "$HOME/.config/gtk-3.0" /root/.config/gtk-3.0
 sudo ln -sf "$HOME/.config/gtk-4.0" /root/.config/gtk-4.0
@@ -218,7 +223,7 @@ sudo mkdir -p /root/.local/share
 sudo ln -sf "$HOME/.local/share/icons" /root/.local/share/icons
 
 # 10. Enable Systemd Services
-echo -e "${BLUE}Enabling Systemd units...${NC}"
+print_step "Enabling Systemd units..."
 SERVICES=(
     docker.service
     bluetooth.service
