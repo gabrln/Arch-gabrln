@@ -25,18 +25,18 @@
   },
   "command": {
     "check": {
-      "description": "Executa simulação do decman no repositório",
-      "template": "Execute `sudo decman --source /home/gabrln/projects/Arch-gabrln/source.py --dry-run` e reporte o resultado completo."
+      "description": "Valida a configuração do compositor Niri",
+      "template": "Execute `niri validate` e reporte o resultado."
     },
     "rebuild": {
-      "description": "Aplica as configurações declarativas do decman",
-      "template": "Execute `sudo decman --source /home/gabrln/projects/Arch-gabrln/source.py` e reporte o resultado."
+      "description": "Executa o script de instalação e sincronização do setup",
+      "template": "Execute `/home/gabrln/projects/Arch-gabrln/install.sh` e reporte o resultado."
     }
   },
   "permission": {
     "bash": {
       "git *": "allow",
-      "decman *": "allow",
+      "/home/gabrln/projects/Arch-gabrln/install.sh": "allow",
       "mkdir *": "allow",
       "*": "ask"
     }

@@ -96,6 +96,7 @@ CONFIGS=(
     gtk-4.0
     xdg-desktop-portal
     niri
+    docker
 )
 
 for cfg in "${CONFIGS[@]}"; do
