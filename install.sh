@@ -62,7 +62,7 @@ OFFICIAL_PKGS=(
     # Media and files
     mpv swayimg zathura file-roller rclone firefox obsidian pavucontrol nwg-look xdg-desktop-portal-gnome xdg-desktop-portal-gtk
     # Themes and tools
-    wl-clip-persist papirus-icon-theme adw-gtk-theme protonup-qt prismlauncher spotify-launcher gnome-keyring seahorse rtkit niri
+    wl-clip-persist papirus-icon-theme adw-gtk-theme protonup-qt prismlauncher spotify-launcher gnome-keyring seahorse rtkit niri hyprland uwsm xdg-desktop-portal-hyprland
     # System utilities & essentials
     rsync wget openssh pv hwinfo meld fsarchiver nano python-defusedxml python-packaging spice-vdagent qemu-guest-agent
 )
@@ -104,6 +104,8 @@ CONFIGS=(
     xdg-desktop-portal
     niri
     docker
+    hypr
+    uwsm
 )
 
 for cfg in "${CONFIGS[@]}"; do
