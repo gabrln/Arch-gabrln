@@ -24,6 +24,13 @@ if [[ $EUID -eq 0 ]]; then
    exit 1
 fi
 
+# Request sudo privileges upfront and keep alive until script finishes
+echo -e "${YELLOW}Requesting administrative privileges upfront...${NC}"
+sudo -v
+
+# Keep-alive: update existing sudo time stamp until install.sh has finished
+while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
+
 # Synchronize package databases to avoid signature/target mismatch errors
 echo -e "${YELLOW}Synchronizing package databases...${NC}"
 sudo pacman -Sy
