@@ -24,6 +24,10 @@ if [[ $EUID -eq 0 ]]; then
    exit 1
 fi
 
+# Synchronize package databases to avoid signature/target mismatch errors
+echo -e "${YELLOW}Synchronizing package databases...${NC}"
+sudo pacman -Sy
+
 # 1. Ensure git is installed and clone the repository if not present
 if ! command -v git &>/dev/null; then
     echo -e "${YELLOW}Installing git...${NC}"
@@ -63,6 +67,7 @@ OFFICIAL_PKGS=(
     rsync wget openssh pv hwinfo meld fsarchiver nano python-defusedxml python-packaging
 )
 sudo pacman -S --needed --noconfirm "${OFFICIAL_PKGS[@]}"
+hash -r
 
 # 4. Install AUR Packages
 print_step "Installing AUR packages..."
