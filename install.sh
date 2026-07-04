@@ -64,7 +64,7 @@ OFFICIAL_PKGS=(
     # Themes and tools
     wl-clip-persist papirus-icon-theme adw-gtk-theme protonup-qt prismlauncher spotify-launcher gnome-keyring seahorse rtkit niri hyprland uwsm xdg-desktop-portal-hyprland
     # System utilities & essentials
-    rsync wget openssh pv hwinfo meld fsarchiver nano python-defusedxml python-packaging spice-vdagent qemu-guest-agent
+    rsync wget openssh pv hwinfo meld fsarchiver nano python-defusedxml python-packaging spice-vdagent qemu-guest-agent lua luajit libnotify jq
 )
 sudo pacman -S --needed --noconfirm "${OFFICIAL_PKGS[@]}"
 hash -r
@@ -106,6 +106,8 @@ CONFIGS=(
     docker
     hypr
     uwsm
+    noctalia
+    nvim
 )
 
 for cfg in "${CONFIGS[@]}"; do
@@ -124,14 +126,15 @@ ln -sf "$REPO_DIR/.zshenv" "$HOME/.zshenv"
 ln -sf "$REPO_DIR/.config/mimeapps.list" "$HOME/.config/mimeapps.list"
 ln -sf "$REPO_DIR/.config/user-dirs.dirs" "$HOME/.config/user-dirs.dirs"
 ln -sf "$REPO_DIR/.config/user-dirs.locale" "$HOME/.config/user-dirs.locale"
+ln -sf "$REPO_DIR/.config/starship.toml" "$HOME/.config/starship.toml"
 
 # Make sure scripts are executable
-find "$REPO_DIR/.config/niri/scripts" -type f -name "*.sh" -exec chmod +x {} +
+find "$REPO_DIR/.config" -type f \( -name "*.sh" -o -name "*.lua" \) -exec chmod +x {} + 2>/dev/null || true
 
-# 7. Setup Neovim (AstroNvim + Noctalia theme integration)
-# The full AstroNvim config is already tracked in the repo under .config/nvim.
+# 7. Setup Neovim (LazyVim + Noctalia theme integration)
+# The full LazyVim config is already tracked in the repo under .config/nvim.
 # The symlink created in step 6 is sufficient — no extra cloning needed.
-print_step "Neovim config already handled by symlink (AstroNvim). Skipping extra setup..."
+print_step "Neovim config already handled by symlink (LazyVim). Skipping extra setup..."
 
 # 8. Copy System Configurations (Requires sudo)
 print_step "Deploying system configuration files..."
@@ -151,11 +154,11 @@ sudo chmod 644 /var/lib/noctalia-greeter/greeter.toml
 
 # 9. Symlink themes for Root user (GParted, btrfs-assistant, Greetd Greeter compatibility)
 print_step "Linking user themes for root application accessibility..."
-sudo mkdir -p /root/.config
+mkdir -p "$HOME/.config/qt6ct" "$HOME/.local/share/icons"
+sudo mkdir -p /root/.config /root/.local/share
 sudo ln -sfT "$HOME/.config/gtk-3.0" /root/.config/gtk-3.0
 sudo ln -sfT "$HOME/.config/gtk-4.0" /root/.config/gtk-4.0
 sudo ln -sfT "$HOME/.config/qt6ct" /root/.config/qt6ct
-sudo mkdir -p /root/.local/share
 sudo ln -sfT "$HOME/.local/share/icons" /root/.local/share/icons
 
 # 10. Enable Systemd Services
