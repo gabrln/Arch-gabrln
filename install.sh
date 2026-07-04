@@ -174,9 +174,9 @@ run_as_user "ln -sf '$REPO_DIR/.config/user-dirs.dirs' '$USER_HOME/.config/user-
 run_as_user "ln -sf '$REPO_DIR/.config/user-dirs.locale' '$USER_HOME/.config/user-dirs.locale'"
 run_as_user "ln -sf '$REPO_DIR/.config/starship.toml' '$USER_HOME/.config/starship.toml'"
 
-# Criar diretórios padrão do usuário (XDG user-dirs) e sincronizar
-run_as_user "mkdir -p '$USER_HOME/Desktop' '$USER_HOME/Downloads' '$USER_HOME/Templates' '$USER_HOME/Public' '$USER_HOME/Documents' '$USER_HOME/Music' '$USER_HOME/Pictures/Screenshots' '$USER_HOME/Pictures/Wallpapers' '$USER_HOME/Videos' '$USER_HOME/Projects' '$USER_HOME/projects'"
+# Atualizar diretórios padrão do usuário (XDG user-dirs) e criar subpastas específicas
 run_as_user "xdg-user-dirs-update 2>/dev/null || true"
+run_as_user "mkdir -p '$USER_HOME/Pictures/Screenshots' '$USER_HOME/Pictures/Wallpapers' '$USER_HOME/projects'"
 
 # Tornar scripts executáveis
 find "$REPO_DIR/.config" -type f \( -name "*.sh" -o -path "*/scripts/*" \) -exec chmod +x {} + 2>/dev/null || true
