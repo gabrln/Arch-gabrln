@@ -40,10 +40,10 @@ A configuração do compositor é dividida em módulos especializados localizado
 
 * env.lua: Variáveis de ambiente, suporte Wayland nativo para Electron, Firefox, Qt6, GDK e fix de diretórios XDG.
 * monitors.lua: Configuração de resolução de monitores e regras para workspaces persistentes (1 a 10).
-* settings.lua: Layout scrolling, regras de input (teclado BR, touchpad com natural scroll e tap-to-click) e escala XWayland.
+* settings.lua: Layout scrolling, regras de input (teclado BR, touchpad com natural scroll), escala XWayland e configuração do plugin scrolloverview (gesto com 3 dedos).
 * animations.lua: Curvas Bezier refinadas e animações fluidas para janelas, painéis e transições de workspace.
 * rules.lua: Regras de janela para aplicativos maximizados, Picture-in-Picture, diálogos flutuantes e inibição de idle ao reproduzir vídeos ou músicas em tela cheia.
-* keybinds.lua: Mapeamento completo de atalhos por categoria. O atalho Super+Shift+Q foi liberado.
+* keybinds.lua: Mapeamento completo de atalhos por categoria, incluindo navegação por abas (grupos), pin flutuante e overview (scrolloverview). O atalho Super+Shift+Q foi liberado.
 * autostart.lua: Inicialização de serviços essenciais na sessão (polkit, gnome-keyring, noctalia, cliphist e easyeffects).
 
 ---
@@ -62,11 +62,15 @@ Os utilitários em ~/.config/hypr/scripts/ operam como binários independentes:
 
 | Atalho | Ação |
 |---|---|
-| Super + Return | Abrir Terminal (Kitty) |
+| Super + T | Abrir Terminal (Kitty) |
+| Super + Shift + T | Toggle Terminal Dropdown (Scratchpad) |
+| Super + Tab | Toggle Overview (suporte nativo a hyprland-scroll-overview) |
 | Super + B | Abrir Navegador (Firefox) |
 | Super + D | Launcher de Aplicativos (Noctalia) |
 | Super + / | Cheat Sheet interativo de atalhos |
-| Super + Shift + Return | Toggle Terminal Dropdown (Scratchpad) |
+| Super + G | Criar/Alternar Grupo de Janelas (Modo Abas) |
+| Super + Alt + Space | Fixar Janela Flutuante em Todas Workspaces (Pin) |
+| Super + Shift + W | Alternar Tema Claro/Escuro (Noctalia) |
 | Super + Q | Fechar Janela |
 | Alt + F4 | Fechar/Encerrar Janela com segurança (AltF4.lua) |
 | Super + Shift + D | Notificação com Informações da Janela Ativa (WindowInfo.lua) |

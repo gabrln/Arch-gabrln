@@ -67,4 +67,19 @@ hl.config({
         enabled            = true,
         force_zero_scaling = true,
     },
+    plugin = {
+        scrolloverview = {
+            gesture_distance = 300,
+            scale = 0.5,
+            workspace_gap = 100,
+            layout = "vertical",
+            wallpaper = 0,
+            blur = false,
+        },
+    },
 })
+
+-- Gesto de trackpad para overview (3 dedos para cima)
+if hl.exec_raw then
+    hl.exec_raw("keyword", "scrolloverview-gesture 3, up, overview")
+end

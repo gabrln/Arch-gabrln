@@ -17,7 +17,8 @@ local function toggle_scratchpad(name, cmd)
 end
 
 -- Core applications & tools
-hl.bind(mod .. " + Return", hl.dsp.exec_cmd("kitty"))
+hl.bind(mod .. " + T",         hl.dsp.exec_cmd("kitty")) -- Terminal padrão
+-- hl.bind(mod .. " + Return", hl.dsp.exec_cmd("kitty")) -- Migrado para SUPER + T
 hl.bind(mod .. " + B",      hl.dsp.exec_cmd("firefox"))
 hl.bind(mod .. " + E",      hl.dsp.exec_cmd("kitty -e yazi"))
 hl.bind(mod .. " + SHIFT + E", hl.dsp.exec_cmd("nautilus"))
@@ -39,7 +40,7 @@ hl.bind(mod .. " + I",         hl.dsp.exec_cmd("noctalia msg settings-toggle"))
 hl.bind(mod .. " + N",         hl.dsp.exec_cmd("noctalia msg nightlight-toggle"))
 hl.bind(mod .. " + Y",         hl.dsp.exec_cmd("noctalia msg caffeine-toggle"))
 hl.bind(mod .. " + W",         hl.dsp.exec_cmd("noctalia msg wallpaper-random"))
-hl.bind(mod .. " + SHIFT + T", hl.dsp.exec_cmd("noctalia msg theme-mode-toggle"))
+hl.bind(mod .. " + SHIFT + W", hl.dsp.exec_cmd("noctalia msg theme-mode-toggle")) -- Alternar tema Claro/Escuro (migrado do SHIFT+T)
 
 -- Focus movement (Vim keys)
 hl.bind(mod .. " + H", hl.dsp.focus({ direction = "left" }))
@@ -53,12 +54,16 @@ hl.bind(mod .. " + SHIFT + L", hl.dsp.window.move({ direction = "right" }))
 hl.bind(mod .. " + SHIFT + K", hl.dsp.window.move({ direction = "up" }))
 hl.bind(mod .. " + SHIFT + J", hl.dsp.window.move({ direction = "down" }))
 
--- Window sizing & presentation
-hl.bind(mod .. " + F",     hl.dsp.window.fullscreen())
-hl.bind(mod .. " + M",     hl.dsp.layout("fit active"))
-hl.bind(mod .. " + C",     hl.dsp.window.center())
-hl.bind(mod .. " + Space", hl.dsp.window.float({ action = "toggle" }))
-hl.bind(mod .. " + R",     hl.dsp.layout("colresize"))
+-- Window sizing, presentation & grouping
+hl.bind(mod .. " + F",         hl.dsp.window.fullscreen())
+hl.bind(mod .. " + M",         hl.dsp.layout("fit active"))
+hl.bind(mod .. " + C",         hl.dsp.window.center())
+hl.bind(mod .. " + Space",     hl.dsp.window.float({ action = "toggle" }))
+hl.bind(mod .. " + ALT + Space", hl.dsp.window.pin({ action = "toggle" })) -- Pin/fixar janela flutuante em todas workspaces
+hl.bind(mod .. " + R",         hl.dsp.layout("colresize"))
+hl.bind(mod .. " + G",           hl.dsp.exec_cmd("hyprctl dispatch togglegroup")) -- Criar/remover grupo (modo abas)
+hl.bind(mod .. " + ALT + H",     hl.dsp.exec_cmd("hyprctl dispatch changegroupactive b")) -- Aba anterior no grupo
+hl.bind(mod .. " + ALT + L",     hl.dsp.exec_cmd("hyprctl dispatch changegroupactive f")) -- Próxima aba no grupo
 
 -- Window resizing (Ctrl + Alt + Arrows)
 hl.bind("CTRL + ALT + Left",  hl.dsp.window.resize({ x = -100, y = 0, relative = true }))
@@ -80,21 +85,50 @@ end
 hl.bind(mod .. " + 0",         hl.dsp.focus({ workspace = 10 }))
 hl.bind(mod .. " + SHIFT + 0", hl.dsp.window.move({ workspace = 10 }))
 
--- Tab / mouse wheel workspace switching & overview
-hl.bind(mod .. " + Tab",               hl.dsp.focus({ workspace = "e+1" }))
+-- Tab / mouse wheel workspace switching & scrolloverview
+local function toggle_overview()
+    if hl.plugin and hl.plugin.scrolloverview then
+        hl.plugin.scrolloverview.overview("toggle")
+    else
+        hl.exec_raw("toggleoverview", "")
+    end
+end
+
+hl.bind(mod .. " + Tab",               toggle_overview)
 hl.bind(mod .. " + SHIFT + Tab",       hl.dsp.focus({ workspace = "e-1" }))
-hl.bind("ALT + Tab",                   hl.dsp.exec_raw("toggleoverview", ""))
+hl.bind("ALT + Tab",                   toggle_overview)
 hl.bind(mod .. " + mouse_down",        hl.dsp.focus({ workspace = "e+1" }))
 hl.bind(mod .. " + mouse_up",          hl.dsp.focus({ workspace = "e-1" }))
 hl.bind(mod .. " + SHIFT + mouse_down", hl.dsp.window.move({ workspace = "e+1" }))
 hl.bind(mod .. " + SHIFT + mouse_up",   hl.dsp.window.move({ workspace = "e-1" }))
+
+-- Submap opcional para navegação avançada no scrolloverview
+if hl.define_submap then
+    hl.define_submap("scrolloverview", function()
+        hl.bind("left",   function() if hl.plugin and hl.plugin.scrolloverview then hl.plugin.scrolloverview.navigate("left") end end)
+        hl.bind("right",  function() if hl.plugin and hl.plugin.scrolloverview then hl.plugin.scrolloverview.navigate("right") end end)
+        hl.bind("up",     function() if hl.plugin and hl.plugin.scrolloverview then hl.plugin.scrolloverview.navigate("up") end end)
+        hl.bind("down",   function() if hl.plugin and hl.plugin.scrolloverview then hl.plugin.scrolloverview.navigate("down") end end)
+        hl.bind("return", function() if hl.plugin and hl.plugin.scrolloverview then hl.plugin.scrolloverview.overview("select") end end)
+        hl.bind("escape", function() if hl.plugin and hl.plugin.scrolloverview then hl.plugin.scrolloverview.overview("off") end end)
+        hl.bind("mouse:272", function()
+            if hl.plugin and hl.plugin.scrolloverview then
+                hl.plugin.scrolloverview.overview("select")
+                hl.plugin.scrolloverview.window("select")
+                hl.plugin.scrolloverview.overview("off")
+            end
+        end, { mouse = true })
+        hl.bind("mouse:274", function() if hl.plugin and hl.plugin.scrolloverview then hl.plugin.scrolloverview.window("close") end end, { mouse = true })
+    end)
+end
 
 -- Mouse drag window controls
 hl.bind(mod .. " + mouse:272", hl.dsp.window.drag(),   { mouse = true })
 hl.bind(mod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
 
 -- Scratchpads (Special Workspaces)
-hl.bind(mod .. " + SHIFT + Return", function() toggle_scratchpad("kitty-drop", "kitty --class kitty-drop") end)
+hl.bind(mod .. " + SHIFT + T",      function() toggle_scratchpad("kitty-drop", "kitty --class kitty-drop") end) -- Terminal suspenso/scratchpad (migrado do SHIFT+Return)
+-- hl.bind(mod .. " + SHIFT + Return", ...) -- Migrado para SUPER + SHIFT + T
 hl.bind(mod .. " + F1",             function() toggle_scratchpad("btop-scratch", "kitty --class btop-scratch -e btop") end)
 hl.bind(mod .. " + Slash",          function() toggle_scratchpad("keyhints-scratch", "kitty --class keyhints-scratch -e /home/gabrln/.config/hypr/scripts/KeyHints.lua") end)
 
