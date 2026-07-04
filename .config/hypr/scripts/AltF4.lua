@@ -1,5 +1,5 @@
 #!/usr/bin/env lua
--- AltF4.lua - Hyprland script in Lua for force closing/killing the focused window
+-- AltF4.lua - Script para encerramento forçado de janela ativa no Hyprland
 
 local handle = io.popen("hyprctl activewindow 2>/dev/null")
 local content = handle:read("*a")

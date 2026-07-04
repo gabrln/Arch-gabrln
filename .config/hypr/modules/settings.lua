@@ -1,5 +1,5 @@
 -- =========================================================================
--- Hyprland Core Settings & Layout (Lua Module)
+-- Configurações Gerais e Layout do Hyprland (Módulo Lua)
 -- =========================================================================
 
 hl.config({
@@ -17,6 +17,7 @@ hl.config({
     scrolling = {
         fullscreen_on_one_column = true,
         column_width = 0.5,
+        explicit_column_widths = "0.333,0.5,0.667,1.0",
         direction = "right",
         follow_focus = true,
     },
@@ -52,6 +53,10 @@ hl.config({
     },
     misc = {
         disable_hyprland_logo      = true,
+        disable_splash_rendering   = true,
+        force_default_wallpaper    = 0,
+        background_color           = "rgb(11111b)",
+        initial_workspace_tracking = 0,
         focus_on_activate          = true,
         middle_click_paste         = false,
         allow_session_lock_restore = true,
@@ -75,6 +80,9 @@ hl.config({
             layout = "vertical",
             wallpaper = 0,
             blur = false,
+            input = {
+                scrolling_mode = 1,
+            },
         },
     },
 })

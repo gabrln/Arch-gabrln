@@ -1,13 +1,13 @@
 -- =========================================================================
--- Hyprland Window & Layer Rules (Lua Module)
+-- Regras de Janelas e Camadas (Módulo Lua)
 -- =========================================================================
 
--- Scratchpads (special workspaces) – size, position, focus, and workspace assignment
+-- Scratchpads (workspaces especiais) – tamanho, posição e foco
 hl.window_rule({ match = { class = "kitty-drop" },       float = true, size = "1600 900", center = true, stay_focused = true, workspace = "special:kitty-drop" })
 hl.window_rule({ match = { class = "btop-scratch" },     float = true, size = "1600 900", center = true, stay_focused = true, workspace = "special:btop-scratch" })
-hl.window_rule({ match = { class = "keyhints-scratch" }, float = true, size = "800 900", center = true, stay_focused = true, workspace = "special:keyhints-scratch" })
+hl.window_rule({ match = { class = "keyhints-scratch" }, float = true, size = "900 900", center = true, stay_focused = true, workspace = "special:keyhints-scratch" })
 
--- Window rules for Noctalia settings panel (1400x800 centered floating dialog)
+-- Painel de configurações do Noctalia (flutuante 1400x800 centralizado)
 hl.window_rule({
     match = { class = "dev.noctalia.Noctalia.Settings" },
     float = true,
@@ -15,22 +15,22 @@ hl.window_rule({
     center = true,
 })
 
--- General window rules (maximize common apps)
+-- Regras gerais (maximizar aplicações principais)
 hl.window_rule({ match = { class = "firefox" },       maximize = true })
 hl.window_rule({ match = { class = "google-chrome" }, maximize = true })
 hl.window_rule({ match = { class = "code" },          maximize = true })
 hl.window_rule({ match = { class = "obsidian" },      maximize = true })
 
--- Idle inhibit rules (prevent screen lock during full-screen video/media playing, inspired by minimaLinux)
-hl.window_rule({ match = { class = ".*(celluloid|mpv|vlc|spotify|LibreWolf|floorp|brave-browser|firefox|chromium|zen|vivaldi).*" }, idle_inhibit = "fullscreen" })
+-- Bloquear suspensão da tela durante reprodução de mídia ou jogos em tela cheia
+hl.window_rule({ match = { class = ".*(celluloid|mpv|vlc|spotify|LibreWolf|floorp|brave-browser|firefox|chromium|zen|vivaldi|steam_app|gamescope|lutris|heroic|dota2|cs2|wine).*" }, idle_inhibit = "fullscreen" })
 
--- Floating dialogs & utilities
+-- Diálogos flutuantes e utilitários
 hl.window_rule({ match = { title = ".*(Open|Save|Select|File|Dialog|Properties|Preferences|Settings|Rename|Authentication).*" }, float = true })
 hl.window_rule({ match = { class = "org.gtk.FileChooserDialog" }, float = true })
 hl.window_rule({ match = { class = "zenity" },                    float = true })
 hl.window_rule({ match = { class = "pavucontrol" },               float = true })
 
--- Firefox Picture-in-Picture: pinned, semi-transparent, 30% of screen
+-- Firefox Picture-in-Picture: fixo, semi-transparente, 30% da tela
 hl.window_rule({
     match             = { class = "firefox", title = "^Picture-in-Picture$" },
     float             = true,
@@ -41,7 +41,20 @@ hl.window_rule({
     opacity           = "0.95 0.75",
 })
 
--- Layer rules: blur on Noctalia overlays and notification layers
+-- Regras de camada: desfoque (blur) e remoção de animações conflitantes
+hl.layer_rule({
+    match = { namespace = "^noctalia-(bar-.+|notification|dock|osd|wallpaper|background)$" },
+    no_anim = true,
+    ignore_alpha = 0.5,
+    blur = true,
+    blur_popups = true,
+})
+hl.layer_rule({
+    match = { namespace = "^noctalia-(panel|attached-panel)$" },
+    no_anim = true,
+    blur = true,
+    blur_popups = true,
+})
 hl.layer_rule({ match = { namespace = "notifications" },              blur = true })
 hl.layer_rule({ match = { namespace = "logout_dialog" },              blur = true })
 hl.layer_rule({ match = { namespace = "swaync-notification-window" }, blur = true })

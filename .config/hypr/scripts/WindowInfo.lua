@@ -1,5 +1,5 @@
 #!/usr/bin/env lua
--- WindowInfo.lua - Hyprland script in Lua to display focused window details via notify-send
+-- WindowInfo.lua - Script para exibir detalhes da janela ativa via notificação
 
 local handle = io.popen("hyprctl activewindow 2>/dev/null")
 local content = handle:read("*a")

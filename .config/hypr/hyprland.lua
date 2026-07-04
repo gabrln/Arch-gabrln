@@ -1,23 +1,24 @@
 -- =========================================================================
--- Hyprland Modular Configuration (v0.55+ Lua Loader)
+-- Configuração Modular do Hyprland (Loader Lua v0.55+)
 -- =========================================================================
 
 local config_home = os.getenv("XDG_CONFIG_HOME") or (os.getenv("HOME") .. "/.config")
 local hypr_dir = config_home .. "/hypr"
 
--- Dynamic module loader (executes fresh on reload without static caching)
+-- Carregador dinâmico de módulos (executa a cada reload sem cache estático)
 local function load_module(name)
     dofile(hypr_dir .. "/modules/" .. name .. ".lua")
 end
 
--- Load configuration modules in logical order
+-- Carregar módulos de configuração em ordem lógica
 load_module("env")
 load_module("monitors")
 load_module("settings")
 load_module("animations")
 load_module("rules")
+load_module("automation")
 load_module("keybinds")
 load_module("autostart")
 
--- Apply dynamic colors from Noctalia theme templates
+-- Aplicar cores dinâmicas geradas pelos temas do Noctalia
 require("noctalia").apply_theme()

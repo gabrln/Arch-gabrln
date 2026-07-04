@@ -1,17 +1,19 @@
 -- =========================================================================
--- Hyprland Autostart & Services (Lua Module)
+-- Inicialização Automática e Serviços (Módulo Lua)
 -- =========================================================================
 
 hl.on("hyprland.start", function()
-    -- Hyprland Plugins reload (carrega scrolloverview no boot)
-    hl.exec_cmd("hyprpm reload -n")
+    -- Prioridade máxima: iniciar o desktop shell (wallpaper, painel e notificações) imediatamente
+    hl.exec_cmd("noctalia")
 
-    -- Authentication & Keyring services (inspired by minimaLinux)
+    -- Carregar plugins do Hyprland silenciosamente
+    hl.exec_cmd("hyprpm reload")
+
+    -- Serviços de autenticação e chaves (chaveiro GNOME e Polkit)
     hl.exec_cmd("/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 || /usr/libexec/polkit-gnome-authentication-agent-1")
     hl.exec_cmd("gnome-keyring-daemon --start --components=secrets")
 
-    -- Desktop shell and system utilities
-    hl.exec_cmd("noctalia")
+    -- Utilitários do sistema e clipboard
     hl.exec_cmd("wl-clip-persist --clipboard regular --reconnect-tries 0")
     hl.exec_cmd("wl-paste --watch cliphist store")
     hl.exec_cmd("flatpak run com.github.wwmm.easyeffects --gapplication-service")

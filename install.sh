@@ -16,49 +16,57 @@ print_step() {
     sleep 2
 }
 
-print_step "=== Starting Arch-gabrln Setup Installation ==="
+print_step "=== Iniciando Instalação do Setup Arch-gabrln ==="
 
-# Ensure we are not running as root directly (script will request sudo when needed)
-if [[ $EUID -eq 0 ]]; then
-   echo -e "${RED}Do not run this script as root/sudo directly. Run it as normal user.${NC}" 1>&2
-   exit 1
+# 1. Elevação de privilégios única no início do script
+if [[ $EUID -ne 0 ]]; then
+    echo -e "${YELLOW}:: Solicitando senha de administrador (sudo) apenas uma vez para toda a instalação...${NC}"
+    exec sudo -E bash "$0" "$@"
 fi
 
-# Request sudo privileges upfront and keep alive until script finishes
-echo -e "${YELLOW}Requesting administrative privileges upfront...${NC}"
-sudo -v
+# Identificar o usuário real e seu diretório HOME
+REAL_USER="${SUDO_USER:-$(logname 2>/dev/null || echo $USER)}"
+USER_HOME=$(getent passwd "$REAL_USER" | cut -d: -f6)
 
-# Keep-alive: update existing sudo time stamp until install.sh has finished
-while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
+# Configurar regra temporária no sudoers para garantir que comandos rodando como o usuário
+# (ex: yay e makepkg ao instalar pacotes AUR) nunca peçam senha novamente
+TEMP_SUDOERS="/etc/sudoers.d/99-arch-gabrln-installer-temp"
+echo "$REAL_USER ALL=(ALL) NOPASSWD: ALL" > "$TEMP_SUDOERS"
+chmod 440 "$TEMP_SUDOERS"
 
-# Synchronize package databases to avoid signature/target mismatch errors
-echo -e "${YELLOW}Synchronizing package databases...${NC}"
-sudo pacman -Sy
+# Garantir remoção automática da regra temporária ao sair ou interromper o script
+trap 'rm -f "$TEMP_SUDOERS"' EXIT INT TERM HUP
 
-# 1. Ensure git is installed and clone the repository if not present
+# Função auxiliar para executar comandos sem privilégios de root (como usuário normal)
+run_as_user() {
+    sudo -u "$REAL_USER" --preserve-env=PATH,HOME bash -c "$@"
+}
+
+# Sincronizar bases de dados de pacotes
+echo -e "${YELLOW}Sincronizando base de dados do Pacman...${NC}"
+pacman -Sy
+
+# Garantir que git está instalado e clonar repositório se necessário
 if ! command -v git &>/dev/null; then
-    echo -e "${YELLOW}Installing git...${NC}"
-    sudo pacman -S --needed --noconfirm git
+    echo -e "${YELLOW}Instalando git...${NC}"
+    pacman -S --needed --noconfirm git
 fi
 
-REPO_DIR="$HOME/projects/Arch-gabrln"
+REPO_DIR="$USER_HOME/projects/Arch-gabrln"
 if [ ! -d "$REPO_DIR" ]; then
-    echo -e "${YELLOW}Cloning repository to $REPO_DIR...${NC}"
-    mkdir -p "$HOME/projects"
-    git clone https://github.com/gabrln/Arch-gabrln.git "$REPO_DIR"
+    echo -e "${YELLOW}Clonando repositório para $REPO_DIR...${NC}"
+    run_as_user "mkdir -p '$USER_HOME/projects' && git clone https://github.com/gabrln/Arch-gabrln.git '$REPO_DIR'"
 fi
 
-# 2. Install/Update yay (AUR helper)
+# 2. Instalar/Atualizar yay (AUR helper)
 if ! command -v yay &>/dev/null; then
-    echo -e "${YELLOW}Installing 'yay' for AUR package support...${NC}"
-    sudo pacman -S --needed --noconfirm base-devel git
-    git clone https://aur.archlinux.org/yay.git /tmp/yay
-    (cd /tmp/yay && makepkg -si --noconfirm)
-    rm -rf /tmp/yay
+    echo -e "${YELLOW}Instalando 'yay' para suporte a pacotes AUR...${NC}"
+    pacman -S --needed --noconfirm base-devel git
+    run_as_user "git clone https://aur.archlinux.org/yay.git /tmp/yay && cd /tmp/yay && makepkg -si --noconfirm && rm -rf /tmp/yay"
 fi
 
-# 3. Install Pacman Packages (Official repositories)
-print_step "Installing official Pacman packages..."
+# 3. Instalar pacotes oficiais via Pacman
+print_step "Instalando pacotes oficiais dos repositórios..."
 OFFICIAL_PKGS=(
     # Base system & build tools for plugins (hyprpm)
     base base-devel linux-cachyos linux-cachyos-headers cmake cpio pkgconf git git-delta docker flatpak brightnessctl zsh snapper just
@@ -73,31 +81,30 @@ OFFICIAL_PKGS=(
     # System utilities & essentials
     rsync wget openssh pv hwinfo meld fsarchiver nano python-defusedxml python-packaging spice-vdagent qemu-guest-agent lua luajit libnotify jq
 )
-sudo pacman -S --needed --noconfirm "${OFFICIAL_PKGS[@]}"
+pacman -S --needed --noconfirm "${OFFICIAL_PKGS[@]}"
 hash -r
 
-# 4. Install AUR Packages
-print_step "Installing AUR packages..."
+# 4. Instalar pacotes do AUR
+print_step "Instalando pacotes do AUR via yay..."
 AUR_PKGS=(
     noctalia-git
     noctalia-greeter-git
     bibata-cursor-theme
     niri-scratchpad-rs-git
 )
-yay -S --needed --noconfirm "${AUR_PKGS[@]}"
+run_as_user "yay -S --needed --noconfirm ${AUR_PKGS[*]}"
 
-# 5. Install Flatpak Packages
+# 5. Instalar pacotes Flatpak
 if command -v flatpak &>/dev/null; then
-    print_step "Installing Flatpak packages..."
-    # Ensure flathub repository is registered system-wide first
+    print_step "Instalando pacotes Flatpak..."
     flatpak remote-add --if-not-exists --system flathub https://dl.flathub.org/repo/flathub.flatpakrepo
     flatpak install -y --system flathub com.github.wwmm.easyeffects
 fi
 
-# 6. Create Symlinks for User Configurations
-print_step "Setting up configuration symlinks..."
-REPO_DIR="$HOME/projects/Arch-gabrln"
-mkdir -p "$HOME/.config"
+# 6. Criar links simbólicos para as configurações do usuário
+print_step "Configurando links simbólicos (dotfiles)..."
+REPO_DIR="$USER_HOME/projects/Arch-gabrln"
+run_as_user "mkdir -p '$USER_HOME/.config'"
 
 CONFIGS=(
     zsh
@@ -118,71 +125,67 @@ CONFIGS=(
 )
 
 for cfg in "${CONFIGS[@]}"; do
-    TARGET_PATH="$HOME/.config/$cfg"
-    # Backup physical directories if they exist and are not symlinks
+    TARGET_PATH="$USER_HOME/.config/$cfg"
     if [ -d "$TARGET_PATH" ] && [ ! -L "$TARGET_PATH" ]; then
         BACKUP_PATH="${TARGET_PATH}.backup.$(date +%Y%m%d_%H%M%S)"
-        echo -e "${YELLOW}Backing up existing directory: $cfg -> $(basename "$BACKUP_PATH")${NC}"
+        echo -e "${YELLOW}Fazer backup de diretório existente: $cfg -> $(basename "$BACKUP_PATH")${NC}"
         mv "$TARGET_PATH" "$BACKUP_PATH"
+        chown -R "$REAL_USER:$REAL_USER" "$BACKUP_PATH"
     fi
-    ln -sfT "$REPO_DIR/.config/$cfg" "$TARGET_PATH"
+    run_as_user "ln -sfT '$REPO_DIR/.config/$cfg' '$TARGET_PATH'"
 done
 
-# Single configuration files
-ln -sf "$REPO_DIR/.zshenv" "$HOME/.zshenv"
-ln -sf "$REPO_DIR/.config/mimeapps.list" "$HOME/.config/mimeapps.list"
-ln -sf "$REPO_DIR/.config/user-dirs.dirs" "$HOME/.config/user-dirs.dirs"
-ln -sf "$REPO_DIR/.config/user-dirs.locale" "$HOME/.config/user-dirs.locale"
-ln -sf "$REPO_DIR/.config/starship.toml" "$HOME/.config/starship.toml"
+# Arquivos de configuração avulsos
+run_as_user "ln -sf '$REPO_DIR/.zshenv' '$USER_HOME/.zshenv'"
+run_as_user "ln -sf '$REPO_DIR/.config/mimeapps.list' '$USER_HOME/.config/mimeapps.list'"
+run_as_user "ln -sf '$REPO_DIR/.config/user-dirs.dirs' '$USER_HOME/.config/user-dirs.dirs'"
+run_as_user "ln -sf '$REPO_DIR/.config/user-dirs.locale' '$USER_HOME/.config/user-dirs.locale'"
+run_as_user "ln -sf '$REPO_DIR/.config/starship.toml' '$USER_HOME/.config/starship.toml'"
 
-# Make sure scripts are executable
+# Tornar scripts executáveis
 find "$REPO_DIR/.config" -type f \( -name "*.sh" -o -path "*/scripts/*" \) -exec chmod +x {} + 2>/dev/null || true
 
-# 7. Setup Neovim (LazyVim + Noctalia theme integration)
-# The full LazyVim config is already tracked in the repo under .config/nvim.
-# The symlink created in step 6 is sufficient — no extra cloning needed.
-print_step "Neovim config already handled by symlink (LazyVim). Skipping extra setup..."
+# 7. Setup do Neovim
+print_step "Configuração do Neovim vinculada via symlink. Pulando..."
 
-# 8. Setup Hyprland Plugins (scrolloverview via hyprpm)
+# 8. Configurar plugins do Hyprland (scrolloverview)
 if command -v hyprpm &>/dev/null; then
-    print_step "Setting up Hyprland plugins (scrolloverview)..."
-    if [ -n "$HYPRLAND_INSTANCE_SIGNATURE" ]; then
-        hyprpm update 2>/dev/null || true
-        hyprpm add https://github.com/yayuuu/hyprland-scroll-overview.git 2>/dev/null || true
-        hyprpm enable scrolloverview 2>/dev/null || true
+    print_step "Configurando plugins do Hyprland (scrolloverview)..."
+    if [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]; then
+        run_as_user "hyprpm update 2>/dev/null || true"
+        run_as_user "hyprpm add https://github.com/yayuuu/hyprland-scroll-overview.git 2>/dev/null || true"
+        run_as_user "hyprpm enable scrolloverview 2>/dev/null || true"
     else
-        echo -e "${YELLOW}Hyprland is not currently running. To enable the scrolloverview plugin later, run:${NC}"
+        echo -e "${YELLOW}Hyprland não está rodando no momento. Para ativar o scrolloverview depois, execute:${NC}"
         echo -e "${YELLOW}  hyprpm update && hyprpm add https://github.com/yayuuu/hyprland-scroll-overview.git && hyprpm enable scrolloverview${NC}"
     fi
 fi
 
-# 9. Copy System Configurations (Requires sudo)
-print_step "Deploying system configuration files..."
-sudo mkdir -p /etc/greetd
-sudo cp "$REPO_DIR/.config/greetd/config.toml" /etc/greetd/config.toml
-sudo cp "$REPO_DIR/.config/greetd/pam_greetd" /etc/pam.d/greetd
+# 9. Deploy de configurações globais do sistema
+print_step "Configurando arquivos de sistema (greetd, sessões)..."
+mkdir -p /etc/greetd
+cp "$REPO_DIR/.config/greetd/config.toml" /etc/greetd/config.toml
+cp "$REPO_DIR/.config/greetd/pam_greetd" /etc/pam.d/greetd
 
-# Wayland Session desktop entry (Ensure parent folder exists)
-sudo mkdir -p /usr/share/wayland-sessions
-sudo cp "$REPO_DIR/.config/niri/niri.desktop" /usr/share/wayland-sessions/niri.desktop
+mkdir -p /usr/share/wayland-sessions
+cp "$REPO_DIR/.config/niri/niri.desktop" /usr/share/wayland-sessions/niri.desktop
 
-# Noctalia Greeter settings
-sudo mkdir -p /var/lib/noctalia-greeter
-sudo cp "$REPO_DIR/.config/greetd/greeter.toml" /var/lib/noctalia-greeter/greeter.toml
-sudo chown greeter:greeter /var/lib/noctalia-greeter/greeter.toml
-sudo chmod 644 /var/lib/noctalia-greeter/greeter.toml
+mkdir -p /var/lib/noctalia-greeter
+cp "$REPO_DIR/.config/greetd/greeter.toml" /var/lib/noctalia-greeter/greeter.toml
+chown greeter:greeter /var/lib/noctalia-greeter/greeter.toml
+chmod 644 /var/lib/noctalia-greeter/greeter.toml
 
-# 10. Symlink themes for Root user (GParted, btrfs-assistant, Greetd Greeter compatibility)
-print_step "Linking user themes for root application accessibility..."
-mkdir -p "$HOME/.config/qt6ct" "$HOME/.local/share/icons"
-sudo mkdir -p /root/.config /root/.local/share
-sudo ln -sfT "$HOME/.config/gtk-3.0" /root/.config/gtk-3.0
-sudo ln -sfT "$HOME/.config/gtk-4.0" /root/.config/gtk-4.0
-sudo ln -sfT "$HOME/.config/qt6ct" /root/.config/qt6ct
-sudo ln -sfT "$HOME/.local/share/icons" /root/.local/share/icons
+# 10. Symlinks de temas para o usuário root (compatibilidade com apps gráficos sudo)
+print_step "Vinculando temas para acessibilidade de aplicativos root..."
+run_as_user "mkdir -p '$USER_HOME/.config/qt6ct' '$USER_HOME/.local/share/icons'"
+mkdir -p /root/.config /root/.local/share
+ln -sfT "$USER_HOME/.config/gtk-3.0" /root/.config/gtk-3.0
+ln -sfT "$USER_HOME/.config/gtk-4.0" /root/.config/gtk-4.0
+ln -sfT "$USER_HOME/.config/qt6ct" /root/.config/qt6ct
+ln -sfT "$USER_HOME/.local/share/icons" /root/.local/share/icons
 
-# 11. Enable Systemd Services
-print_step "Enabling Systemd units..."
+# 11. Ativar serviços do Systemd
+print_step "Ativando serviços do Systemd..."
 SERVICES=(
     docker.service
     bluetooth.service
@@ -192,7 +195,7 @@ SERVICES=(
     qemu-guest-agent.service
 )
 for svc in "${SERVICES[@]}"; do
-    sudo systemctl enable "$svc" 2>/dev/null || true
+    systemctl enable "$svc" 2>/dev/null || true
 done
 
-echo -e "${GREEN}=== Setup Installation & Sync Completed successfully! ===${NC}"
+echo -e "${GREEN}=== Instalação e Sincronização concluídas com sucesso! ===${NC}"

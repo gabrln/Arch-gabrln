@@ -64,7 +64,7 @@ Os utilitários em ~/.config/hypr/scripts/ operam como binários independentes:
 |---|---|
 | Super + T | Abrir Terminal (Kitty) |
 | Super + Shift + T | Toggle Terminal Dropdown (Scratchpad) |
-| Super + Tab | Toggle Overview (suporte nativo a hyprland-scroll-overview) |
+| Alt + Tab | Toggle Overview (suporte nativo a hyprland-scroll-overview) |
 | Super + B | Abrir Navegador (Firefox) |
 | Super + D | Launcher de Aplicativos (Noctalia) |
 | Super + / | Cheat Sheet interativo de atalhos |

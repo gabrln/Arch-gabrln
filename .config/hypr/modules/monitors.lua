@@ -1,16 +1,15 @@
 -- =========================================================================
--- Hyprland Monitors & Workspaces (Lua Module)
+-- Monitores e Workspaces do Hyprland (Módulo Lua)
 -- =========================================================================
 
--- Primary laptop display
+-- Tela principal do notebook
 hl.monitor({
     output   = "eDP-1",
     mode     = "preferred",
     position = "auto",
     scale    = 1,
 })
-
--- Fallback for external monitors / hotplug
+-- Monitor externo genérico / hotplug
 hl.monitor({
     output   = "",
     mode     = "preferred",
@@ -18,7 +17,7 @@ hl.monitor({
     scale    = "auto",
 })
 
--- Persistent workspaces (1 through 10)
+-- Workspaces fixas (1 a 10)
 for i = 1, 10 do
     hl.workspace_rule({
         workspace  = tostring(i),
