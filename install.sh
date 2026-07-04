@@ -79,7 +79,7 @@ OFFICIAL_PKGS=(
     # Media and files
     mpv swayimg zathura file-roller rclone firefox obsidian pavucontrol nwg-look xdg-user-dirs xdg-user-dirs-gtk xdg-desktop-portal-gtk
     # Themes and tools
-    wl-clip-persist papirus-icon-theme adw-gtk-theme protonup-qt prismlauncher spotify-launcher gnome-keyring seahorse rtkit hyprland uwsm xdg-desktop-portal-hyprland
+    wl-clip-persist papirus-icon-theme adw-gtk-theme qt5ct qt6ct protonup-qt prismlauncher spotify-launcher gnome-keyring seahorse rtkit hyprland uwsm xdg-desktop-portal-hyprland
     # System utilities & essentials
     rsync wget openssh pv hwinfo meld fsarchiver nano python-defusedxml python-packaging spice-vdagent qemu-guest-agent lua luajit libnotify jq
 )
@@ -168,9 +168,6 @@ done
 # Arquivos de configuração avulsos
 run_as_user "ln -sf '$REPO_DIR/.zshenv' '$USER_HOME/.zshenv'"
 run_as_user "ln -sf '$REPO_DIR/.config/mimeapps.list' '$USER_HOME/.config/mimeapps.list'"
-run_as_user "ln -sf '$REPO_DIR/.config/user-dirs.dirs' '$USER_HOME/.config/user-dirs.dirs'"
-run_as_user "ln -sf '$REPO_DIR/.config/user-dirs.locale' '$USER_HOME/.config/user-dirs.locale'"
-run_as_user "ln -sf '$REPO_DIR/.config/starship.toml' '$USER_HOME/.config/starship.toml'"
 
 # Atualizar diretórios padrão do usuário (XDG user-dirs) e criar subpastas específicas
 run_as_user "xdg-user-dirs-update 2>/dev/null || true"

@@ -26,15 +26,21 @@ known_hosts
 # ===== configurações locais ignoradas =====
 .config/rofi/
 
-# ===== Neovim generated =====
-.config/nvim/lua/matugen.lua
-
 # ===== Kitty generated =====
 .config/kitty/current-theme.conf
 .config/kitty/themes/
 
 # ===== Mango generated =====
 .config/mango/noctalia.conf
+
+# ===== Noctalia generated =====
+.config/starship.toml
+.config/qt5ct/
+.config/qt6ct/
+
+# ===== XDG generated =====
+.config/user-dirs.dirs
+.config/user-dirs.locale
 
 # ===== GTK generated =====
 .config/gtk-3.0/*
