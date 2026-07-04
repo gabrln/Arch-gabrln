@@ -5,3 +5,7 @@ fi
 if [[ -d "$XDG_CONFIG_HOME/zsh" ]]; then
     export ZDOTDIR="$XDG_CONFIG_HOME/zsh"
 fi
+
+if [[ -d "$HOME/.local/bin" ]]; then
+    export PATH="$HOME/.local/bin:$PATH"
+fi
