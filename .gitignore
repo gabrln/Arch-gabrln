@@ -30,12 +30,8 @@ known_hosts
 .config/kitty/current-theme.conf
 .config/kitty/themes/
 
-# ===== Mango generated =====
-.config/mango/noctalia.conf
-
 # ===== Noctalia generated =====
 .config/starship.toml
-.config/qt5ct/
 .config/qt6ct/
 
 # ===== XDG generated =====

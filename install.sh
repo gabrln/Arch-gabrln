@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # install.sh - Installation & bootstrap script for Arch-gabrln setup
-# Assumes Arch Linux or CachyOS.
+# Target: CachyOS (minimal install, no desktop).
 
 set -euo pipefail
 
@@ -29,7 +29,7 @@ REAL_USER="${SUDO_USER:-$(logname 2>/dev/null || echo $USER)}"
 USER_HOME=$(getent passwd "$REAL_USER" | cut -d: -f6)
 
 # Configurar regra temporária no sudoers para garantir que comandos rodando como o usuário
-# (ex: yay e makepkg ao instalar pacotes AUR) nunca peçam senha novamente
+# (ex: makepkg ao instalar pacotes AUR) nunca peçam senha novamente
 TEMP_SUDOERS="/etc/sudoers.d/99-arch-gabrln-installer-temp"
 echo "$REAL_USER ALL=(ALL) NOPASSWD: ALL" > "$TEMP_SUDOERS"
 chmod 440 "$TEMP_SUDOERS"
@@ -72,6 +72,10 @@ print_step "Instalando pacotes oficiais dos repositórios..."
 OFFICIAL_PKGS=(
     # Base system & build tools for plugins (hyprpm)
     base base-devel linux-cachyos linux-cachyos-headers cmake cpio pkgconf git git-delta docker flatpak brightnessctl zsh snapper just nodejs npm unzip
+    # Networking & Bluetooth
+    networkmanager bluez bluez-utils
+    # Display manager
+    greetd
     # Zsh and terminal tooling
     atuin bat eza fzf ripgrep fd zoxide starship direnv fastfetch btop grim slurp
     # User applications
@@ -79,7 +83,7 @@ OFFICIAL_PKGS=(
     # Media and files
     mpv swayimg zathura file-roller rclone firefox obsidian pavucontrol nwg-look xdg-user-dirs xdg-user-dirs-gtk xdg-desktop-portal-gtk
     # Themes and tools
-    wl-clip-persist papirus-icon-theme adw-gtk-theme qt5ct qt6ct protonup-qt prismlauncher spotify-launcher gnome-keyring seahorse rtkit hyprland uwsm xdg-desktop-portal-hyprland
+    wl-clip-persist papirus-icon-theme adw-gtk-theme qt6ct protonup-qt prismlauncher spotify-launcher gnome-keyring seahorse rtkit hyprland uwsm xdg-desktop-portal-hyprland
     # System utilities & essentials
     rsync wget openssh pv hwinfo meld fsarchiver nano python-defusedxml python-packaging spice-vdagent qemu-guest-agent lua luajit libnotify jq
 )
@@ -133,9 +137,8 @@ if [ -f "$WP_TMP" ] && file "$WP_TMP" | grep -i -E "zip|archive" &>/dev/null; th
     rm -f "$WP_TMP"
 fi
 
-# 8. Criar links simbólicos para as configurações do usuário
-print_step "Configurando links simbólicos (dotfiles)..."
-REPO_DIR="$USER_HOME/projects/Arch-gabrln"
+# 8. Copiar configurações do usuário (dotfiles)
+print_step "Copiando configurações do usuário (dotfiles)..."
 run_as_user "mkdir -p '$USER_HOME/.config'"
 
 CONFIGS=(
@@ -156,18 +159,25 @@ CONFIGS=(
 
 for cfg in "${CONFIGS[@]}"; do
     TARGET_PATH="$USER_HOME/.config/$cfg"
+    SOURCE_PATH="$REPO_DIR/.config/$cfg"
+    if [ ! -d "$SOURCE_PATH" ] && [ ! -f "$SOURCE_PATH" ]; then
+        echo -e "${YELLOW}Fonte não encontrada, pulando: $cfg${NC}"
+        continue
+    fi
     if [ -e "$TARGET_PATH" ] && [ ! -L "$TARGET_PATH" ]; then
         BACKUP_PATH="${TARGET_PATH}.backup.$(date +%Y%m%d_%H%M%S)"
         echo -e "${YELLOW}Fazer backup de configuração existente: $cfg -> $(basename "$BACKUP_PATH")${NC}"
         mv "$TARGET_PATH" "$BACKUP_PATH"
         chown -R "$REAL_USER:$REAL_USER" "$BACKUP_PATH"
     fi
-    run_as_user "ln -sfT '$REPO_DIR/.config/$cfg' '$TARGET_PATH'"
+    # Remover symlink antigo se existir (migração de ln para cp)
+    [ -L "$TARGET_PATH" ] && rm -f "$TARGET_PATH"
+    run_as_user "cp -rfT '$SOURCE_PATH' '$TARGET_PATH'"
 done
 
 # Arquivos de configuração avulsos
-run_as_user "ln -sf '$REPO_DIR/.zshenv' '$USER_HOME/.zshenv'"
-run_as_user "ln -sf '$REPO_DIR/.config/mimeapps.list' '$USER_HOME/.config/mimeapps.list'"
+run_as_user "cp -f '$REPO_DIR/.zshenv' '$USER_HOME/.zshenv'"
+run_as_user "cp -f '$REPO_DIR/.config/mimeapps.list' '$USER_HOME/.config/mimeapps.list'"
 
 # Atualizar diretórios padrão do usuário (XDG user-dirs) e criar subpastas específicas
 run_as_user "xdg-user-dirs-update 2>/dev/null || true"
@@ -176,10 +186,7 @@ run_as_user "mkdir -p '$USER_HOME/Pictures/Screenshots' '$USER_HOME/Pictures/Wal
 # Tornar scripts executáveis
 find "$REPO_DIR/.config" -type f \( -name "*.sh" -o -path "*/scripts/*" \) -exec chmod +x {} + 2>/dev/null || true
 
-# 7. Setup do Neovim
-print_step "Configuração do Neovim vinculada via symlink. Pulando..."
-
-# 8. Configurar plugins do Hyprland (scrolloverview)
+# 9. Configurar plugins do Hyprland (scrolloverview)
 if command -v hyprpm &>/dev/null; then
     print_step "Configurando plugins do Hyprland (scrolloverview)..."
     if [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]; then
@@ -192,7 +199,7 @@ if command -v hyprpm &>/dev/null; then
     fi
 fi
 
-# 9. Deploy de configurações globais do sistema
+# 10. Deploy de configurações globais do sistema
 print_step "Configurando arquivos de sistema (greetd, sessões)..."
 mkdir -p /etc/greetd
 cp "$REPO_DIR/.config/greetd/config.toml" /etc/greetd/config.toml
@@ -203,7 +210,7 @@ cp "$REPO_DIR/.config/greetd/greeter.toml" /var/lib/noctalia-greeter/greeter.tom
 chown -R greeter:greeter /var/lib/noctalia-greeter 2>/dev/null || true
 chmod 644 /var/lib/noctalia-greeter/greeter.toml
 
-# 10. Symlinks de temas para o usuário root (compatibilidade com apps gráficos sudo)
+# 11. Symlinks de temas para o usuário root (compatibilidade com apps gráficos sudo)
 print_step "Vinculando temas para acessibilidade de aplicativos root..."
 run_as_user "mkdir -p '$USER_HOME/.config/qt6ct' '$USER_HOME/.local/share/icons'"
 mkdir -p /root/.config /root/.local/share
@@ -214,7 +221,7 @@ done
 rm -rf /root/.local/share/icons
 ln -sfT "$USER_HOME/.local/share/icons" /root/.local/share/icons
 
-# 11. Ativar serviços do Systemd
+# 12. Ativar serviços do Systemd
 print_step "Ativando serviços do Systemd..."
 SERVICES=(
     docker.service
