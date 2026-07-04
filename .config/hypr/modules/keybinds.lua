@@ -9,11 +9,8 @@ local function toggle_scratchpad(name, cmd)
     local windows = hl.get_windows({ class = name })
     if #windows == 0 then
         hl.exec_cmd(cmd)
-        hl.exec_cmd("sleep 0.3")
-        hl.exec_cmd("hyprctl dispatch togglespecialworkspace " .. name)
-    else
-        hl.exec_cmd("hyprctl dispatch togglespecialworkspace " .. name)
     end
+    hl.dispatch(hl.dsp.workspace.toggle_special(name))
 end
 
 -- Aplicações principais e ferramentas
@@ -62,9 +59,9 @@ hl.bind(mod .. " + Space",     hl.dsp.window.float({ action = "toggle" }))
 hl.bind(mod .. " + ALT + Space", hl.dsp.window.pin({ action = "toggle" })) -- Fixar janela flutuante em todas workspaces
 hl.bind(mod .. " + R",         hl.dsp.layout("colresize +conf")) -- Redimensionar coluna (próxima largura predefinida)
 hl.bind(mod .. " + SHIFT + R", hl.dsp.layout("colresize -conf")) -- Redimensionar coluna (largura predefinida anterior)
-hl.bind(mod .. " + G",           hl.dsp.exec_cmd("hyprctl dispatch togglegroup")) -- Criar/remover grupo (modo abas)
-hl.bind(mod .. " + ALT + H",     hl.dsp.exec_cmd("hyprctl dispatch changegroupactive b")) -- Aba anterior no grupo
-hl.bind(mod .. " + ALT + L",     hl.dsp.exec_cmd("hyprctl dispatch changegroupactive f")) -- Próxima aba no grupo
+hl.bind(mod .. " + G",           hl.dsp.group.toggle()) -- Criar/remover grupo (modo abas)
+hl.bind(mod .. " + ALT + H",     hl.dsp.group.prev()) -- Aba anterior no grupo
+hl.bind(mod .. " + ALT + L",     hl.dsp.group.next()) -- Próxima aba no grupo
 
 -- Redimensionar janela por pixels (Ctrl + Alt + Setas)
 hl.bind("CTRL + ALT + Left",  hl.dsp.window.resize({ x = -100, y = 0, relative = true }))

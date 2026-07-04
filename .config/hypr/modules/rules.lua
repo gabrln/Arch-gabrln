@@ -11,7 +11,7 @@ hl.window_rule({ match = { class = "keyhints-scratch" }, float = true, size = "9
 hl.window_rule({
     match = { class = "dev.noctalia.Noctalia.Settings" },
     float = true,
-    size = "1400 800",
+    size = "1000 900",
     center = true,
 })
 
