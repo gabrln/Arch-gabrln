@@ -94,42 +94,42 @@ hl.window_rule({
 local mod = "SUPER"
 
 -- Core operations
-hl.bind(mod .. ", Q", hl.dsp.exec_cmd("kitty"))
-hl.bind(mod .. " SHIFT, Q", function() hl.dispatch("killactive", "") end)
-hl.bind("CTRL ALT, Delete", function() hl.dispatch("exit", "") end)
+hl.bind(mod .. " + Q", hl.dsp.exec_cmd("kitty"))
+hl.bind(mod .. " + SHIFT + Q", function() hl.dispatch("killactive", "") end)
+hl.bind("CTRL + ALT + Delete", function() hl.dispatch("exit", "") end)
 
 -- Focus movement (Vim keys)
-hl.bind(mod .. ", H", function() hl.dispatch("movefocus", "l") end)
-hl.bind(mod .. ", L", function() hl.dispatch("movefocus", "r") end)
-hl.bind(mod .. ", K", function() hl.dispatch("movefocus", "u") end)
-hl.bind(mod .. ", J", function() hl.dispatch("movefocus", "d") end)
+hl.bind(mod .. " + H", function() hl.dispatch("movefocus", "l") end)
+hl.bind(mod .. " + L", function() hl.dispatch("movefocus", "r") end)
+hl.bind(mod .. " + K", function() hl.dispatch("movefocus", "u") end)
+hl.bind(mod .. " + J", function() hl.dispatch("movefocus", "d") end)
 
 -- Move windows (Vim keys)
-hl.bind(mod .. " SHIFT, H", function() hl.dispatch("movewindow", "l") end)
-hl.bind(mod .. " SHIFT, L", function() hl.dispatch("movewindow", "r") end)
-hl.bind(mod .. " SHIFT, K", function() hl.dispatch("movewindow", "u") end)
-hl.bind(mod .. " SHIFT, J", function() hl.dispatch("movewindow", "d") end)
+hl.bind(mod .. " + SHIFT + H", function() hl.dispatch("movewindow", "l") end)
+hl.bind(mod .. " + SHIFT + L", function() hl.dispatch("movewindow", "r") end)
+hl.bind(mod .. " + SHIFT + K", function() hl.dispatch("movewindow", "u") end)
+hl.bind(mod .. " + SHIFT + J", function() hl.dispatch("movewindow", "d") end)
 
 -- Scrolling layout specific binds
-hl.bind(mod .. ", period", hl.dsp.layout("move +col"))
-hl.bind(mod .. ", comma", hl.dsp.layout("move -col"))
-hl.bind(mod .. " SHIFT, period", hl.dsp.layout("swapcol r"))
-hl.bind(mod .. " SHIFT, comma", hl.dsp.layout("swapcol l"))
+hl.bind(mod .. " + period", hl.dsp.layout("move +col"))
+hl.bind(mod .. " + comma", hl.dsp.layout("move -col"))
+hl.bind(mod .. " + SHIFT + period", hl.dsp.layout("swapcol r"))
+hl.bind(mod .. " + SHIFT + comma", hl.dsp.layout("swapcol l"))
 
 -- Workspaces switching and window moving (1 to 9)
 for i = 1, 9 do
-    hl.bind(mod .. ", " .. i, function() hl.dispatch("workspace", tostring(i)) end)
-    hl.bind(mod .. " SHIFT, " .. i, function() hl.dispatch("movetoworkspace", tostring(i)) end)
+    hl.bind(mod .. " + " .. i, function() hl.dispatch("workspace", tostring(i)) end)
+    hl.bind(mod .. " + SHIFT + " .. i, function() hl.dispatch("movetoworkspace", tostring(i)) end)
 end
 
 -- Scratchpads (Toggle Special Workspaces)
-hl.bind(mod .. " SHIFT, Return", function() hl.dispatch("togglespecialworkspace", "kitty-drop") end)
-hl.bind(mod .. ", F1", function() hl.dispatch("togglespecialworkspace", "btop-scratch") end)
-hl.bind(mod .. ", Slash", function() hl.dispatch("togglespecialworkspace", "keyhints-scratch") end)
+hl.bind(mod .. " + SHIFT + Return", function() hl.dispatch("togglespecialworkspace", "kitty-drop") end)
+hl.bind(mod .. " + F1", function() hl.dispatch("togglespecialworkspace", "btop-scratch") end)
+hl.bind(mod .. " + Slash", function() hl.dispatch("togglespecialworkspace", "keyhints-scratch") end)
 
 -- Media and controls mapped through Noctalia / system tools
-hl.bind(mod .. ", F2", hl.dsp.exec_cmd("noctalia msg mic-mute"))
-hl.bind("CTRL ALT, L", hl.dsp.exec_cmd("noctalia msg session lock"))
+hl.bind(mod .. " + F2", hl.dsp.exec_cmd("noctalia msg mic-mute"))
+hl.bind("CTRL + ALT + L", hl.dsp.exec_cmd("noctalia msg session lock"))
 
 -- Autostart
 hl.on("hyprland.start", function()
