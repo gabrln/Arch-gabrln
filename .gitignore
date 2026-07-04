@@ -45,11 +45,6 @@ known_hosts
 .config/gtk-4.0/*
 !.config/gtk-4.0/settings.ini
 
-# ===== OpenCode generated =====
-.config/opencode/node_modules/
-.config/opencode/package.json
-.config/opencode/package-lock.json
-
 # ===== Zsh modular configuration =====
 .config/zsh/plugins/
 .config/zsh/.zcompdump*

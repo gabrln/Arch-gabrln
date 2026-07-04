@@ -3,6 +3,8 @@
 -- =========================================================================
 
 local mod = "SUPER"
+local hl = _G.hl ---@diagnostic disable-line: undefined-global
+
 
 -- Função auxiliar para alternar scratchpad, abrindo se não estiver rodando
 local function toggle_scratchpad(name, cmd)
@@ -19,11 +21,11 @@ hl.bind(mod .. " + Return", hl.dsp.exec_cmd("kitty")) -- Atalho fallback para te
 hl.bind(mod .. " + B",      hl.dsp.exec_cmd("firefox"))
 hl.bind(mod .. " + E",      hl.dsp.exec_cmd("kitty -e yazi"))
 hl.bind(mod .. " + SHIFT + E", hl.dsp.exec_cmd("nautilus"))
-hl.bind(mod .. " + SHIFT + D", hl.dsp.exec_cmd("/home/gabrln/.config/hypr/scripts/WindowInfo.lua"))
+hl.bind(mod .. " + SHIFT + D", hl.dsp.exec_cmd("~/.config/hypr/scripts/WindowInfo.lua"))
 
 -- Fechar janelas e gerenciamento de sessão
 hl.bind(mod .. " + Q",         hl.dsp.window.close())
-hl.bind("ALT + F4",            hl.dsp.exec_cmd("/home/gabrln/.config/hypr/scripts/AltF4.lua"))
+hl.bind("ALT + F4",            hl.dsp.exec_cmd("~/.config/hypr/scripts/AltF4.lua"))
 hl.bind("CTRL + ALT + Delete", hl.dsp.exit())
 hl.bind("CTRL + ALT + L",      hl.dsp.exec_cmd("noctalia msg session lock"))
 
@@ -140,7 +142,7 @@ hl.bind(mod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
 hl.bind(mod .. " + SHIFT + T",      function() toggle_scratchpad("kitty-drop", "kitty --class kitty-drop") end) -- Terminal suspenso/scratchpad
 hl.bind(mod .. " + SHIFT + Return", function() toggle_scratchpad("kitty-drop", "kitty --class kitty-drop") end) -- Atalho fallback para terminal suspenso
 hl.bind(mod .. " + F1",             function() toggle_scratchpad("btop-scratch", "kitty --class btop-scratch -e btop") end)
-hl.bind(mod .. " + Slash",          function() toggle_scratchpad("keyhints-scratch", "kitty --class keyhints-scratch -e /home/gabrln/.config/hypr/scripts/KeyHints.lua") end)
+hl.bind(mod .. " + Slash",          function() toggle_scratchpad("keyhints-scratch", "kitty --class keyhints-scratch -e ~/.config/hypr/scripts/KeyHints.lua") end)
 
 -- Teclas multimídia, hardware e volume
 hl.bind("XF86AudioRaiseVolume",    hl.dsp.exec_cmd("noctalia msg volume-up"),   { locked = true, repeating = true })

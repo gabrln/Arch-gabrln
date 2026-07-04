@@ -79,7 +79,7 @@ telemetry_enabled = true
 
     [shell.screenshot]
     confirm_region = true
-    directory = "/home/gabrln/Pictures/Screenshots"
+    directory = "~/Pictures/Screenshots"
     pipe_to_command = true
 
     [[shell.session.actions]]
@@ -135,13 +135,13 @@ wallpaper_scheme = "m3-content"
     community_ids = [ "pywalfox", "neovim", "discord" ]
 
 [wallpaper.default]
-path = "/home/gabrln/Pictures/Wallpapers/083.jpg"
+path = "~/Pictures/Wallpapers/083.jpg"
 
 [wallpaper.last]
-path = "/home/gabrln/Pictures/Wallpapers/083.jpg"
+path = "~/Pictures/Wallpapers/083.jpg"
 
 [wallpaper.monitors.eDP-1]
-path = "/home/gabrln/Pictures/Wallpapers/083.jpg"
+path = "~/Pictures/Wallpapers/083.jpg"
 
 [widget.network]
 show_label = false

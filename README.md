@@ -12,17 +12,17 @@ Ambiente Wayland focado em performance, produtividade por teclado e estética un
 |---|---|---|
 | Compositor | Hyprland | Tiling Window Manager dinâmico gerido via UWSM e configurado em Lua. |
 | Desktop Shell | Noctalia V5 | Painéis de controle, launcher, notificações e greeter (greetd). |
-| Terminal | Kitty | Terminal acelerado por GPU com suporte a Dropdown Scratchpad. |
-| Editor | Neovim | Configurado com LazyVim e integração de cores dinâmicas com Noctalia. |
-| Gerenciador de Arquivos | Yazi & Nautilus | TUI em Rust + GUI moderna do GNOME. |
-| Multiplexador | Zellij | Multiplexador de terminal moderno com abas e painéis. |
+| Terminal & Multiplexador | Kitty & Zellij | Terminal acelerado por GPU com suporte a Dropdown Scratchpad e abas. |
+| Pacotes & Sistema | Shelly CLI | Gerenciador moderno e unificado (substituindo yay) para pacotes ALPM, AUR e Flatpak. |
+| AI Coding | Antigravity, Herdr & Pi | Conjunto de agentes autônomos e gerenciador de workspaces via terminal (Antigravity CLI, Herdr, Pi-coding-agent). |
+| Editor & Arquivos | Neovim, Yazi & Nautilus | TUI em Rust + GUI moderna do GNOME com Neovim configurado em Lua. |
 | Automação & Scripts | Lua 5.5 | Scripts de sistema standalone em puro Lua sem dependências externas. |
 
 ---
 
 ## Instalação e Bootstrap (install.sh)
 
-O script de instalação gerencia de forma automatizada a instalação de pacotes (Pacman/AUR/Flatpak), backup de pastas existentes em ~/.config/ e a criação dos links simbólicos apontando para este repositório.
+O script de instalação gerencia de forma automatizada a instalação de pacotes via Pacman, Shelly CLI (AUR) e Flatpak, ferramentas de AI Coding (`herdr`, `pi-coding-agent`, `antigravity cli`), download e extração automática de pacote de Wallpapers em alta resolução via Google Drive para `~/Pictures/Wallpapers`, além do backup de pastas existentes em `~/.config/` e a criação dos links simbólicos apontando para este repositório.
 
 Comando para execução em terminal:
 
@@ -30,7 +30,7 @@ Comando para execução em terminal:
 curl -fsSL https://raw.githubusercontent.com/gabrln/Arch-gabrln/main/install.sh | bash
 ```
 
-Nota: O instalador realiza backup automático com carimbo de data/hora (ex: hypr.backup.YYYYMMDD_HHMMSS) de qualquer diretório local antes de vincular as configurações ao Git.
+Nota: O instalador realiza backup automático com carimbo de data/hora (ex: `hypr.backup.YYYYMMDD_HHMMSS`) de qualquer diretório local antes de vincular as configurações ao Git. Os caminhos absolutos atrelados a usuário foram convertidos para `~` ou `$HOME` para compatibilidade universal em qualquer instalação.
 
 ---
 

@@ -58,18 +58,20 @@ if [ ! -d "$REPO_DIR" ]; then
     run_as_user "mkdir -p '$USER_HOME/projects' && git clone https://github.com/gabrln/Arch-gabrln.git '$REPO_DIR'"
 fi
 
-# 2. Instalar/Atualizar yay (AUR helper)
-if ! command -v yay &>/dev/null; then
-    echo -e "${YELLOW}Instalando 'yay' para suporte a pacotes AUR...${NC}"
+# 2. Instalar/Atualizar shelly (Modern Package Manager)
+if ! command -v shelly &>/dev/null; then
+    echo -e "${YELLOW}Instalando 'shelly' para gerenciamento de pacotes...${NC}"
     pacman -S --needed --noconfirm base-devel git
-    run_as_user "git clone https://aur.archlinux.org/yay.git /tmp/yay && cd /tmp/yay && makepkg -si --noconfirm && rm -rf /tmp/yay"
+    if ! pacman -S --needed --noconfirm shelly 2>/dev/null; then
+        run_as_user "git clone https://aur.archlinux.org/shelly-bin.git /tmp/shelly-bin && cd /tmp/shelly-bin && makepkg -si --noconfirm && rm -rf /tmp/shelly-bin"
+    fi
 fi
 
 # 3. Instalar pacotes oficiais via Pacman
 print_step "Instalando pacotes oficiais dos repositórios..."
 OFFICIAL_PKGS=(
     # Base system & build tools for plugins (hyprpm)
-    base base-devel linux-cachyos linux-cachyos-headers cmake cpio pkgconf git git-delta docker flatpak brightnessctl zsh snapper just
+    base base-devel linux-cachyos linux-cachyos-headers cmake cpio pkgconf git git-delta docker flatpak brightnessctl zsh snapper just nodejs npm unzip
     # Zsh and terminal tooling
     atuin bat eza fzf ripgrep fd zoxide starship direnv fastfetch btop grim slurp
     # User applications
@@ -84,15 +86,16 @@ OFFICIAL_PKGS=(
 pacman -S --needed --noconfirm "${OFFICIAL_PKGS[@]}"
 hash -r
 
-# 4. Instalar pacotes do AUR
-print_step "Instalando pacotes do AUR via yay..."
+# 4. Instalar pacotes extras/AUR via shelly
+print_step "Instalando pacotes AUR e extras via shelly..."
 AUR_PKGS=(
     noctalia-git
     noctalia-greeter-git
     bibata-cursor-theme
     niri-scratchpad-rs-git
+    antigravity
 )
-run_as_user "yay -S --needed --noconfirm ${AUR_PKGS[*]}"
+run_as_user "shelly install --no-confirm ${AUR_PKGS[*]}"
 
 # 5. Instalar pacotes Flatpak
 if command -v flatpak &>/dev/null; then
@@ -101,7 +104,37 @@ if command -v flatpak &>/dev/null; then
     flatpak install -y --system flathub com.github.wwmm.easyeffects
 fi
 
-# 6. Criar links simbólicos para as configurações do usuário
+# 6. Instalar agentes de AI e ferramentas de desenvolvimento
+print_step "Instalando ferramentas de coding AI (herdr, pi-coding-agent)..."
+if command -v npm &>/dev/null; then
+    run_as_user "npm install -g --ignore-scripts --min-release-age=0 @earendil-works/pi-coding-agent 2>/dev/null || true"
+fi
+if ! command -v herdr &>/dev/null && [ ! -f "$USER_HOME/.local/bin/herdr" ]; then
+    run_as_user "curl -sSfL https://herdr.dev/install.sh | sh 2>/dev/null || true"
+fi
+
+# 7. Baixar e instalar Wallpapers extras (Google Drive)
+print_step "Baixando e instalando pacote de Wallpapers extras..."
+WP_DIR="$USER_HOME/Pictures/Wallpapers"
+run_as_user "mkdir -p '$WP_DIR'"
+WP_TMP="/tmp/wallpapers_extra.zip"
+if [ ! -f "$WP_TMP" ]; then
+    echo -e "${YELLOW}Obtenção do link do Google Drive (ID: 16MOqfNb1JglRBxBZdhdxfK2qJN3OjOpZ)...${NC}"
+    GDRIVE_ID="16MOqfNb1JglRBxBZdhdxfK2qJN3OjOpZ"
+    GDRIVE_HTML=$(curl -sL "https://drive.google.com/uc?export=download&id=${GDRIVE_ID}")
+    GDRIVE_UUID=$(echo "$GDRIVE_HTML" | grep -o 'name="uuid" value="[^"]*' | cut -d'"' -f4 || true)
+    if [ -n "$GDRIVE_UUID" ]; then
+        curl -L -o "$WP_TMP" "https://drive.usercontent.google.com/download?id=${GDRIVE_ID}&export=download&confirm=t&uuid=${GDRIVE_UUID}"
+    else
+        curl -L -o "$WP_TMP" "https://drive.google.com/uc?export=download&confirm=t&id=${GDRIVE_ID}"
+    fi
+fi
+if [ -f "$WP_TMP" ] && file "$WP_TMP" | grep -i -E "zip|archive" &>/dev/null; then
+    run_as_user "unzip -o '$WP_TMP' -d '$WP_DIR' 2>/dev/null || true"
+    rm -f "$WP_TMP"
+fi
+
+# 8. Criar links simbólicos para as configurações do usuário
 print_step "Configurando links simbólicos (dotfiles)..."
 REPO_DIR="$USER_HOME/projects/Arch-gabrln"
 run_as_user "mkdir -p '$USER_HOME/.config'"
@@ -112,7 +145,6 @@ CONFIGS=(
     zellij
     yazi
     fastfetch
-    opencode
     gtk-3.0
     gtk-4.0
     xdg-desktop-portal
