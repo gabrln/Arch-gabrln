@@ -36,9 +36,6 @@ known_hosts
 # ===== Mango generated =====
 .config/mango/noctalia.conf
 
-# ===== Niri generated =====
-.config/niri/noctalia.kdl
-
 # ===== GTK generated =====
 .config/gtk-3.0/*
 !.config/gtk-3.0/settings.ini

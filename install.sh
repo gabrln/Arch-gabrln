@@ -77,9 +77,9 @@ OFFICIAL_PKGS=(
     # User applications
     neovim kitty zellij yazi nautilus vesktop cliphist wl-clipboard duf gping tealdeer procs cava
     # Media and files
-    mpv swayimg zathura file-roller rclone firefox obsidian pavucontrol nwg-look xdg-user-dirs xdg-user-dirs-gtk xdg-desktop-portal-gnome xdg-desktop-portal-gtk
+    mpv swayimg zathura file-roller rclone firefox obsidian pavucontrol nwg-look xdg-user-dirs xdg-user-dirs-gtk xdg-desktop-portal-gtk
     # Themes and tools
-    wl-clip-persist papirus-icon-theme adw-gtk-theme protonup-qt prismlauncher spotify-launcher gnome-keyring seahorse rtkit niri hyprland uwsm xdg-desktop-portal-hyprland
+    wl-clip-persist papirus-icon-theme adw-gtk-theme protonup-qt prismlauncher spotify-launcher gnome-keyring seahorse rtkit hyprland uwsm xdg-desktop-portal-hyprland
     # System utilities & essentials
     rsync wget openssh pv hwinfo meld fsarchiver nano python-defusedxml python-packaging spice-vdagent qemu-guest-agent lua luajit libnotify jq
 )
@@ -92,7 +92,6 @@ AUR_PKGS=(
     noctalia-git
     noctalia-greeter-git
     bibata-cursor-theme
-    niri-scratchpad-rs-git
     antigravity
 )
 run_as_user "shelly aur install -n ${AUR_PKGS[*]}"
@@ -148,7 +147,6 @@ CONFIGS=(
     gtk-3.0
     gtk-4.0
     xdg-desktop-portal
-    niri
     docker
     hypr
     uwsm
@@ -202,9 +200,6 @@ print_step "Configurando arquivos de sistema (greetd, sessões)..."
 mkdir -p /etc/greetd
 cp "$REPO_DIR/.config/greetd/config.toml" /etc/greetd/config.toml
 cp "$REPO_DIR/.config/greetd/pam_greetd" /etc/pam.d/greetd
-
-mkdir -p /usr/share/wayland-sessions
-cp "$REPO_DIR/.config/niri/niri.desktop" /usr/share/wayland-sessions/niri.desktop
 
 mkdir -p /var/lib/noctalia-greeter
 cp "$REPO_DIR/.config/greetd/greeter.toml" /var/lib/noctalia-greeter/greeter.toml
