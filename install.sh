@@ -64,7 +64,7 @@ OFFICIAL_PKGS=(
     # Themes and tools
     wl-clip-persist papirus-icon-theme adw-gtk-theme protonup-qt prismlauncher spotify-launcher gnome-keyring seahorse rtkit niri
     # System utilities & essentials
-    rsync wget openssh pv hwinfo meld fsarchiver nano python-defusedxml python-packaging
+    rsync wget openssh pv hwinfo meld fsarchiver nano python-defusedxml python-packaging spice-vdagent qemu-guest-agent
 )
 sudo pacman -S --needed --noconfirm "${OFFICIAL_PKGS[@]}"
 hash -r
@@ -241,6 +241,8 @@ SERVICES=(
     bluetooth.service
     NetworkManager.service
     greetd.service
+    spice-vdagentd.service
+    qemu-guest-agent.service
 )
 for svc in "${SERVICES[@]}"; do
     sudo systemctl enable "$svc"
