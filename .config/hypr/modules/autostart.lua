@@ -13,7 +13,7 @@ hl.on("hyprland.start", function()
 
 	if not string.find(plugins, "scrolloverview") then
 		hl.exec_cmd(
-			"hyprpm update && hyprpm add https://github.com/yayuuu/hyprland-scroll-overview.git && hyprpm enable scrolloverview && hyprpm reload"
+			"bash -c 'hyprpm update && hyprpm add https://github.com/yayuuu/hyprland-scroll-overview.git && hyprpm enable scrolloverview && hyprpm reload'"
 		)
 	else
 		hl.exec_cmd("hyprpm reload")
