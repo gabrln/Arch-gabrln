@@ -9,8 +9,7 @@ hl.on("hyprland.start", function()
     -- Carregar plugins do Hyprland silenciosamente
     hl.exec_cmd("hyprpm reload")
 
-    -- Serviços de autenticação e chaves (chaveiro GNOME e Polkit)
-    hl.exec_cmd("/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 || /usr/libexec/polkit-gnome-authentication-agent-1")
+    -- Serviços de chaves (chaveiro GNOME) - Polkit é gerido nativamente pelo Noctalia
     hl.exec_cmd("gnome-keyring-daemon --start --components=secrets")
 
     -- Utilitários do sistema e clipboard

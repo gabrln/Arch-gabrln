@@ -20,7 +20,7 @@ hl.bind(mod .. " + T",      hl.dsp.exec_cmd("kitty")) -- Terminal padrão
 hl.bind(mod .. " + Return", hl.dsp.exec_cmd("kitty")) -- Atalho fallback para terminal
 hl.bind(mod .. " + B",      hl.dsp.exec_cmd("firefox"))
 hl.bind(mod .. " + E",      hl.dsp.exec_cmd("kitty -e yazi"))
-hl.bind(mod .. " + SHIFT + E", hl.dsp.exec_cmd("nautilus"))
+hl.bind(mod .. " + SHIFT + E", hl.dsp.exec_cmd("thunar"))
 hl.bind(mod .. " + SHIFT + D", hl.dsp.exec_cmd("~/.config/hypr/scripts/WindowInfo.lua"))
 
 -- Fechar janelas e gerenciamento de sessão
@@ -85,24 +85,38 @@ end
 hl.bind(mod .. " + 0",         hl.dsp.focus({ workspace = 10 }))
 hl.bind(mod .. " + SHIFT + 0", hl.dsp.window.move({ workspace = 10 }))
 
--- Alternar workspaces via Tab/Scroll e ativar scrolloverview
-local function toggle_overview()
+-- Alternar workspaces via Tab/Scroll e ativar scrolloverview no submap
+local function open_overview()
     if hl.plugin and hl.plugin.scrolloverview then
-        hl.plugin.scrolloverview.overview("toggle")
+        hl.plugin.scrolloverview.overview("on")
     else
-        hl.exec_raw("toggleoverview", "")
+        hl.dispatch(hl.dsp.exec_raw("overview:open"))
+    end
+    if hl.define_submap then
+        hl.dispatch(hl.dsp.submap("scrolloverview"))
     end
 end
 
--- hl.bind(mod .. " + Tab", toggle_overview) -- Desativado: apenas ALT + Tab para overview
+local function close_overview()
+    if hl.plugin and hl.plugin.scrolloverview then
+        hl.plugin.scrolloverview.overview("off")
+    else
+        hl.dispatch(hl.dsp.exec_raw("overview:close"))
+    end
+    if hl.define_submap then
+        hl.dispatch(hl.dsp.submap("reset"))
+    end
+end
+
+-- hl.bind(mod .. " + Tab", open_overview) -- Desativado: apenas ALT + Tab para overview
 hl.bind(mod .. " + SHIFT + Tab",       hl.dsp.focus({ workspace = "e-1" }))
-hl.bind("ALT + Tab",                   toggle_overview)
+hl.bind("ALT + Tab",                   open_overview)
 hl.bind(mod .. " + mouse_down",        hl.dsp.focus({ workspace = "e-1" }), { mouse = true })
 hl.bind(mod .. " + mouse_up",          hl.dsp.focus({ workspace = "e+1" }), { mouse = true })
 hl.bind(mod .. " + SHIFT + mouse_down", hl.dsp.window.move({ workspace = "e-1" }), { mouse = true })
 hl.bind(mod .. " + SHIFT + mouse_up",   hl.dsp.window.move({ workspace = "e+1" }), { mouse = true })
 
--- Submap opcional para navegação avançada no scrolloverview
+-- Submap para navegação isolada no scrolloverview (impede que binds ou cliques afetem janelas)
 if hl.define_submap then
     hl.define_submap("scrolloverview", function()
         hl.bind("left",   function() if hl.plugin and hl.plugin.scrolloverview then hl.plugin.scrolloverview.navigate("left") end end)
@@ -114,10 +128,15 @@ if hl.define_submap then
         hl.bind("k",      function() if hl.plugin and hl.plugin.scrolloverview then hl.plugin.scrolloverview.navigate("up") end end)
         hl.bind("j",      function() if hl.plugin and hl.plugin.scrolloverview then hl.plugin.scrolloverview.navigate("down") end end)
 
-        -- Fechar overview ao acionar novamente apenas com ALT + Tab
-        hl.bind("ALT + Tab", toggle_overview)
-        hl.bind("return", function() if hl.plugin and hl.plugin.scrolloverview then hl.plugin.scrolloverview.overview("select") end end)
-        hl.bind("escape", function() if hl.plugin and hl.plugin.scrolloverview then hl.plugin.scrolloverview.overview("off") end end)
+        -- Fechar overview com ALT + Tab ou Escape, e selecionar com Return
+        hl.bind("ALT + Tab", close_overview)
+        hl.bind("escape", close_overview)
+        hl.bind("return", function()
+            if hl.plugin and hl.plugin.scrolloverview then
+                hl.plugin.scrolloverview.overview("select")
+            end
+            if hl.define_submap then hl.dispatch(hl.dsp.submap("reset")) end
+        end)
 
         -- Navegação lateral com scroll de mouse sem SUPER quando overview está ativo
         hl.bind("mouse_down", function() if hl.plugin and hl.plugin.scrolloverview then hl.plugin.scrolloverview.navigate("right") end end, { mouse = true })
@@ -129,6 +148,7 @@ if hl.define_submap then
                 hl.plugin.scrolloverview.window("select")
                 hl.plugin.scrolloverview.overview("off")
             end
+            if hl.define_submap then hl.dispatch(hl.dsp.submap("reset")) end
         end, { mouse = true })
         hl.bind("mouse:274", function() if hl.plugin and hl.plugin.scrolloverview then hl.plugin.scrolloverview.window("close") end end, { mouse = true })
     end)

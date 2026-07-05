@@ -46,8 +46,8 @@ hl.config({
         },
     },
     cursor = {
-        inactive_timeout = 3,
-        hide_on_key_press = true,
+        inactive_timeout = 2,
+        hide_on_key_press = false,
         sync_gsettings_theme = true,
         warp_on_change_workspace = 2,
     },
@@ -88,6 +88,6 @@ hl.config({
 })
 
 -- Gesto de trackpad para overview (3 dedos para cima)
-if hl.exec_raw then
-    hl.exec_raw("keyword", "scrolloverview-gesture 3, up, overview")
+if hl.dsp and hl.dsp.exec_raw then
+    hl.dispatch(hl.dsp.exec_raw("keyword scrolloverview-gesture 3, up, overview"))
 end

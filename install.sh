@@ -8,7 +8,6 @@ set -euo pipefail
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
-RED='\033[0;31m'
 NC='\033[0m'
 
 print_step() {
@@ -74,16 +73,16 @@ OFFICIAL_PKGS=(
     base base-devel linux-cachyos linux-cachyos-headers cmake cpio pkgconf git git-delta docker flatpak brightnessctl zsh snapper just nodejs npm unzip
     # Networking & Bluetooth
     networkmanager bluez bluez-utils
-    # Display manager
-    greetd
+    # Display manager & Polkit
+    greetd polkit
     # Zsh and terminal tooling
     atuin bat eza fzf ripgrep fd zoxide starship direnv fastfetch btop grim slurp
     # User applications
-    neovim kitty zellij yazi nautilus vesktop cliphist wl-clipboard duf gping tealdeer procs cava
+    neovim kitty zellij yazi thunar thunar-archive-plugin thunar-volman tumbler gvfs vesktop cliphist wl-clipboard duf gping tealdeer procs cava
     # Media and files
     mpv swayimg zathura file-roller rclone firefox obsidian pavucontrol nwg-look xdg-user-dirs xdg-user-dirs-gtk xdg-desktop-portal-gtk
-    # Themes and tools
-    wl-clip-persist papirus-icon-theme adw-gtk-theme qt6ct protonup-qt prismlauncher spotify-launcher gnome-keyring seahorse rtkit hyprland uwsm xdg-desktop-portal-hyprland
+    # Themes, fonts and tools
+    ttf-jetbrains-mono-nerd noto-fonts noto-fonts-emoji wl-clip-persist papirus-icon-theme adw-gtk-theme qt6ct protonup-qt prismlauncher spotify-launcher gnome-keyring seahorse rtkit hyprland uwsm xdg-desktop-portal-hyprland
     # System utilities & essentials
     rsync wget openssh pv hwinfo meld fsarchiver nano python-defusedxml python-packaging spice-vdagent qemu-guest-agent lua luajit libnotify jq
 )

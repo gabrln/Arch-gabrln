@@ -8,7 +8,7 @@ local shortcuts = {
   { "SUPER + SHIFT + T / Return","[Hyprland] Abrir Terminal Flutuante (Dropdown)", "kitty-drop (Scratchpad)" },
   { "SUPER + B",                 "[Hyprland] Abrir Navegador Web (Firefox)",       "firefox" },
   { "SUPER + E",                 "[Hyprland] Gerenciador de Arquivos (Yazi TUI)",  "kitty -e yazi" },
-  { "SUPER + SHIFT + E",         "[Hyprland] Gerenciador de Arquivos (Nautilus)",  "nautilus" },
+  { "SUPER + SHIFT + E",         "[Hyprland] Gerenciador de Arquivos (Thunar)",    "thunar" },
   { "SUPER + F1",                "[Hyprland] Monitor de Recursos (btop)",          "btop-scratch (Scratchpad)" },
   { "SUPER + /",                 "[Hyprland] Guia de Atalhos Interativo",          "keyhints-scratch (Scratchpad)" },
   { "CTRL + ALT + Del",          "[Hyprland] Sair da Sessão do Hyprland",          "hl.dsp.exit()" },
