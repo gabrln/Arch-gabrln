@@ -24,7 +24,8 @@ modules_dir = "installer/modules"
 clone_target = "Projects/Arch-gabrln"
 
 # Pacotes mínimos para bootstrap do shelly
-bootstrap_packages = ["git", "base-devel"]
+# Inclui zsh porque é dependência do chsh no módulo 07-shell
+bootstrap_packages = ["git", "base-devel", "zsh"]
 
 # Espaço mínimo recomendado em bytes (5 GiB)
 min_free_space = 5368709120

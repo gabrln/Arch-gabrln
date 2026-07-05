@@ -32,7 +32,19 @@ if [[ ${#MISSING_ARR[@]} -eq 0 ]]; then
 fi
 
 log_info "Instalando pacotes oficiais pendentes via shelly: ${MISSING_ARR[*]}"
-shelly install --no-confirm "${MISSING_ARR[@]}"
+if ! shelly install --no-confirm "${MISSING_ARR[@]}"; then
+  log_warn "shelly falhou em alguns pacotes. Tentando pacman direto como fallback..."
+  if ! pacman -S --needed --noconfirm "${MISSING_ARR[@]}"; then
+    exit_with_error "Falha ao instalar pacotes oficiais. Verifique repositórios e conectividade."
+  fi
+fi
 
 hash -r
+
+# Verificação crítica: zsh deve estar instalado (dependência de chsh em 07-shell)
+if ! command -v zsh &>/dev/null && [[ ! -x /usr/bin/zsh ]]; then
+  log_error "zsh não foi instalado pelos repositórios oficiais. Verifique mirrors."
+  exit_with_error "zsh ausente após instalação de pacotes oficiais."
+fi
+
 log_success "Pacotes oficiais instalados."
