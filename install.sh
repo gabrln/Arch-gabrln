@@ -167,6 +167,7 @@ if [ -z "$(ls -A "$WP_DIR" 2>/dev/null)" ]; then
   fi
   if [ -f "$WP_TMP" ] && file "$WP_TMP" | grep -i -E "zip|archive" &>/dev/null; then
     WP_EXTRACT=$(mktemp -d)
+    sudo chown "$REAL_USER:$REAL_USER" "$WP_EXTRACT"
     run_as_user "unzip -o '$WP_TMP' -d '$WP_EXTRACT' 2>/dev/null || true"
     # Mover wallpapers: pegar conteúdo da subpasta wallpapers/ ou mover da raiz
     if [ -d "$WP_EXTRACT/wallpapers" ]; then
