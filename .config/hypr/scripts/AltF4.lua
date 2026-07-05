@@ -18,7 +18,7 @@ local title = content:match("\n%s*title:%s*([^\n]+)") or "Aplicativo"
 local protected_apps = {
     "noctalia", "systemd", "dbus-daemon", "dbus-broker",
     "xwayland", "pipewire", "wireplumber", "greetd",
-    "hyprland", "uwsm", "antigravity"
+    "hyprland", "antigravity"
 }
 
 local class_lower = class:lower()

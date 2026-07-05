@@ -1,0 +1,44 @@
+# Configuração global do framework Arch-gabrln
+
+[paths]
+# Diretório base do repositório (detectado automaticamente pelo entrypoint)
+repo_dir = ""
+
+# Diretório de logs do framework
+logs_dir = "installer/logs"
+
+# Diretório de estado persistente
+state_dir = "installer/state"
+
+# Diretório de backups
+backups_dir = "installer/state/backups"
+
+# Diretório de manifestos declarativos
+manifests_dir = "installer/manifests"
+
+# Diretório de módulos
+modules_dir = "installer/modules"
+
+[install]
+# Diretório padrão onde o repositório será clonado quando executado via curl
+clone_target = "Projects/Arch-gabrln"
+
+# Pacotes mínimos para bootstrap do shelly
+bootstrap_packages = ["git", "base-devel"]
+
+# Espaço mínimo recomendado em bytes (5 GiB)
+min_free_space = 5368709120
+
+[flags]
+# Pular módulos já concluídos conforme state.json
+skip_up_to_date = true
+
+# Criar backup automático antes de modificar dotfiles
+auto_backup = true
+
+# Número máximo de backups automáticos retidos (0 = ilimitado)
+max_backups = 3
+
+[features]
+# Habilitar profile gaming (pacotes com tag gaming são instalados)
+gaming = false

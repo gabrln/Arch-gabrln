@@ -1,0 +1,16 @@
+# Pacotes AUR instalados via shelly aur install
+
+[[packages]]
+name = "noctalia-git"
+description = "Noctalia V5 shell"
+rebuild_on_update = true
+
+[[packages]]
+name = "noctalia-greeter-git"
+description = "Noctalia V5 greeter"
+rebuild_on_update = true
+
+[[packages]]
+name = "bibata-cursor-theme"
+description = "Bibata cursor theme"
+rebuild_on_update = false

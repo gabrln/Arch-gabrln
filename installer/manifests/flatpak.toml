@@ -1,0 +1,9 @@
+# Pacotes Flatpak instalados via shelly flatpak install
+
+[remote]
+name = "flathub"
+url = "https://dl.flathub.org/repo/flathub.flatpakrepo"
+
+[[packages]]
+name = "com.github.wwmm.easyeffects"
+description = "PipeWire audio effects"

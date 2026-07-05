@@ -1,0 +1,10 @@
+# Configuração do pacote de wallpapers extras
+
+[source]
+type = "google-drive"
+file_id = "16MOqfNb1JglRBxBZdhdxfK2qJN3OjOpZ"
+sha256 = ""
+
+[destination]
+path = "$HOME/Pictures/Wallpapers"
+extract = true

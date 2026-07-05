@@ -1,0 +1,485 @@
+# Pacotes oficiais dos repositórios Arch/CachyOS
+# Agrupados conforme o install.sh original.
+
+[[packages]]
+name = "base"
+group = "base"
+description = "Base system"
+
+[[packages]]
+name = "base-devel"
+group = "base"
+description = "Build tools"
+
+[[packages]]
+name = "linux-cachyos"
+group = "base"
+description = "CachyOS kernel"
+
+[[packages]]
+name = "linux-cachyos-headers"
+group = "base"
+description = "CachyOS kernel headers"
+
+[[packages]]
+name = "cmake"
+group = "base"
+description = "Build system"
+
+[[packages]]
+name = "cpio"
+group = "base"
+description = "Archive tool"
+
+[[packages]]
+name = "pkgconf"
+group = "base"
+description = "Pkg-config replacement"
+
+[[packages]]
+name = "git"
+group = "base"
+description = "Version control"
+
+[[packages]]
+name = "git-delta"
+group = "base"
+description = "Syntax-highlighting pager"
+
+[[packages]]
+name = "docker"
+group = "base"
+description = "Container runtime"
+
+[[packages]]
+name = "flatpak"
+group = "base"
+description = "Flatpak package manager"
+
+[[packages]]
+name = "brightnessctl"
+group = "base"
+description = "Brightness control"
+
+[[packages]]
+name = "zsh"
+group = "base"
+description = "Z shell"
+
+[[packages]]
+name = "snapper"
+group = "base"
+description = "Btrfs snapshot manager"
+
+[[packages]]
+name = "just"
+group = "base"
+description = "Command runner"
+
+[[packages]]
+name = "nodejs"
+group = "base"
+description = "Node.js runtime"
+
+[[packages]]
+name = "npm"
+group = "base"
+description = "Node package manager"
+
+[[packages]]
+name = "unzip"
+group = "base"
+description = "Zip extraction tool"
+
+[[packages]]
+name = "networkmanager"
+group = "networking"
+description = "Network manager"
+
+[[packages]]
+name = "bluez"
+group = "networking"
+description = "Bluetooth stack"
+
+[[packages]]
+name = "bluez-utils"
+group = "networking"
+description = "Bluetooth utilities"
+
+[[packages]]
+name = "greetd"
+group = "display"
+description = "Display manager"
+
+[[packages]]
+name = "polkit"
+group = "display"
+description = "PolicyKit"
+
+[[packages]]
+name = "atuin"
+group = "zsh"
+description = "Shell history sync"
+
+[[packages]]
+name = "bat"
+group = "zsh"
+description = "Cat clone with syntax highlight"
+
+[[packages]]
+name = "eza"
+group = "zsh"
+description = "Modern ls replacement"
+
+[[packages]]
+name = "fzf"
+group = "zsh"
+description = "Fuzzy finder"
+
+[[packages]]
+name = "ripgrep"
+group = "zsh"
+description = "Fast grep"
+
+[[packages]]
+name = "fd"
+group = "zsh"
+description = "Fast find"
+
+[[packages]]
+name = "zoxide"
+group = "zsh"
+description = "Smarter cd"
+
+[[packages]]
+name = "starship"
+group = "zsh"
+description = "Cross-shell prompt"
+
+[[packages]]
+name = "direnv"
+group = "zsh"
+description = "Directory environment"
+
+[[packages]]
+name = "fastfetch"
+group = "zsh"
+description = "System info tool"
+
+[[packages]]
+name = "btop"
+group = "zsh"
+description = "Resource monitor"
+
+[[packages]]
+name = "grim"
+group = "zsh"
+description = "Screenshot utility"
+
+[[packages]]
+name = "slurp"
+group = "zsh"
+description = "Screen region selector"
+
+[[packages]]
+name = "neovim"
+group = "apps"
+description = "Text editor"
+
+[[packages]]
+name = "kitty"
+group = "apps"
+description = "Terminal emulator"
+
+[[packages]]
+name = "zellij"
+group = "apps"
+description = "Terminal multiplexer"
+
+[[packages]]
+name = "yazi"
+group = "apps"
+description = "Terminal file manager"
+
+[[packages]]
+name = "thunar"
+group = "apps"
+description = "GUI file manager"
+
+[[packages]]
+name = "thunar-archive-plugin"
+group = "apps"
+description = "Thunar archive plugin"
+
+[[packages]]
+name = "thunar-volman"
+group = "apps"
+description = "Thunar volume manager"
+
+[[packages]]
+name = "tumbler"
+group = "apps"
+description = "Thumbnail service"
+
+[[packages]]
+name = "gvfs"
+group = "apps"
+description = "Virtual filesystem"
+
+[[packages]]
+name = "vesktop"
+group = "apps"
+description = "Discord client"
+
+[[packages]]
+name = "cliphist"
+group = "apps"
+description = "Clipboard history"
+
+[[packages]]
+name = "wl-clipboard"
+group = "apps"
+description = "Wayland clipboard utilities"
+
+[[packages]]
+name = "duf"
+group = "apps"
+description = "Disk usage viewer"
+
+[[packages]]
+name = "gping"
+group = "apps"
+description = "Graphical ping"
+
+[[packages]]
+name = "tealdeer"
+group = "apps"
+description = "TLDR client"
+
+[[packages]]
+name = "procs"
+group = "apps"
+description = "Modern ps"
+
+[[packages]]
+name = "cava"
+group = "apps"
+description = "Audio visualizer"
+
+[[packages]]
+name = "mpv"
+group = "media"
+description = "Media player"
+
+[[packages]]
+name = "swayimg"
+group = "media"
+description = "Image viewer"
+
+[[packages]]
+name = "zathura"
+group = "media"
+description = "Document viewer"
+
+[[packages]]
+name = "file-roller"
+group = "media"
+description = "Archive manager"
+
+[[packages]]
+name = "rclone"
+group = "media"
+description = "Cloud sync"
+
+[[packages]]
+name = "firefox"
+group = "media"
+description = "Web browser"
+
+[[packages]]
+name = "obsidian"
+group = "media"
+description = "Knowledge base"
+
+[[packages]]
+name = "pavucontrol"
+group = "media"
+description = "PulseAudio volume control"
+
+[[packages]]
+name = "nwg-look"
+group = "media"
+description = "GTK theme switcher"
+
+[[packages]]
+name = "xdg-user-dirs"
+group = "media"
+description = "XDG user dirs"
+
+[[packages]]
+name = "xdg-user-dirs-gtk"
+group = "media"
+description = "XDG user dirs GTK"
+
+[[packages]]
+name = "xdg-desktop-portal-gtk"
+group = "media"
+description = "GTK desktop portal"
+
+[[packages]]
+name = "ttf-jetbrains-mono-nerd"
+group = "themes"
+description = "Nerd font"
+
+[[packages]]
+name = "noto-fonts"
+group = "themes"
+description = "Noto fonts"
+
+[[packages]]
+name = "noto-fonts-emoji"
+group = "themes"
+description = "Noto emoji fonts"
+
+[[packages]]
+name = "wl-clip-persist"
+group = "themes"
+description = "Clipboard persistence"
+
+[[packages]]
+name = "papirus-icon-theme"
+group = "themes"
+description = "Icon theme"
+
+[[packages]]
+name = "adw-gtk-theme"
+group = "themes"
+description = "Adwaita GTK theme"
+
+[[packages]]
+name = "qt6ct"
+group = "themes"
+description = "Qt6 configuration tool"
+
+[[packages]]
+name = "protonup-qt"
+group = "gaming"
+description = "Proton GE installer"
+tags = ["gaming"]
+
+[[packages]]
+name = "prismlauncher"
+group = "gaming"
+description = "Minecraft launcher"
+tags = ["gaming"]
+
+[[packages]]
+name = "spotify-launcher"
+group = "gaming"
+description = "Spotify launcher"
+tags = ["gaming"]
+
+[[packages]]
+name = "gnome-keyring"
+group = "themes"
+description = "Keyring daemon"
+
+[[packages]]
+name = "seahorse"
+group = "themes"
+description = "Keyring manager"
+
+[[packages]]
+name = "rtkit"
+group = "themes"
+description = "RealtimeKit"
+
+[[packages]]
+name = "hyprland"
+group = "themes"
+description = "Wayland compositor"
+
+[[packages]]
+name = "xdg-desktop-portal-hyprland"
+group = "themes"
+description = "Hyprland desktop portal"
+
+[[packages]]
+name = "rsync"
+group = "system"
+description = "File sync"
+
+[[packages]]
+name = "wget"
+group = "system"
+description = "File download"
+
+[[packages]]
+name = "openssh"
+group = "system"
+description = "SSH client/server"
+
+[[packages]]
+name = "pv"
+group = "system"
+description = "Pipe viewer"
+
+[[packages]]
+name = "hwinfo"
+group = "system"
+description = "Hardware info"
+
+[[packages]]
+name = "meld"
+group = "system"
+description = "Diff viewer"
+
+[[packages]]
+name = "fsarchiver"
+group = "system"
+description = "Filesystem archiver"
+
+[[packages]]
+name = "nano"
+group = "system"
+description = "Simple editor"
+
+[[packages]]
+name = "python-defusedxml"
+group = "system"
+description = "Safe XML processing"
+
+[[packages]]
+name = "python-packaging"
+group = "system"
+description = "Python packaging utilities"
+
+[[packages]]
+name = "spice-vdagent"
+group = "system"
+description = "SPICE agent"
+
+[[packages]]
+name = "qemu-guest-agent"
+group = "system"
+description = "QEMU guest agent"
+
+[[packages]]
+name = "lua"
+group = "system"
+description = "Lua interpreter"
+
+[[packages]]
+name = "luajit"
+group = "system"
+description = "JIT Lua compiler"
+
+[[packages]]
+name = "libnotify"
+group = "system"
+description = "Desktop notifications"
+
+[[packages]]
+name = "jq"
+group = "system"
+description = "JSON processor"

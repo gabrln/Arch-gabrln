@@ -1,0 +1,16 @@
+# Plugins do Zsh clonados via git
+
+[[plugins]]
+name = "zsh-autosuggestions"
+repo = "zsh-users/zsh-autosuggestions"
+entry = "zsh-autosuggestions.zsh"
+
+[[plugins]]
+name = "fast-syntax-highlighting"
+repo = "zdharma-continuum/fast-syntax-highlighting"
+entry = "fast-syntax-highlighting.plugin.zsh"
+
+[[plugins]]
+name = "zsh-vi-mode"
+repo = "jeffreytse/zsh-vi-mode"
+entry = "zsh-vi-mode.plugin.zsh"

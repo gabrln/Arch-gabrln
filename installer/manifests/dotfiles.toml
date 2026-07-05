@@ -1,0 +1,34 @@
+# Mapeamento de dotfiles do repositório para o HOME do usuário
+
+[directories]
+# Diretórios copiados de .config/<nome> para ~/.config/<nome>
+configs = [
+  "kitty",
+  "zellij",
+  "yazi",
+  "fastfetch",
+  "gtk-3.0",
+  "gtk-4.0",
+  "xdg-desktop-portal",
+  "docker",
+  "hypr",
+  "noctalia",
+  "nvim",
+]
+
+[special]
+# zsh: copiado inteiro, mas plugins/ existentes devem ser preservados
+zsh = { source = "zsh", preserve = ["plugins"] }
+
+[files]
+# Arquivos avulsos copiados para destinos específicos
+".zshenv" = "$HOME/.zshenv"
+".config/mimeapps.list" = "$HOME/.config/mimeapps.list"
+
+[xdg_dirs]
+# Diretórios criados via xdg-user-dirs-update e mkdir
+extra = [
+  "$HOME/Pictures/Screenshots",
+  "$HOME/Pictures/Wallpapers",
+  "$HOME/Projects",
+]

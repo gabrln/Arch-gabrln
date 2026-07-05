@@ -1,0 +1,7 @@
+# Plugins Hyprland gerenciados via hyprpm
+# Esses plugins são aplicados no primeiro login, através do autostart.lua.
+
+[[plugins]]
+name = "scrolloverview"
+repo = "yayuuu/hyprland-scroll-overview"
+description = "Overview de workspaces/janelas para Alt+Tab"

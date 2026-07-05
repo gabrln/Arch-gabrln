@@ -1,0 +1,25 @@
+# Serviços systemd habilitados durante a instalação
+
+[[services]]
+name = "docker.service"
+description = "Docker daemon"
+
+[[services]]
+name = "bluetooth.service"
+description = "Bluetooth service"
+
+[[services]]
+name = "NetworkManager.service"
+description = "Network management"
+
+[[services]]
+name = "greetd.service"
+description = "Display manager"
+
+[[services]]
+name = "spice-vdagentd.service"
+description = "SPICE agent"
+
+[[services]]
+name = "qemu-guest-agent.service"
+description = "QEMU guest agent"

@@ -1,10 +1,10 @@
 # Arch-gabrln
 
-Ambiente Wayland focado em produtividade e estética unificada no **Arch Linux / CachyOS**, configurado em puro **Lua**.
+Ambiente Wayland focado em produtividade e estética unificada no **Arch Linux / CachyOS**, configurado em puro **Lua** com **Hyprland** e **Noctalia V5**.
 
 ## Stack
 
-* **Compositor & Shell**: Hyprland (UWSM + Lua Config) + Noctalia V5
+* **Compositor & Shell**: Hyprland (Lua Config) + Noctalia V5
 * **Terminal & TUI**: Kitty, Zellij, Neovim e Yazi
 * **Pacotes**: Shelly CLI (ALPM, AUR e Flatpak)
 * **AI Coding**: Antigravity CLI, Herdr e Pi-coding-agent
@@ -13,20 +13,31 @@ Ambiente Wayland focado em produtividade e estética unificada no **Arch Linux /
 
 O instalador automatiza a instalação de pacotes, diretórios XDG, wallpapers e sincroniza os dotfiles.
 
-**Opção 1: Instalação Padrão**
-```bash
-curl -fsSL https://raw.githubusercontent.com/gabrln/Arch-gabrln/main/install.sh | bash
-```
-
-**Opção 2: Sem redigitar senha (Recomendado)**
-Caso não queira digitar a senha de administrador (`sudo`) várias vezes durante o processo de instalação dos pacotes e serviços, execute passando as variáveis para o root desde o início:
+**Instalação padrão (recomendado):**
 ```bash
 curl -fsSL https://raw.githubusercontent.com/gabrln/Arch-gabrln/main/install.sh | sudo -E bash
 ```
 
+O `install.sh` é um thin wrapper que clona/atualiza este repositório em `~/Projects/Arch-gabrln` e executa o framework `gabrln`.
+
+## Comandos do framework
+
+Após clonar o repositório, os comandos estão disponíveis em `~/Projects/Arch-gabrln/gabrln`:
+
+| Comando | Descrição |
+|---|---|
+| `gabrln install` | Instalação completa do ambiente |
+| `gabrln update` | Atualiza dotfiles, pacotes AUR `-git` e manifesto hyprpm |
+| `gabrln repair` | Reaplica configurações divergentes |
+| `gabrln backup` | Cria snapshot manual das configurações |
+| `gabrln rollback` | Restaura o snapshot mais recente |
+| `gabrln doctor` | Diagnóstico somente leitura do estado atual |
+
+Opções comuns: `--gaming` (instala pacotes com tag gaming), `--force` (ignora estado e reexecuta).
+
 ## Pós-instalação
 
-O `install.sh` roda antes do primeiro login gráfico, num TTY sem sessão Hyprland ativa. O plugin **scrolloverview** (necessário para o atalho `Alt + Tab`) é instalado automaticamente pelo `autostart.lua` no primeiro login, quando o Hyprland já está funcional.
+O framework roda antes do primeiro login gráfico, num TTY sem sessão Hyprland ativa. O plugin **scrolloverview** (necessário para o atalho `Alt + Tab`) é aplicado automaticamente pelo `autostart.lua` no primeiro login, quando o Hyprland já está funcional.
 
 Se o atalho `Alt + Tab` não funcionar após o primeiro login, execute manualmente:
 

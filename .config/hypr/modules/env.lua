@@ -23,6 +23,12 @@ hl.env("GDK_SCALE", "1")
 hl.env("MOZ_ENABLE_WAYLAND", "1")
 hl.env("ELECTRON_OZONE_PLATFORM_HINT", "auto")
 
+-- Cursor e ferramentas padrão (antes no .config/uwsm/env)
+hl.env("XCURSOR_THEME", "Bibata-Modern-Classic")
+hl.env("XCURSOR_SIZE", "24")
+hl.env("EDITOR", "nvim")
+hl.env("TERMINAL", "kitty")
+
 -- Correção para base de dados de mime-info no XDG_DATA_DIRS
 local current_data_dirs = os.getenv("XDG_DATA_DIRS") or ""
 if not current_data_dirs:find("/usr/share") then
