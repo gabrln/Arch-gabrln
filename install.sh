@@ -207,14 +207,9 @@ find "$REPO_DIR/.config" -type f \( -name "*.sh" -o -path "*/scripts/*" \) -exec
 # 9. Configurar plugins do Hyprland (scrolloverview)
 if command -v hyprpm &>/dev/null; then
     print_step "Configurando plugins do Hyprland (scrolloverview)..."
-    if [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]; then
         run_as_user "hyprpm update 2>/dev/null || true"
         run_as_user "hyprpm add https://github.com/yayuuu/hyprland-scroll-overview.git 2>/dev/null || true"
         run_as_user "hyprpm enable scrolloverview 2>/dev/null || true"
-    else
-        echo -e "${YELLOW}Hyprland não está rodando no momento. Para ativar o scrolloverview depois, execute:${NC}"
-        echo -e "${YELLOW}  hyprpm update && hyprpm add https://github.com/yayuuu/hyprland-scroll-overview.git && hyprpm enable scrolloverview${NC}"
-    fi
 fi
 
 # 10. Deploy de configurações globais do sistema
