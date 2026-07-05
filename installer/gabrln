@@ -125,7 +125,43 @@ init_framework() {
   backup_init "$backups_dir"
 }
 
-# Instalação completa (módulos 00-16, por fases).
+# Coleta caminhos para backup a partir do manifesto de dotfiles.
+_collect_backup_paths() {
+  local paths=()
+
+  while IFS= read -r cfg; do
+    [[ -n "$cfg" ]] && paths+=("$USER_HOME/.config/$cfg")
+  done < <(python3 -c '
+import sys, tomllib
+with open(sys.argv[1], "rb") as f:
+    data = tomllib.load(f)
+for c in data.get("directories", {}).get("configs", []):
+    print(c)
+' "$MANIFESTS_DIR/dotfiles.toml")
+
+  paths+=("$USER_HOME/.config/zsh")
+
+  while IFS= read -r f; do
+    [[ -n "$f" ]] && paths+=("$f")
+  done < <(python3 -c '
+import sys, tomllib, os
+file, home = sys.argv[1], sys.argv[2]
+with open(file, "rb") as f:
+    data = tomllib.load(f)
+for src, dst in data.get("files", {}).items():
+    expanded = os.path.expandvars(dst)
+    if expanded.startswith("~"):
+        expanded = home + expanded[1:]
+    print(expanded)
+' "$MANIFESTS_DIR/dotfiles.toml" "$USER_HOME")
+
+  paths+=("/etc/greetd")
+  paths+=("/etc/pam.d/greetd")
+
+  printf '%s\n' "${paths[@]}"
+}
+
+# Instalação completa (módulos 00-16).
 cmd_install() {
   log_step "Iniciando instalação Arch-gabrln"
   log_info "REPO_DIR: $REPO_DIR"
@@ -136,7 +172,6 @@ cmd_install() {
   setup_temp_sudoers
   init_framework
 
-  # Fase 3: base
   run_module "00-preflight"
   run_module "01-backup" "$MANIFESTS_DIR/dotfiles.toml"
   run_module "02-pacman-bootstrap"
@@ -144,15 +179,11 @@ cmd_install() {
   run_module "04-shelly-aur" "$MANIFESTS_DIR/aur.toml"
   run_module "05-shelly-flatpak" "$MANIFESTS_DIR/flatpak.toml"
   run_module "06-curl-tools" "$MANIFESTS_DIR/curl-tools.toml"
-
-  # Fases 4-5: ambiente e login
   run_module "07-shell" "$MANIFESTS_DIR/zsh-plugins.toml"
   run_module "08-dotfiles" "$MANIFESTS_DIR/dotfiles.toml"
   run_module "09-hyprland-env"
   run_module "10-greeter"
   run_module "11-keyring"
-
-  # Fases 6-8: hyprpm, assets, pós-instalação e serviços
   run_module "12-hyprpm-manifest" "$MANIFESTS_DIR/hyprpm.toml"
   run_module "13-wallpapers" "$MANIFESTS_DIR/wallpapers.toml"
   run_module "14-icons-cursors-fonts"
@@ -162,30 +193,173 @@ cmd_install() {
   log_success "Instalação completa concluída."
 }
 
+# Atualização seletiva: dotfiles, AUR -git, hyprpm manifesto.
+cmd_update() {
+  log_step "Iniciando atualização Arch-gabrln"
+  log_info "GAMING: $GAMING | FORCE: $FORCE"
+
+  setup_traps
+  detect_real_user
+  setup_temp_sudoers
+  init_framework
+
+  log_info "Atualizando repositório local..."
+  run_as_user "git -C '$REPO_DIR' pull"
+
+  run_module "08-dotfiles" "$MANIFESTS_DIR/dotfiles.toml"
+  run_module "04-shelly-aur" "$MANIFESTS_DIR/aur.toml"
+  run_module "12-hyprpm-manifest" "$MANIFESTS_DIR/hyprpm.toml"
+
+  log_success "Atualização concluída."
+}
+
+# Reparo: reaplica configurações de login, serviços e manifesto hyprpm.
+cmd_repair() {
+  log_step "Iniciando reparo Arch-gabrln"
+  log_info "GAMING: $GAMING | FORCE: $FORCE"
+
+  setup_traps
+  detect_real_user
+  setup_temp_sudoers
+  init_framework
+
+  run_module "10-greeter"
+  run_module "11-keyring"
+  run_module "12-hyprpm-manifest" "$MANIFESTS_DIR/hyprpm.toml"
+  run_module "16-services" "$MANIFESTS_DIR/services.toml"
+
+  log_info "Reparo concluído. Se o Alt+Tab ainda não funcionar, execute manualmente no Hyprland:"
+  log_info "  hyprpm update && hyprpm add https://github.com/yayuuu/hyprland-scroll-overview.git && hyprpm enable scrolloverview"
+  log_success "Reparo finalizado."
+}
+
+# Backup manual.
+cmd_backup() {
+  log_step "Iniciando backup manual"
+
+  setup_traps
+  detect_real_user
+  init_framework
+
+  mapfile -t paths < <(_collect_backup_paths)
+  backup_name=$(backup_create "manual" "${paths[@]}")
+  log_success "Backup manual criado: $backup_name"
+}
+
+# Rollback: restaura snapshot mais recente.
+cmd_rollback() {
+  log_step "Iniciando rollback"
+
+  setup_traps
+  detect_real_user
+  init_framework
+
+  backup_restore "pre-install" || backup_restore "manual"
+  log_success "Rollback finalizado."
+}
+
+# Doctor: diagnóstico somente leitura.
+cmd_doctor() {
+  log_step "Iniciando diagnóstico Arch-gabrln"
+
+  # Não requer root, mas utiliza REAL_USER/USER_HOME se disponível
+  if [[ "${EUID:-}" -eq 0 && -n "${SUDO_USER:-}" ]]; then
+    REAL_USER="$SUDO_USER"
+    USER_HOME=$(getent passwd "$REAL_USER" | cut -d: -f6)
+  else
+    REAL_USER="${USER:-$(whoami)}"
+    USER_HOME="${HOME:-$(cd ~ && pwd)}"
+  fi
+
+  local issues=0
+
+  log_info "Verificando dotfiles..."
+  while IFS= read -r cfg; do
+    [[ -z "$cfg" ]] && continue
+    if [[ ! -e "$USER_HOME/.config/$cfg" ]]; then
+      log_warn "  → ausente: ~/.config/$cfg"
+      issues=$((issues + 1))
+    fi
+  done < <(python3 -c '
+import sys, tomllib
+with open(sys.argv[1], "rb") as f:
+    data = tomllib.load(f)
+for c in data.get("directories", {}).get("configs", []):
+    print(c)
+' "$MANIFESTS_DIR/dotfiles.toml")
+
+  if [[ ! -e "$USER_HOME/.config/zsh" ]]; then
+    log_warn "  → ausente: ~/.config/zsh"
+    issues=$((issues + 1))
+  fi
+
+  log_info "Verificando shell padrão..."
+  local current_shell=""
+  if is_command getent; then
+    current_shell=$(getent passwd "$REAL_USER" | cut -d: -f7)
+  elif [[ -n "${SHELL:-}" ]]; then
+    current_shell="$SHELL"
+  fi
+  if [[ -n "$current_shell" && "$current_shell" != "/usr/bin/zsh" ]]; then
+    log_warn "  → shell padrão é $current_shell (esperado /usr/bin/zsh)"
+    issues=$((issues + 1))
+  fi
+
+  log_info "Verificando plugins do Zsh..."
+  while IFS='|' read -r name entry; do
+    [[ -z "$name" ]] && continue
+    if [[ ! -e "$USER_HOME/.config/zsh/plugins/$name/$entry" ]]; then
+      log_warn "  → ausente: plugin $name"
+      issues=$((issues + 1))
+    fi
+  done < <(python3 -c '
+import sys, tomllib
+with open(sys.argv[1], "rb") as f:
+    data = tomllib.load(f)
+for p in data.get("plugins", []):
+    print(p["name"] + "|" + p["entry"])
+' "$MANIFESTS_DIR/zsh-plugins.toml")
+
+  log_info "Verificando serviços systemd..."
+  while IFS= read -r svc; do
+    [[ -z "$svc" ]] && continue
+    if ! systemctl is-enabled "$svc" &>/dev/null; then
+      log_warn "  → não habilitado: $svc"
+      issues=$((issues + 1))
+    fi
+  done < <(python3 -c '
+import sys, tomllib
+with open(sys.argv[1], "rb") as f:
+    data = tomllib.load(f)
+for s in data.get("services", []):
+    print(s["name"])
+' "$MANIFESTS_DIR/services.toml")
+
+  if [[ $issues -eq 0 ]]; then
+    log_success "Nenhuma divergência encontrada."
+  else
+    log_warn "Divergências encontradas: $issues. Use 'gabrln repair' para corrigir."
+  fi
+}
+
 case "$COMMAND" in
   install)
     cmd_install
     ;;
   update)
-    log_step "Iniciando atualização Arch-gabrln"
-    log_info "GAMING: $GAMING | FORCE: $FORCE"
-    log_info "Subcomando update ainda não implementado."
+    cmd_update
     ;;
   repair)
-    log_step "Iniciando reparo Arch-gabrln"
-    log_info "Subcomando repair ainda não implementado."
+    cmd_repair
     ;;
   backup)
-    log_step "Iniciando backup manual"
-    log_info "Subcomando backup ainda não implementado."
+    cmd_backup
     ;;
   rollback)
-    log_step "Iniciando rollback"
-    log_info "Subcomando rollback ainda não implementado."
+    cmd_rollback
     ;;
   doctor)
-    log_step "Iniciando diagnóstico"
-    log_info "Subcomando doctor ainda não implementado."
+    cmd_doctor
     ;;
   help|-h|--help)
     usage
