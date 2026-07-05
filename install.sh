@@ -54,6 +54,9 @@ REPO_DIR="$USER_HOME/projects/Arch-gabrln"
 if [ ! -d "$REPO_DIR" ]; then
     echo -e "${YELLOW}Clonando repositório para $REPO_DIR...${NC}"
     run_as_user "mkdir -p '$USER_HOME/projects' && git clone https://github.com/gabrln/Arch-gabrln.git '$REPO_DIR'"
+else
+    echo -e "${YELLOW}Atualizando repositório existente em $REPO_DIR...${NC}"
+    run_as_user "git -C '$REPO_DIR' pull"
 fi
 
 # 2. Instalar/Atualizar shelly (Modern Package Manager)
@@ -129,7 +132,7 @@ if ! command -v agy &>/dev/null && [ ! -f "$USER_HOME/.local/bin/agy" ]; then
 fi
 if ! command -v pi &>/dev/null && [ ! -f "$USER_HOME/.local/bin/pi" ] && ! command -v pi-coding-agent &>/dev/null; then
     print_step "Instalando pi-coding-agent..."
-    run_as_user "curl -fsSL https://pi.dev/install.sh | sh 2>/dev/null || true"
+    run_as_user "setsid sh -c 'curl -fsSL https://pi.dev/install.sh | sh' </dev/null &>/dev/null || true"
 fi
 if ! command -v herdr &>/dev/null && [ ! -f "$USER_HOME/.local/bin/herdr" ]; then
     print_step "Instalando herdr..."
@@ -202,6 +205,12 @@ run_as_user "cp -f '$REPO_DIR/.config/mimeapps.list' '$USER_HOME/.config/mimeapp
 run_as_user "xdg-user-dirs-update 2>/dev/null || true"
 run_as_user "mkdir -p '$USER_HOME/Pictures/Screenshots' '$USER_HOME/Pictures/Wallpapers' '$USER_HOME/projects'"
 
+# Garantir que o shell padrão do usuário seja o Zsh
+if [ "$(getent passwd "$REAL_USER" | cut -d: -f7)" != "/usr/bin/zsh" ]; then
+    echo -e "${YELLOW}Alterando o shell padrão do usuário para Zsh...${NC}"
+    sudo chsh -s /usr/bin/zsh "$REAL_USER"
+fi
+
 # Tornar scripts executáveis
 find "$REPO_DIR/.config" -type f \( -name "*.sh" -o -path "*/scripts/*" \) -exec chmod +x {} + 2>/dev/null || true
 
@@ -251,3 +260,4 @@ for svc in "${SERVICES[@]}"; do
 done
 
 echo -e "${GREEN}=== Instalação e Sincronização concluídas com sucesso! ===${NC}"
+echo -e "${YELLOW}Nota: O shell padrão foi alterado para Zsh. Reinicie seu terminal ou sessão de usuário para aplicar.${NC}"
