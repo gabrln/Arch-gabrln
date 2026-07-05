@@ -11,7 +11,7 @@ Ambiente Wayland focado em produtividade e estética unificada no **Arch Linux /
 
 ## Instalação
 
-O instalador automatiza a instalação de pacotes, diretórios XDG, wallpapers e vincula os dotfiles com backup seguro.
+O instalador automatiza a instalação de pacotes, diretórios XDG, wallpapers e sincroniza os dotfiles.
 
 **Opção 1: Instalação Padrão**
 ```bash

@@ -188,14 +188,8 @@ for cfg in "${CONFIGS[@]}"; do
         echo -e "${YELLOW}Fonte não encontrada, pulando: $cfg${NC}"
         continue
     fi
-    if [ -e "$TARGET_PATH" ] && [ ! -L "$TARGET_PATH" ]; then
-        BACKUP_PATH="${TARGET_PATH}.backup.$(date +%Y%m%d_%H%M%S)"
-        echo -e "${YELLOW}Fazer backup de configuração existente: $cfg -> $(basename "$BACKUP_PATH")${NC}"
-        mv "$TARGET_PATH" "$BACKUP_PATH"
-        chown -R "$REAL_USER:$REAL_USER" "$BACKUP_PATH"
-    fi
-    # Remover symlink antigo se existir (migração de ln para cp)
-    [ -L "$TARGET_PATH" ] && rm -f "$TARGET_PATH"
+    # Remover versão anterior/symlink e copiar configuração atualizada do repositório
+    sudo rm -rf "$TARGET_PATH"
     run_as_user "cp -rfT '$SOURCE_PATH' '$TARGET_PATH'"
 done
 
