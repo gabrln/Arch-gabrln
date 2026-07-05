@@ -22,16 +22,17 @@ if [[ ${#OFFICIAL_PKGS[@]} -eq 0 ]]; then
 fi
 
 log_info "Verificando pacotes já instalados..."
-MISSING=$(pacman -T "${OFFICIAL_PKGS[@]}" 2>/dev/null || true)
+# pacman -T retorna pacotes separados por newline; usamos mapfile para
+# preservar a lista como array e evitar que newlines quebrem o comando shell
+mapfile -t MISSING_ARR < <(pacman -T "${OFFICIAL_PKGS[@]}" 2>/dev/null || true)
 
-if [[ -z "$MISSING" ]]; then
+if [[ ${#MISSING_ARR[@]} -eq 0 ]]; then
   log_success "Todos os pacotes oficiais já estão instalados."
   return 0
 fi
 
-log_info "Instalando pacotes oficiais pendentes via shelly..."
-# shellcheck disable=SC2086
-shelly install --no-confirm $MISSING
+log_info "Instalando pacotes oficiais pendentes via shelly: ${MISSING_ARR[*]}"
+shelly install --no-confirm "${MISSING_ARR[@]}"
 
 hash -r
 log_success "Pacotes oficiais instalados."
