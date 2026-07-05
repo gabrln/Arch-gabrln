@@ -12,7 +12,8 @@ log_info "Atualizando manifesto hyprpm em $AUTOSTART_FILE..."
 
 # Usamos heredoc para evitar conflito entre aspas do bash e aspas simples
 # dentro do script Python (ex: 'bash -c ' no bloco hyprpm).
-python3 << PYTHON_EOF
+# O "-" faz o Python ler o script do stdin e os argumentos viram sys.argv[1..N].
+cat << PYTHON_EOF | python3 - "$MANIFESTS_DIR/hyprpm.toml" "$AUTOSTART_FILE"
 import sys, tomllib, re, textwrap
 manifest_file, autostart_file = sys.argv[1], sys.argv[2]
 
