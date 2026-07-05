@@ -3,6 +3,14 @@
 
 log_info "Verificando ferramentas de coding AI..."
 
+# Garante que ~/.local/bin existe para receber os binários instalados via curl
+LOCAL_BIN="$USER_HOME/.local/bin"
+if [[ ! -d "$LOCAL_BIN" ]]; then
+  log_info "Criando $LOCAL_BIN..."
+  sudo -u "$REAL_USER" HOME="$USER_HOME" PATH="$PATH" mkdir -p "$LOCAL_BIN" \
+    || log_warn "Não foi possível criar $LOCAL_BIN. As ferramentas podem falhar ao instalar."
+fi
+
 # Lê a lista de ferramentas do manifesto
 tools_json=$(python3 -c '
 import sys, json, tomllib

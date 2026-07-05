@@ -3,6 +3,12 @@
 
 log_info "Configurando shell padrão..."
 
+# Garante que zsh está instalado antes de tentar mudar o shell
+if ! command -v zsh &>/dev/null && [[ ! -x /usr/bin/zsh ]]; then
+  log_error "zsh não está instalado. O módulo 03-shelly-official deveria ter instalado. Verifique."
+  return 1
+fi
+
 if [[ "$(getent passwd "$REAL_USER" | cut -d: -f7)" != "/usr/bin/zsh" ]]; then
   log_info "Alterando shell padrão do usuário para Zsh..."
   chsh -s /usr/bin/zsh "$REAL_USER"
