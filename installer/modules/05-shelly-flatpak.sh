@@ -45,3 +45,10 @@ for pkg in "${missing_pkgs[@]}"; do
 done
 
 log_success "Pacotes Flatpak instalados."
+
+# Temas GTK para sandbox Flatpak (recomendação do Noctalia)
+log_info "Instalando temas adw-gtk3 para Flatpak..."
+flatpak install -y --system flathub org.gtk.Gtk3theme.adw-gtk3-dark || true
+flatpak install -y --system flathub org.gtk.Gtk3theme.adw-gtk3 || true
+
+log_success "Temas Flatpak configurados."
