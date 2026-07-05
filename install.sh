@@ -58,16 +58,28 @@ fi
 # Usamos -c safe.directory="*" inline para evitar "fatal: detected dubious ownership"
 # quando o repo foi clonado por root e depois usado por outro usuário.
 # Isso não persiste em ~/.gitconfig; vale apenas para este comando.
+# Passamos HOME=$USER_HOME explicitamente porque sudoers local pode ter env_reset
+# que sobrescreve --preserve-env no CachyOS/Arch.
 if [[ -d "$REPO_DIR/.git" ]]; then
   info "Atualizando repositório em $REPO_DIR..."
   # Corrige ownership caso arquivos tenham ficado como root de execução anterior
   chown -R "$REAL_USER:$REAL_USER" "$REPO_DIR" 2>/dev/null || true
-  sudo -u "$REAL_USER" --preserve-env=PATH,HOME git -c safe.directory="*" -C "$REPO_DIR" pull
+  sudo -u "$REAL_USER" HOME="$USER_HOME" PATH="$PATH" git -c safe.directory="*" -C "$REPO_DIR" pull
 else
   info "Clonando repositório para $REPO_DIR..."
+  # Garante que o HOME do usuário pertence ao usuário
+  if [[ ! -d "$USER_HOME" ]]; then
+    error "HOME do usuário '$REAL_USER' não existe: $USER_HOME"
+  fi
+  chown "$REAL_USER:$REAL_USER" "$USER_HOME" 2>/dev/null || true
   # Cria o diretório pai como o usuário real para evitar permission denied no git clone
-  sudo -u "$REAL_USER" --preserve-env=PATH,HOME mkdir -p "$USER_HOME/Projects"
-  sudo -u "$REAL_USER" --preserve-env=PATH,HOME git -c safe.directory="*" clone "$REPO_URL" "$REPO_DIR"
+  sudo -u "$REAL_USER" HOME="$USER_HOME" PATH="$PATH" mkdir -p "$USER_HOME/Projects" \
+    || error "Falha ao criar $USER_HOME/Projects (permissão negada?). Verifique manualmente."
+  # Verifica se o diretório foi realmente criado e é gravável
+  if [[ ! -d "$USER_HOME/Projects" ]]; then
+    error "Diretório $USER_HOME/Projects não foi criado."
+  fi
+  sudo -u "$REAL_USER" HOME="$USER_HOME" PATH="$PATH" git -c safe.directory="*" clone "$REPO_URL" "$REPO_DIR"
   # Segurança extra: garante ownership correto no repositório clonado
   chown -R "$REAL_USER:$REAL_USER" "$REPO_DIR" 2>/dev/null || true
 fi
