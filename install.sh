@@ -100,7 +100,6 @@ AUR_PKGS=(
     noctalia-git
     noctalia-greeter-git
     bibata-cursor-theme
-    antigravity
 )
 MISSING_AUR=$(pacman -T "${AUR_PKGS[@]}" 2>/dev/null || true)
 if [ -n "$MISSING_AUR" ]; then
@@ -123,7 +122,11 @@ if command -v flatpak &>/dev/null; then
 fi
 
 # 6. Instalar agentes de AI e ferramentas de desenvolvimento
-print_step "Verificando ferramentas de coding AI (herdr, pi-coding-agent)..."
+print_step "Verificando ferramentas de coding AI (agy, herdr, pi-coding-agent)..."
+if ! command -v agy &>/dev/null && [ ! -f "$USER_HOME/.local/bin/agy" ]; then
+    print_step "Instalando Antigravity CLI (agy)..."
+    run_as_user "curl -fsSL https://antigravity.google/cli/install.sh | bash 2>/dev/null || true"
+fi
 if command -v npm &>/dev/null; then
     if ! npm list -g @earendil-works/pi-coding-agent &>/dev/null; then
         print_step "Instalando pi-coding-agent..."
