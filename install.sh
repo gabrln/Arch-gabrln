@@ -211,6 +211,10 @@ if [ "$(getent passwd "$REAL_USER" | cut -d: -f7)" != "/usr/bin/zsh" ]; then
   sudo chsh -s /usr/bin/zsh "$REAL_USER"
 fi
 
+# Forçar a atualização da variável no Systemd User Manager ativo
+REAL_UID=$(getent passwd "$REAL_USER" | cut -d: -f3)
+sudo -u "$REAL_USER" XDG_RUNTIME_DIR="/run/user/$REAL_UID" systemctl --user set-environment SHELL=/usr/bin/zsh 2>/dev/null || true
+
 # Tornar scripts executáveis
 find "$REPO_DIR/.config" -type f \( -name "*.sh" -o -path "*/scripts/*" \) -exec chmod +x {} + 2>/dev/null || true
 
