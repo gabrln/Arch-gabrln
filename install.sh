@@ -64,7 +64,7 @@ if ! command -v shelly &>/dev/null; then
   echo -e "${YELLOW}Instalando 'shelly' para gerenciamento de pacotes...${NC}"
   sudo pacman -S --needed --noconfirm base-devel git
   if ! pacman -S --needed --noconfirm shelly 2>/dev/null; then
-    run_as_user "rm -rf /tmp/shelly-bin && git clone https://aur.archlinux.org/shelly-bin.git /tmp/shelly-bin && cd /tmp/shelly-bin && makepkg -si --noconfirm && rm -rf /tmp/shelly-bin"
+    run_as_user "rm -rf /tmp/shelly-bin && env GIT_TERMINAL_PROMPT=0 git clone https://aur.archlinux.org/shelly-bin.git /tmp/shelly-bin && cd /tmp/shelly-bin && makepkg -si --noconfirm && rm -rf /tmp/shelly-bin"
   fi
 fi
 
@@ -91,7 +91,7 @@ OFFICIAL_PKGS=(
 MISSING_OFFICIAL=$(pacman -T "${OFFICIAL_PKGS[@]}" 2>/dev/null || true)
 if [ -n "$MISSING_OFFICIAL" ]; then
   # shellcheck disable=SC2086
-  shelly install -n $MISSING_OFFICIAL
+  shelly install --noconfirm $MISSING_OFFICIAL
 else
   echo -e "${GREEN}Todos os pacotes oficiais já estão instalados! Pulando.${NC}"
 fi
@@ -108,7 +108,7 @@ MISSING_AUR=$(pacman -T "${AUR_PKGS[@]}" 2>/dev/null || true)
 if [ -n "$MISSING_AUR" ]; then
   print_step "Instalando pacotes AUR pendentes via shelly aur install..."
   # shellcheck disable=SC2086
-  run_as_user "shelly aur install -n $MISSING_AUR"
+  run_as_user "shelly aur install --noconfirm $MISSING_AUR"
 else
   echo -e "${GREEN}Todos os pacotes AUR já estão instalados! Pulando compilação.${NC}"
 fi
@@ -128,15 +128,15 @@ fi
 print_step "Verificando ferramentas de coding AI (agy, pi-coding-agent, herdr)..."
 if ! command -v agy &>/dev/null && [ ! -f "$USER_HOME/.local/bin/agy" ]; then
   print_step "Instalando Antigravity CLI (agy)..."
-  run_as_user "curl -fsSL https://antigravity.google/cli/install.sh | bash 2>/dev/null || true"
+  run_as_user "curl -fsSL https://antigravity.google/cli/install.sh | bash || true"
 fi
 if ! command -v pi &>/dev/null && [ ! -f "$USER_HOME/.local/bin/pi" ] && ! command -v pi-coding-agent &>/dev/null; then
   print_step "Instalando pi-coding-agent..."
-  run_as_user "setsid sh -c 'curl -fsSL https://pi.dev/install.sh | sh' </dev/null &>/dev/null || true"
+  run_as_user "sh -c 'curl -fsSL https://pi.dev/install.sh | sh' </dev/null &>/dev/null || true"
 fi
 if ! command -v herdr &>/dev/null && [ ! -f "$USER_HOME/.local/bin/herdr" ]; then
   print_step "Instalando herdr..."
-  run_as_user "curl -fsSL https://herdr.dev/install.sh | sh 2>/dev/null || true"
+  run_as_user "curl -fsSL https://herdr.dev/install.sh | sh || true"
 fi
 
 # 7. Baixar e instalar Wallpapers extras (Google Drive)
