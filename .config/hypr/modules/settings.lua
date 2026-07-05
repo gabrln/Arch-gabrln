@@ -72,22 +72,16 @@ hl.config({
         enabled            = true,
         force_zero_scaling = true,
     },
-    plugin = {
-        scrolloverview = {
-            gesture_distance = 300,
-            scale = 0.5,
-            workspace_gap = 100,
-            layout = "vertical",
-            wallpaper = 0,
-            blur = false,
-            input = {
-                scrolling_mode = 1,
-            },
-        },
-    },
 })
 
--- Gesto de trackpad para overview (3 dedos para cima)
+-- Configurar plugin scrolloverview de forma segura (evita o banner vermelho de erro se o plugin não estiver carregado)
 if hl.dsp and hl.dsp.exec_raw then
+    hl.dispatch(hl.dsp.exec_raw("keyword plugin:scrolloverview:gesture_distance 300"))
+    hl.dispatch(hl.dsp.exec_raw("keyword plugin:scrolloverview:scale 0.5"))
+    hl.dispatch(hl.dsp.exec_raw("keyword plugin:scrolloverview:workspace_gap 100"))
+    hl.dispatch(hl.dsp.exec_raw("keyword plugin:scrolloverview:layout vertical"))
+    hl.dispatch(hl.dsp.exec_raw("keyword plugin:scrolloverview:wallpaper 0"))
+    hl.dispatch(hl.dsp.exec_raw("keyword plugin:scrolloverview:blur false"))
+    hl.dispatch(hl.dsp.exec_raw("keyword plugin:scrolloverview:input:scrolling_mode 1"))
     hl.dispatch(hl.dsp.exec_raw("keyword scrolloverview-gesture 3, up, overview"))
 end
