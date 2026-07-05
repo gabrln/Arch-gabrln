@@ -24,6 +24,18 @@ Caso não queira digitar a senha de administrador (`sudo`) várias vezes durante
 curl -fsSL https://raw.githubusercontent.com/gabrln/Arch-gabrln/main/install.sh | sudo -E bash
 ```
 
+## Pós-instalação
+
+O `install.sh` roda antes do primeiro login gráfico, num TTY sem sessão Hyprland ativa. Por isso, uma etapa não pode ser automatizada pelo script e precisa ser feita manualmente **depois de logar no Hyprland pela primeira vez** (`hyprpm` depende de `hyprctl`, que exige `HYPRLAND_INSTANCE_SIGNATURE` de uma sessão ativa):
+
+\`\`\`bash
+hyprpm update
+hyprpm add https://github.com/yayuuu/hyprland-scroll-overview.git
+hyprpm enable scrolloverview
+\`\`\`
+
+Sem isso, o atalho `Alt + Tab` (Overview de Janelas/Workspaces) não funciona.
+
 ## Atalhos Principais
 
 | Atalho | Ação |
