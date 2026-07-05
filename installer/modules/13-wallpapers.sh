@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 # 13-wallpapers.sh - Baixa e extrai pacote de wallpapers extras
 
+wallpapers_enabled=$(toml_get "$CONFIG_FILE" "features.wallpapers" "true")
+if [[ "$wallpapers_enabled" != "true" ]]; then
+  log_info "Download de wallpapers desabilitado em config.toml. Pulando."
+  return 0
+fi
+
 file_id=$(toml_get "$MANIFESTS_DIR/wallpapers.toml" "source.file_id" "")
 wp_dir=$(toml_get "$MANIFESTS_DIR/wallpapers.toml" "destination.path" "$USER_HOME/Pictures/Wallpapers")
 wp_dir=$(echo "$wp_dir" | sed "s|\\$HOME|$USER_HOME|g")

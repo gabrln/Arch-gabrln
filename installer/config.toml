@@ -42,3 +42,6 @@ max_backups = 3
 [features]
 # Habilitar profile gaming (pacotes com tag gaming são instalados)
 gaming = false
+
+# Baixar e extrair pacote de wallpapers extras durante a instalação
+wallpapers = true

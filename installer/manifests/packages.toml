@@ -227,11 +227,6 @@ group = "apps"
 description = "Virtual filesystem"
 
 [[packages]]
-name = "vesktop"
-group = "apps"
-description = "Discord client"
-
-[[packages]]
 name = "cliphist"
 group = "apps"
 description = "Clipboard history"
@@ -360,12 +355,6 @@ description = "Adwaita GTK theme"
 name = "qt6ct"
 group = "themes"
 description = "Qt6 configuration tool"
-
-[[packages]]
-name = "protonup-qt"
-group = "gaming"
-description = "Proton GE installer"
-tags = ["gaming"]
 
 [[packages]]
 name = "prismlauncher"
