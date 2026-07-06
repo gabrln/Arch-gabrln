@@ -90,5 +90,5 @@ fi
 success "Repositório pronto em $REPO_DIR"
 info "Executando o framework..."
 
-# Delegar para o entrypoint real (aceita flags posicionais --gaming, --force)
+# Delegar para o entrypoint real
 exec "$REPO_DIR/installer/gabrln" install "$@"

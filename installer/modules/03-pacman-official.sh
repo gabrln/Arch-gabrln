@@ -3,18 +3,14 @@
 
 log_info "Lendo pacotes oficiais do manifesto..."
 
-# Extrai nomes dos pacotes, respeitando a flag --gaming
+# Extrai nomes dos pacotes do manifesto (sem filtro de tag - tudo instala)
 mapfile -t OFFICIAL_PKGS < <(python3 -c '
 import sys, tomllib
-file, gaming = sys.argv[1], sys.argv[2] == "true"
-with open(file, "rb") as f:
+with open(sys.argv[1], "rb") as f:
     data = tomllib.load(f)
 for pkg in data.get("packages", []):
-    tags = pkg.get("tags", [])
-    if "gaming" in tags and not gaming:
-        continue
     print(pkg["name"])
-' "$MANIFESTS_DIR/packages.toml" "$GAMING")
+' "$MANIFESTS_DIR/packages.toml")
 
 if [[ ${#OFFICIAL_PKGS[@]} -eq 0 ]]; then
   log_warn "Nenhum pacote oficial a instalar."

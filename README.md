@@ -1,16 +1,12 @@
 # Arch-gabrln
 
-Ambiente Wayland para Arch/CachyOS: **Hyprland (Lua) + Noctalia V5 + Kitty + Zellij + Neovim**.
+Ambiente Wayland para Arch/CachyOS: **Hyprland 0.55 + Noctalia V5**.
 Stack de pacotes: `pacman` (oficial CachyOS) · `yay` (AUR) · `flatpak`.
 
 ## Instalação
 
 ```bash
-# Padrão
 curl -fsSL https://raw.githubusercontent.com/gabrln/Arch-gabrln/main/install.sh | sudo -E bash
-
-# Com flags (--gaming, --force, ou ambas)
-curl -fsSL https://raw.githubusercontent.com/gabrln/Arch-gabrln/main/install.sh | sudo -E bash -s -- --gaming
 ```
 
 O instalador clona o repo em `~/Projects/Arch-gabrln` e roda o framework `gabrln`. Requer Arch ou CachyOS.
@@ -26,8 +22,6 @@ O instalador clona o repo em `~/Projects/Arch-gabrln` e roda o framework `gabrln
 | `gabrln rollback` | Restaurar snapshot mais recente |
 | `gabrln doctor` | Diagnóstico read-only |
 
-Flags: `--gaming` (inclui pacotes gaming) · `--force` (ignora state e reroda).
-
 ## Atalhos principais
 
 - `Super + T` — Terminal (Kitty)
@@ -35,4 +29,4 @@ Flags: `--gaming` (inclui pacotes gaming) · `--force` (ignora state e reroda).
 - `Alt + Tab` — Overview (hyprpm scrolloverview)
 - `Super + B` — Firefox
 - `Super + /` — Cheat sheet completo
-- `Super + Q` / `Alt + F4` — Fechar janela
+- `Super + Q` — Fechar janela

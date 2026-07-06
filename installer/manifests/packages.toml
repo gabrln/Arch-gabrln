@@ -364,27 +364,23 @@ description = "Qt6 configuration tool (pacman/extra) - vanilla; qt6ct-kde quebro
 
 [[packages]]
 name = "prismlauncher"
-group = "gaming"
+group = "themes"
 description = "Minecraft launcher"
-tags = ["gaming"]
 
 [[packages]]
 name = "spotify-launcher"
-group = "gaming"
+group = "themes"
 description = "Spotify launcher"
-tags = ["gaming"]
 
 [[packages]]
 name = "vesktop"
-group = "gaming"
+group = "themes"
 description = "Discord client (Vencord) - pacote do repo CachyOS"
-tags = ["gaming"]
 
 [[packages]]
 name = "protonup-qt"
-group = "gaming"
+group = "themes"
 description = "Proton GE installer - pacote do repo CachyOS"
-tags = ["gaming"]
 
 [[packages]]
 name = "gnome-keyring"

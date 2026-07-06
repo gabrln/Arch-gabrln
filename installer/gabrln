@@ -31,7 +31,7 @@ log_init "$LOGS_DIR"
 
 usage() {
   cat <<EOF
-Uso: gabrln <comando> [opções]
+Uso: gabrln <comando>
 
 Comandos:
   install   Executa a instalação completa (módulos 00-16)
@@ -42,28 +42,13 @@ Comandos:
   doctor    Verifica o estado atual sem modificar nada
   help      Mostra esta mensagem
 
-Opções comuns:
-  --gaming  Habilita pacotes com tag gaming (quando suportado)
-  --force   Ignora estado e reexecuta módulos
-
 EOF
 }
 
-# Detecta flags globais e remove-as dos argumentos.
-GAMING=false
-FORCE=false
 POSITIONAL_ARGS=()
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --gaming)
-      GAMING=true
-      shift
-      ;;
-    --force)
-      FORCE=true
-      shift
-      ;;
     -h|--help)
       usage
       exit 0
@@ -85,8 +70,6 @@ set -- "${POSITIONAL_ARGS[@]}"
 COMMAND="${1:-help}"
 shift 2>/dev/null || true
 
-export GAMING FORCE
-
 # Executa um módulo individual se ele existir.
 # Uso: run_module <nome> <manifesto>
 run_module() {
@@ -99,7 +82,7 @@ run_module() {
     return 0
   fi
 
-  if [[ "$FORCE" != true ]] && [[ -n "$manifest" ]] && state_is_up_to_date "$module" "$manifest"; then
+  if [[ -n "$manifest" ]] && state_is_up_to_date "$module" "$manifest"; then
     log_info "Módulo $module já está atualizado. Pulando."
     return 0
   fi
@@ -165,7 +148,6 @@ for src, dst in data.get("files", {}).items():
 cmd_install() {
   log_step "Iniciando instalação Arch-gabrln"
   log_info "REPO_DIR: $REPO_DIR"
-  log_info "GAMING: $GAMING | FORCE: $FORCE"
 
   setup_traps
   detect_real_user
@@ -196,7 +178,6 @@ cmd_install() {
 # Atualização seletiva: dotfiles, AUR -git, hyprpm manifesto.
 cmd_update() {
   log_step "Iniciando atualização Arch-gabrln"
-  log_info "GAMING: $GAMING | FORCE: $FORCE"
 
   setup_traps
   detect_real_user
@@ -216,7 +197,6 @@ cmd_update() {
 # Reparo: reaplica configurações de login, serviços e manifesto hyprpm.
 cmd_repair() {
   log_step "Iniciando reparo Arch-gabrln"
-  log_info "GAMING: $GAMING | FORCE: $FORCE"
 
   setup_traps
   detect_real_user
