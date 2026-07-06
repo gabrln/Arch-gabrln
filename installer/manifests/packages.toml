@@ -375,6 +375,18 @@ description = "Spotify launcher"
 tags = ["gaming"]
 
 [[packages]]
+name = "vesktop"
+group = "gaming"
+description = "Discord client (Vencord) - pacote do repo CachyOS"
+tags = ["gaming"]
+
+[[packages]]
+name = "protonup-qt"
+group = "gaming"
+description = "Proton GE installer - pacote do repo CachyOS"
+tags = ["gaming"]
+
+[[packages]]
 name = "gnome-keyring"
 group = "themes"
 description = "Keyring daemon"

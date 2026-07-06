@@ -14,14 +14,3 @@ rebuild_on_update = true
 name = "bibata-cursor-theme-bin"
 description = "Bibata cursor theme (binario pre-construido do AUR)"
 rebuild_on_update = false
-
-[[packages]]
-name = "vesktop"
-description = "Discord client"
-rebuild_on_update = false
-
-[[packages]]
-name = "protonup-qt"
-description = "Proton GE installer"
-tags = ["gaming"]
-rebuild_on_update = false
