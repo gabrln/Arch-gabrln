@@ -203,7 +203,6 @@ cmd_repair() {
 
   run_module "10-greeter"
   run_module "11-keyring"
-  run_module "12-hyprpm-manifest" "$MANIFESTS_DIR/hyprpm.toml"
   
   log_info "Reparo concluído. Se o Alt+Tab ainda não funcionar, execute manualmente no Hyprland:"
   log_info "  hyprpm update && hyprpm add https://github.com/yayuuu/hyprland-scroll-overview.git && hyprpm enable scrolloverview"
