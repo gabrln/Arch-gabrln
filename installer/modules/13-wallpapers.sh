@@ -8,8 +8,14 @@ if [[ "$wallpapers_enabled" != "true" ]]; then
 fi
 
 file_id=$(toml_get "$MANIFESTS_DIR/wallpapers.toml" "source.file_id" "")
-wp_dir=$(toml_get "$MANIFESTS_DIR/wallpapers.toml" "destination.path" "$USER_HOME/Pictures/Wallpapers")
-wp_dir=$(echo "$wp_dir" | sed "s|\\$HOME|$USER_HOME|g")
+wp_dir=$(toml_get "$MANIFESTS_DIR/wallpapers.toml" "destination.path" "Pictures/Wallpapers")
+# O valor pode usar $HOME como prefixo (literal); expande para o home do usuario
+# real. Se nao tiver prefixo, e apenas caminho relativo, monta $USER_HOME em cima.
+case "$wp_dir" in
+  \$HOME/*|\$HOME) wp_dir="$USER_HOME/${wp_dir#\$HOME/}" ;;
+  /*) ;;
+  *) wp_dir="$USER_HOME/$wp_dir" ;;
+esac
 
 if [[ -z "$file_id" ]]; then
   log_warn "Nenhum file_id configurado em wallpapers.toml. Pulando."

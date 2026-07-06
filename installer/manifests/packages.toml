@@ -403,6 +403,11 @@ group = "themes"
 description = "Wayland compositor"
 
 [[packages]]
+name = "hyprpm"
+group = "themes"
+description = "Gerenciador de plugins do Hyprland"
+
+[[packages]]
 name = "xdg-desktop-portal-hyprland"
 group = "themes"
 description = "Hyprland desktop portal"
