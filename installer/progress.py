@@ -239,6 +239,7 @@ class LiveDisplay:
         self._total = total
         self._state = ProgressState(total_modules=total)
         self._live = None
+        self._console = None
         self._progress = None
         self._task_id = None
         self._final: list[str] = []
@@ -252,6 +253,7 @@ class LiveDisplay:
         from rich.live import Live
         from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn
 
+        self._console = Console(stderr=False)
         self._progress = Progress(
             SpinnerColumn(),
             TextColumn("[bold cyan]{task.description}"),
@@ -259,7 +261,7 @@ class LiveDisplay:
             TextColumn("{task.percentage:>3.0f}%"),
             TextColumn("({task.completed}/{task.total})"),
             transient=False,
-            console=Console(stderr=False),
+            console=self._console,
         )
         self._live = Live(
             self._render(),

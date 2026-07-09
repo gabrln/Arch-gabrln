@@ -120,6 +120,11 @@ def set_suppress_stderr(suppress: bool) -> None:
 
 def _should_print(level_name: str) -> bool:
     assert _state is not None
+    # 'error' always reaches the terminal, even while the TUI has
+    # suppressed regular module output. A silently swallowed fatal
+    # error is worse than a TUI glitch.
+    if level_name == "error":
+        return True
     if _suppress_stderr:
         return False
     if _state.level == LogLevel.QUIET and level_name not in ("error", "step"):

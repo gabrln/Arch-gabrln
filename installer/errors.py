@@ -7,7 +7,7 @@ import signal
 import sys
 from typing import Callable
 
-from installer.logger import log
+from installer.logger import log, set_suppress_stderr
 
 
 class InstallerError(Exception):
@@ -58,7 +58,13 @@ def run_cleanup() -> None:
 
 
 def fatal(message: str, code: int = 1) -> None:
-    """Log an error, run cleanup, and exit."""
+    """Log an error, run cleanup, and exit.
+
+    Explicitly lifts stderr suppression first: fatal errors must
+    always reach the terminal, even if a module (or the TUI) left
+    the suppressor engaged when it crashed.
+    """
+    set_suppress_stderr(False)
     log("error", message)
     run_cleanup()
     sys.exit(code)
