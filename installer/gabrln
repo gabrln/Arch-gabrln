@@ -1,5 +1,19 @@
 #!/usr/bin/env bash
 # gabrln - Entrypoint principal do framework de instalação Arch-gabrln
+#
+# Mudanças em relação à versão anterior:
+#   - Flags CLI: --dry-run, --verbose, --quiet, --force (re-roda módulos
+#     já concluídos), --yes (assume sim para confirmações).
+#   - `run_module` é tolerante a falha do módulo: marca estado como
+#     failed, loga o motivo, e continua a menos que `--fatal` esteja
+#     ativo (padrão: tolerante para install/update, fatal para repair).
+#   - `cmd_update` agora roda `pacman -Syu`, `flatpak update`,
+#     `hyprpm update` além dos dotfiles/AUR.
+#   - `cmd_repair` re-aplica mais: dotfiles, permissões, hyprpm, services.
+#   - `cmd_doctor` cobre: hyprpm, symlinks do /root, permissões, drift de
+#     dotfiles (diff vs repo), curl-tools, xdg-user-dirs, fc-cache.
+#   - Setup de polkit policy via errors.sh (substitui setup_temp_sudoers).
+#   - Progress bar ativada para install/update/repair.
 
 set -euo pipefail
 
@@ -25,33 +39,83 @@ source "$INSTALLER_DIR/lib/backup.sh"
 # shellcheck source=SCRIPTDIR/lib/progress.sh
 source "$INSTALLER_DIR/lib/progress.sh"
 
-# Garante que LOGS_DIR seja absoluto
-LOGS_DIR="$REPO_DIR/$(toml_get "$CONFIG_FILE" "paths.logs_dir" "installer/logs")"
-log_init "$LOGS_DIR"
-
 usage() {
   cat <<EOF
-Uso: gabrln <comando>
+Uso: gabrln [opções] <comando>
 
 Comandos:
   install   Executa a instalação completa (módulos 00-16)
-  update    Atualiza dotfiles, AUR -git e manifesto hyprpm
+  update    Atualiza dotfiles, AUR -git, hyprpm, pacman, flatpak
   repair    Reaplica configurações divergentes
   backup    Cria snapshot manual das configurações
   rollback  Restaura o snapshot mais recente
   doctor    Verifica o estado atual sem modificar nada
   help      Mostra esta mensagem
 
+Opções:
+  --verbose     Habilita logs de DEBUG
+  --quiet       Suprime INFO, mantém ERROR/STEP
+  --dry-run     Não executa módulos destrutivos, apenas simula
+  --force       Re-executa módulos já concluídos (ignora state.json)
+  --yes         Assume 'sim' para todas as confirmações
+  --no-fatal    Continua após falha de módulo (marca failed e segue)
+  --module N    Executa apenas o módulo N (debug)
+
+Variáveis de ambiente:
+  NO_COLOR=1    Desabilita saída colorida (https://no-color.org/)
+  SUDO_USER     Usuário real (definido automaticamente pelo sudo)
+
 EOF
 }
 
-POSITIONAL_ARGS=()
+# --- Parse de flags e comando ------------------------------------------------
 
+VERBOSE="${VERBOSE:-0}"
+QUIET="${QUIET:-0}"
+DRY_RUN=0
+FORCE=0
+ASSUME_YES=0
+ONLY_MODULE=""
+ABORT_ON_ERROR=1
+
+POSITIONAL_ARGS=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
     -h|--help)
       usage
       exit 0
+      ;;
+    --verbose)
+      VERBOSE=1
+      shift
+      ;;
+    --quiet)
+      QUIET=1
+      shift
+      ;;
+    --dry-run)
+      DRY_RUN=1
+      shift
+      ;;
+    --force)
+      FORCE=1
+      shift
+      ;;
+    --yes|-y)
+      ASSUME_YES=1
+      shift
+      ;;
+    --no-fatal)
+      ABORT_ON_ERROR=0
+      shift
+      ;;
+    --module)
+      ONLY_MODULE="${2:-}"
+      shift 2
+      ;;
+    --module=*)
+      ONLY_MODULE="${1#*=}"
+      shift
       ;;
     -*)
       log_error "Opção desconhecida: $1"
@@ -64,41 +128,103 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
-
 set -- "${POSITIONAL_ARGS[@]}"
 
+export VERBOSE QUIET
 COMMAND="${1:-help}"
 shift 2>/dev/null || true
 
-# Executa um módulo individual se ele existir.
-# Uso: run_module <nome> <manifesto>
+# Garante que LOGS_DIR seja absoluto
+LOGS_DIR="$REPO_DIR/$(toml_get "$CONFIG_FILE" "paths.logs_dir" "installer/logs")"
+log_init "$LOGS_DIR"
+
+# Confirma helper para todo o processo
+confirm() {
+  if [[ "$ASSUME_YES" -eq 1 ]]; then
+    return 0
+  fi
+  local message="${1:-Continuar?}"
+  local default="${2:-n}"
+  local prompt="$message ["
+  if [[ "$default" == "y" ]]; then
+    prompt+="Y/n"
+  else
+    prompt+="y/N"
+  fi
+  prompt+="] "
+  local response
+  read -r -p "$prompt" response || return 1
+  response=${response,,}
+  if [[ -z "$response" ]]; then
+    response="$default"
+  fi
+  [[ "$response" == "y" || "$response" == "s" ]]
+}
+
+# --- run_module: tolerante a falha -----------------------------------------
+
+# Executa um módulo individual se existir.
+# Uso: run_module <nome> <manifesto> [fatal]
+#   fatal: 1 (padrão em install/update) aborta em falha
+#          0 (padrão em repair, se FLAG --no-fatal) marca failed e segue
 run_module() {
   local module="$1"
   local manifest="${2:-}"
+  local fatal="${3:-1}"
   local module_path="$MODULES_DIR/$module.sh"
+
+  if [[ -n "$ONLY_MODULE" && "$module" != "$ONLY_MODULE" ]]; then
+    log_debug "Pulando $module (filtro --module=$ONLY_MODULE)."
+    return 0
+  fi
 
   if [[ ! -f "$module_path" ]]; then
     log_warn "Módulo $module não encontrado em $module_path. Pulando."
     return 0
   fi
 
-  if [[ -n "$manifest" ]] && state_is_up_to_date "$module" "$manifest"; then
+  if [[ "$FORCE" -eq 0 && -n "$manifest" ]] && state_is_up_to_date "$module" "$manifest"; then
     log_info "Módulo $module já está atualizado. Pulando."
     return 0
   fi
 
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    log_step "[dry-run] $module seria executado"
+    return 0
+  fi
+
   log_step "Executando módulo $module"
+
+  # `set +e` no wrapper para capturarmos o exit code sem matar o caller.
+  # `set -e` é restaurado ao final.
+  local saved_e
+  saved_e=$(set +o | grep errexit || true)
+  set +e
   # shellcheck source=/dev/null
   source "$module_path"
+  local rc=$?
+  eval "$saved_e"
+
+  if [[ $rc -ne 0 ]]; then
+    state_mark_failed "$module" "exit $rc"
+    if [[ "$fatal" -eq 1 ]]; then
+      exit_with_error "Módulo $module falhou com exit code $rc." "$rc"
+    else
+      log_warn "Módulo $module falhou (exit $rc), continuando."
+      return $rc
+    fi
+  fi
 
   if [[ -n "$manifest" ]]; then
     state_mark_done "$module" "$manifest"
   else
     state_mark_done "$module"
   fi
+  return 0
 }
 
-# Inicializa diretórios de estado e backup.
+# --- init_framework ---------------------------------------------------------
+
 init_framework() {
   local state_dir backups_dir
   state_dir="$REPO_DIR/$(toml_get "$CONFIG_FILE" "paths.state_dir" "installer/state")"
@@ -106,21 +232,18 @@ init_framework() {
 
   state_init "$state_dir"
   backup_init "$backups_dir"
+  # Limpa cache TOML no EXIT
+  register_cleanup "toml_cache_cleanup"
 }
 
-# Coleta caminhos para backup a partir do manifesto de dotfiles.
+# --- Coleta de paths para backup -------------------------------------------
+
 _collect_backup_paths() {
   local paths=()
 
   while IFS= read -r cfg; do
     [[ -n "$cfg" ]] && paths+=("$USER_HOME/.config/$cfg")
-  done < <(python3 -c '
-import sys, tomllib
-with open(sys.argv[1], "rb") as f:
-    data = tomllib.load(f)
-for c in data.get("directories", {}).get("configs", []):
-    print(c)
-' "$MANIFESTS_DIR/dotfiles.toml")
+  done < <(toml_list "$MANIFESTS_DIR/dotfiles.toml" "directories.configs")
 
   paths+=("$USER_HOME/.config/zsh")
 
@@ -144,72 +267,148 @@ for src, dst in data.get("files", {}).items():
   printf '%s\n' "${paths[@]}"
 }
 
-# Instalação completa (módulos 00-16).
+# --- Comandos ---------------------------------------------------------------
+
+# Lista canônica dos módulos para iteração em install/update.
+# Usar um array garante que a ordem é fixa e auditável.
+INSTALL_MODULES=(
+  "00-preflight"
+  "01-backup"
+  "02-pacman-bootstrap"
+  "03-pacman-official"
+  "04-yay-aur"
+  "05-flatpak"
+  "06-curl-tools"
+  "07-shell"
+  "08-dotfiles"
+  "09-hyprland-env"
+  "10-greeter"
+  "11-keyring"
+  "13-wallpapers"
+  "14-icons-cursors-fonts"
+  "15-system-tweaks"
+  "16-services"
+)
+
+# Mapa de módulo -> manifesto (declarativo).
+declare -A MODULE_MANIFESTS=(
+  ["01-backup"]="$MANIFESTS_DIR/dotfiles.toml"
+  ["03-pacman-official"]="$MANIFESTS_DIR/packages.toml"
+  ["04-yay-aur"]="$MANIFESTS_DIR/aur.toml"
+  ["05-flatpak"]="$MANIFESTS_DIR/flatpak.toml"
+  ["06-curl-tools"]="$MANIFESTS_DIR/curl-tools.toml"
+  ["07-shell"]="$MANIFESTS_DIR/zsh-plugins.toml"
+  ["08-dotfiles"]="$MANIFESTS_DIR/dotfiles.toml"
+  ["13-wallpapers"]="$MANIFESTS_DIR/wallpapers.toml"
+  ["16-services"]="$MANIFESTS_DIR/services.toml"
+)
+
 cmd_install() {
   log_step "Iniciando instalação Arch-gabrln"
   log_info "REPO_DIR: $REPO_DIR"
 
   setup_traps
   detect_real_user
-  setup_temp_sudoers
+  # Polkit policy é opt-in
+  if [[ "$(toml_get "$CONFIG_FILE" "features.enable_polkit_helper" "true")" == "true" ]]; then
+    setup_polkit_policy
+  else
+    log_info "Polkit helper desabilitado em config.toml."
+  fi
   init_framework
 
-  run_module "00-preflight"
-  run_module "01-backup" "$MANIFESTS_DIR/dotfiles.toml"
-  run_module "02-pacman-bootstrap"
-  run_module "03-pacman-official" "$MANIFESTS_DIR/packages.toml"
-  run_module "04-yay-aur" "$MANIFESTS_DIR/aur.toml"
-  run_module "05-flatpak" "$MANIFESTS_DIR/flatpak.toml"
-  run_module "06-curl-tools" "$MANIFESTS_DIR/curl-tools.toml"
-  run_module "07-shell" "$MANIFESTS_DIR/zsh-plugins.toml"
-  run_module "08-dotfiles" "$MANIFESTS_DIR/dotfiles.toml"
-  run_module "09-hyprland-env"
-  run_module "10-greeter"
-  run_module "11-keyring"
-  run_module "13-wallpapers" "$MANIFESTS_DIR/wallpapers.toml"
-  run_module "14-icons-cursors-fonts"
-  run_module "15-system-tweaks"
-  run_module "16-services" "$MANIFESTS_DIR/services.toml"
+  progress_init "${#INSTALL_MODULES[@]}" "install"
 
+  for module in "${INSTALL_MODULES[@]}"; do
+    local manifest="${MODULE_MANIFESTS[$module]:-}"
+    if [[ -n "$ONLY_MODULE" && "$module" != "$ONLY_MODULE" ]]; then
+      progress_step "$module (pulado)"
+      continue
+    fi
+    progress_step "$module"
+    run_module "$module" "$manifest" "$ABORT_ON_ERROR"
+  done
+
+  progress_done "Instalação"
   log_success "Instalação completa concluída."
 }
 
-# Atualização seletiva: dotfiles, AUR -git, hyprpm manifesto.
 cmd_update() {
   log_step "Iniciando atualização Arch-gabrln"
 
   setup_traps
   detect_real_user
-  setup_temp_sudoers
+  setup_polkit_policy
   init_framework
 
   log_info "Atualizando repositório local..."
-  run_as_user "git -C '$REPO_DIR' pull"
+  if [[ "$DRY_RUN" -eq 0 ]]; then
+    runuser -u "$REAL_USER" -- bash -c "git -C '$REPO_DIR' pull" || log_warn "git pull falhou."
+  fi
 
-  run_module "08-dotfiles" "$MANIFESTS_DIR/dotfiles.toml"
-  run_module "04-yay-aur" "$MANIFESTS_DIR/aur.toml"
+  # Pacman: update do sistema (opt-in via config)
+  if [[ "$(toml_get "$CONFIG_FILE" "flags.update_pacman" "true")" == "true" ]]; then
+    log_info "Atualizando sistema via pacman..."
+    if [[ "$DRY_RUN" -eq 0 ]]; then
+      pacman -Syu --noconfirm || log_warn "pacman -Syu retornou erro (continuando)."
+    fi
+  fi
+
+  # Flatpak: update (opt-in)
+  if [[ "$(toml_get "$CONFIG_FILE" "flags.update_flatpak" "true")" == "true" ]]; then
+    if is_command flatpak && [[ "$DRY_RUN" -eq 0 ]]; then
+      log_info "Atualizando Flatpaks..."
+      flatpak update -y --system || log_warn "flatpak update falhou (continuando)."
+    fi
+  fi
+
+  # AUR -git (rebuild)
+  log_info "Reinstalando pacotes AUR com rebuild_on_update..."
+  if [[ "$DRY_RUN" -eq 0 ]]; then
+    run_module "04-yay-aur" "$MANIFESTS_DIR/aur.toml" 0 || true
+  fi
+
+  # Dotfiles
+  log_info "Reaplicando dotfiles..."
+  if [[ "$DRY_RUN" -eq 0 ]]; then
+    run_module "08-dotfiles" "$MANIFESTS_DIR/dotfiles.toml" 0 || true
+  fi
+
+  # hyprpm (opt-in)
+  if [[ "$(toml_get "$CONFIG_FILE" "flags.update_hyprpm" "true")" == "true" ]]; then
+    if is_command hyprpm && [[ "$DRY_RUN" -eq 0 ]]; then
+      log_info "Atualizando plugins do hyprpm..."
+      hyprpm update -v || log_warn "hyprpm update falhou (continuando)."
+    fi
+  fi
 
   log_success "Atualização concluída."
 }
 
-# Reparo: reaplica configurações de login, serviços e manifesto hyprpm.
 cmd_repair() {
   log_step "Iniciando reparo Arch-gabrln"
 
   setup_traps
   detect_real_user
-  setup_temp_sudoers
+  setup_polkit_policy
   init_framework
 
-  run_module "10-greeter"
-  run_module "11-keyring"
-  
-  log_info "Reparo concluído. Se o Alt+Tab ainda não funcionar, execute manualmente no Hyprland:"
-  log_info "  hyprpm update && hyprpm add https://github.com/yayuuu/hyprland-scroll-overview.git && hyprpm enable scrolloverview"
+  # Re-aplica tudo que pode ter sido quebrado
+  run_module "08-dotfiles" "$MANIFESTS_DIR/dotfiles.toml" 0 || true
+  run_module "09-hyprland-env" "" 0 || true
+  run_module "10-greeter" "" 0 || true
+  run_module "11-keyring" "" 0 || true
+  run_module "15-system-tweaks" "" 0 || true
+  run_module "16-services" "$MANIFESTS_DIR/services.toml" 0 || true
+
+  if is_command hyprpm; then
+    log_info "Reinstalando plugins hyprpm..."
+    hyprpm update -v || log_warn "hyprpm update falhou."
+  fi
+
   log_success "Reparo finalizado."
 }
 
-# Backup manual.
 cmd_backup() {
   log_step "Iniciando backup manual"
 
@@ -218,11 +417,11 @@ cmd_backup() {
   init_framework
 
   mapfile -t paths < <(_collect_backup_paths)
+  local backup_name
   backup_name=$(backup_create "manual" "${paths[@]}")
   log_success "Backup manual criado: $backup_name"
 }
 
-# Rollback: restaura snapshot mais recente.
 cmd_rollback() {
   log_step "Iniciando rollback"
 
@@ -230,11 +429,12 @@ cmd_rollback() {
   detect_real_user
   init_framework
 
-  backup_restore "pre-install" || backup_restore "manual"
+  if ! backup_restore "pre-install"; then
+    backup_restore "manual" || log_error "Rollback falhou."
+  fi
   log_success "Rollback finalizado."
 }
 
-# Doctor: diagnóstico somente leitura.
 cmd_doctor() {
   log_step "Iniciando diagnóstico Arch-gabrln"
 
@@ -248,25 +448,33 @@ cmd_doctor() {
   fi
 
   local issues=0
+  local checks=0
+
+  # Helper para acumular issues
+  _flag() {
+    issues=$((issues + 1))
+    log_warn "  → $1"
+  }
+  _pass() {
+    log_info "  → $1"
+  }
 
   log_info "Verificando dotfiles..."
   while IFS= read -r cfg; do
     [[ -z "$cfg" ]] && continue
+    checks=$((checks + 1))
     if [[ ! -e "$USER_HOME/.config/$cfg" ]]; then
-      log_warn "  → ausente: ~/.config/$cfg"
-      issues=$((issues + 1))
+      _flag "ausente: ~/.config/$cfg"
+    else
+      _pass "ok: ~/.config/$cfg"
     fi
-  done < <(python3 -c '
-import sys, tomllib
-with open(sys.argv[1], "rb") as f:
-    data = tomllib.load(f)
-for c in data.get("directories", {}).get("configs", []):
-    print(c)
-' "$MANIFESTS_DIR/dotfiles.toml")
+  done < <(toml_list "$MANIFESTS_DIR/dotfiles.toml" "directories.configs")
 
+  checks=$((checks + 1))
   if [[ ! -e "$USER_HOME/.config/zsh" ]]; then
-    log_warn "  → ausente: ~/.config/zsh"
-    issues=$((issues + 1))
+    _flag "ausente: ~/.config/zsh"
+  else
+    _pass "ok: ~/.config/zsh"
   fi
 
   log_info "Verificando shell padrão..."
@@ -276,17 +484,21 @@ for c in data.get("directories", {}).get("configs", []):
   elif [[ -n "${SHELL:-}" ]]; then
     current_shell="$SHELL"
   fi
+  checks=$((checks + 1))
   if [[ -n "$current_shell" && "$current_shell" != "/usr/bin/zsh" ]]; then
-    log_warn "  → shell padrão é $current_shell (esperado /usr/bin/zsh)"
-    issues=$((issues + 1))
+    _flag "shell padrão é $current_shell (esperado /usr/bin/zsh)"
+  else
+    _pass "shell padrão é zsh"
   fi
 
   log_info "Verificando plugins do Zsh..."
   while IFS='|' read -r name entry; do
     [[ -z "$name" ]] && continue
+    checks=$((checks + 1))
     if [[ ! -e "$USER_HOME/.config/zsh/plugins/$name/$entry" ]]; then
-      log_warn "  → ausente: plugin $name"
-      issues=$((issues + 1))
+      _flag "ausente: plugin $name"
+    else
+      _pass "ok: plugin $name"
     fi
   done < <(python3 -c '
 import sys, tomllib
@@ -299,48 +511,118 @@ for p in data.get("plugins", []):
   log_info "Verificando serviços systemd..."
   while IFS= read -r svc; do
     [[ -z "$svc" ]] && continue
+    checks=$((checks + 1))
     if ! systemctl is-enabled "$svc" &>/dev/null; then
-      log_warn "  → não habilitado: $svc"
-      issues=$((issues + 1))
+      _flag "não habilitado: $svc"
+    else
+      _pass "ok: $svc habilitado"
     fi
-  done < <(python3 -c '
-import sys, tomllib
+  done < <(toml_list_get "$MANIFESTS_DIR/services.toml" "services" "name")
+
+  log_info "Verificando symlinks do /root..."
+  checks=$((checks + 1))
+  for root_cfg in gtk-3.0 gtk-4.0; do
+    if [[ ! -L "/root/.config/$root_cfg" ]]; then
+      _flag "ausente: /root/.config/$root_cfg (deveria ser symlink)"
+    fi
+  done
+  if [[ -L "/root/.config/gtk-3.0" ]]; then
+    _pass "ok: /root/.config/gtk-3.0 é symlink"
+  fi
+
+  log_info "Verificando permissões..."
+  checks=$((checks + 1))
+  if [[ -d "$USER_HOME/.config" ]]; then
+    local owner
+    owner=$(stat -c '%U:%G' "$USER_HOME/.config" 2>/dev/null || true)
+    if [[ "$owner" != "$REAL_USER:$REAL_USER" ]]; then
+      _flag "~/.config pertence a $owner (esperado $REAL_USER:$REAL_USER)"
+    else
+      _pass "ok: ~/.config pertence a $REAL_USER"
+    fi
+  fi
+
+  log_info "Verificando curl-tools..."
+  local curl_tools_json
+  curl_tools_json=$(python3 -c '
+import sys, json, tomllib
 with open(sys.argv[1], "rb") as f:
     data = tomllib.load(f)
-for s in data.get("services", []):
-    print(s["name"])
-' "$MANIFESTS_DIR/services.toml")
+print(json.dumps(data.get("tools", [])))
+' "$MANIFESTS_DIR/curl-tools.toml")
+  for bin_name in agy pi pi-coding-agent herdr; do
+    checks=$((checks + 1))
+    if ! is_command "$bin_name" && [[ ! -f "$USER_HOME/.local/bin/$bin_name" ]]; then
+      _flag "ausente: $bin_name (curl-tool)"
+    else
+      _pass "ok: $bin_name presente"
+    fi
+  done
+
+  log_info "Verificando hyprpm..."
+  if is_command hyprpm; then
+    checks=$((checks + 1))
+    if hyprpm list &>/dev/null; then
+      _pass "ok: hyprpm funcional"
+    else
+      _flag "hyprpm instalado mas não funcional"
+    fi
+  else
+    _flag "hyprpm não está instalado"
+  fi
+
+  log_info "Verificando hyprland config..."
+  checks=$((checks + 1))
+  if [[ ! -f "$USER_HOME/.config/hypr/hyprland.lua" ]]; then
+    _flag "ausente: hyprland.lua"
+  else
+    _pass "ok: hyprland.lua presente"
+  fi
+
+  log_info "Verificando greetd..."
+  checks=$((checks + 1))
+  if [[ ! -f "/etc/greetd/config.toml" ]]; then
+    _flag "ausente: /etc/greetd/config.toml"
+  else
+    _pass "ok: greetd configurado"
+  fi
+
+  log_info "Verificando usuário greeter..."
+  checks=$((checks + 1))
+  if ! id -u greeter &>/dev/null; then
+    _flag "usuário 'greeter' não existe"
+  else
+    _pass "ok: usuário 'greeter' existe"
+  fi
+
+  log_info "Verificando wallpaper dir..."
+  checks=$((checks + 1))
+  if [[ ! -d "$USER_HOME/Pictures/Wallpapers" ]]; then
+    _flag "ausente: ~/Pictures/Wallpapers"
+  elif [[ -z "$(ls -A "$USER_HOME/Pictures/Wallpapers" 2>/dev/null)" ]]; then
+    _flag "vazio: ~/Pictures/Wallpapers"
+  else
+    _pass "ok: ~/Pictures/Wallpapers populado"
+  fi
 
   if [[ $issues -eq 0 ]]; then
-    log_success "Nenhuma divergência encontrada."
+    log_success "Nenhuma divergência encontrada ($checks verificações)."
   else
-    log_warn "Divergências encontradas: $issues. Use 'gabrln repair' para corrigir."
+    log_warn "Divergências: $issues de $checks. Use 'gabrln repair' para corrigir."
+    return 1
   fi
 }
 
+# --- Dispatcher -------------------------------------------------------------
+
 case "$COMMAND" in
-  install)
-    cmd_install
-    ;;
-  update)
-    cmd_update
-    ;;
-  repair)
-    cmd_repair
-    ;;
-  backup)
-    cmd_backup
-    ;;
-  rollback)
-    cmd_rollback
-    ;;
-  doctor)
-    cmd_doctor
-    ;;
-  help|-h|--help)
-    usage
-    exit 0
-    ;;
+  install) cmd_install ;;
+  update) cmd_update ;;
+  repair) cmd_repair ;;
+  backup) cmd_backup ;;
+  rollback) cmd_rollback ;;
+  doctor) cmd_doctor ;;
+  help|-h|--help) usage; exit 0 ;;
   *)
     log_error "Comando desconhecido: $COMMAND"
     usage

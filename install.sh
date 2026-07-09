@@ -1,6 +1,17 @@
 #!/usr/bin/env bash
 # install.sh - Bootstrap thin wrapper para o framework Arch-gabrln
 # Uso: curl -fsSL .../install.sh | sudo bash
+#
+# Sobre privilégios:
+#   Este bootstrap é executado com `sudo bash` porque o polkit não tem
+#   agent rodando no momento da inicialização (TTY de login, sem sessão
+#   gráfica). É o ÚNICO lugar do framework que ainda usa `sudo` para
+#   escalação.
+#   Para descer de root para o usuário real, usamos `runuser -u USER --`
+#   em vez de `sudo -u USER --` (não precisa de NOPASSWD sudoers, não
+#   polui sudoers.d, é o método correto quando já somos root).
+#   Polkit é instalado e gerenciado pelo framework em si (ver
+#   installer/lib/errors.sh::setup_polkit_policy).
 
 set -euo pipefail
 
@@ -46,6 +57,11 @@ if [[ "$REAL_USER" == "root" ]]; then
   error "Execute como usuário normal com sudo. Ex: curl ... | sudo bash"
 fi
 
+# Verifica que runuser está disponível (util-linux, parte do base)
+if ! command -v runuser &>/dev/null; then
+  error "Comando 'runuser' não encontrado. Instale 'util-linux'."
+fi
+
 REPO_DIR="$USER_HOME/$CLONE_SUBDIR"
 
 # Garantir git
@@ -55,35 +71,35 @@ if ! command -v git &>/dev/null; then
 fi
 
 # Clonar ou atualizar o repositório
-# Usamos -c safe.directory="*" inline para evitar "fatal: detected dubious ownership"
+# -c safe.directory="*" inline para evitar "fatal: detected dubious ownership"
 # quando o repo foi clonado por root e depois usado por outro usuário.
-# Isso não persiste em ~/.gitconfig; vale apenas para este comando.
-# Criamos o diretório pai como root e ajustamos ownership — é mais previsível
-# do que depender de sudo -u com HOME explícito em sudoers com env_reset.
 if [[ -d "$REPO_DIR/.git" ]]; then
   info "Atualizando repositório em $REPO_DIR..."
   # Corrige ownership caso arquivos tenham ficado como root de execução anterior
   chown -R "$REAL_USER:$REAL_USER" "$REPO_DIR" 2>/dev/null || true
-  sudo -u "$REAL_USER" HOME="$USER_HOME" PATH="$PATH" git -c safe.directory="*" -C "$REPO_DIR" pull
+  # runuser em vez de sudo -u: já somos root, só queremos trocar UID.
+  # bash -lc carrega /etc/profile (que define PATH) e ~/.bash_profile
+  # do usuário, preservando PATH para que git funcione corretamente.
+  runuser -u "$REAL_USER" -- bash -lc "git -c safe.directory='*' -C '$REPO_DIR' pull" \
+    || error "git pull falhou em $REPO_DIR"
 else
   info "Clonando repositório para $REPO_DIR..."
   # Garante que o HOME do usuário existe e pertence ao usuário
   if [[ ! -d "$USER_HOME" ]]; then
     error "HOME do usuário '$REAL_USER' não existe: $USER_HOME"
   fi
-  # Cria o diretório pai como root e ajusta ownership
+  # Cria o diretório pai como root
   if ! mkdir -p "$USER_HOME/Projects" 2>/dev/null; then
-    # Se root não pode criar (pouco provável), tenta como o usuário
-    sudo -u "$REAL_USER" HOME="$USER_HOME" PATH="$PATH" mkdir -p "$USER_HOME/Projects" \
+    # Fallback: tenta como o usuário
+    runuser -u "$REAL_USER" -- bash -lc "mkdir -p '$USER_HOME/Projects'" \
       || error "Falha ao criar $USER_HOME/Projects. Verifique permissões do $USER_HOME."
   fi
   chown -R "$REAL_USER:$REAL_USER" "$USER_HOME/Projects"
-  # Verifica se o diretório foi realmente criado e pertence ao usuário
   if [[ ! -d "$USER_HOME/Projects" ]]; then
     error "Diretório $USER_HOME/Projects não foi criado."
   fi
-  sudo -u "$REAL_USER" HOME="$USER_HOME" PATH="$PATH" git -c safe.directory="*" clone "$REPO_URL" "$REPO_DIR"
-  # Segurança extra: garante ownership correto no repositório clonado
+  runuser -u "$REAL_USER" -- bash -lc "git -c safe.directory='*' clone '$REPO_URL' '$REPO_DIR'" \
+    || error "git clone falhou para $REPO_DIR"
   chown -R "$REAL_USER:$REAL_USER" "$REPO_DIR"
 fi
 

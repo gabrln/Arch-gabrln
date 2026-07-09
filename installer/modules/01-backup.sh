@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 # 01-backup.sh - Snapshot das configurações antes de modificá-las
+#
+# Mudanças em relação à versão anterior:
+#   - Usa `_collect_backup_paths` (exportada pelo gabrln) em vez de
+#     duplicar a lógica.
+#   - Usa `toml_list` do utils (cache + 1 fork Python por chamada).
 
 auto_backup=$(toml_get "$CONFIG_FILE" "flags.auto_backup" "true")
 
@@ -10,43 +15,11 @@ fi
 
 log_info "Criando snapshot das configurações atuais..."
 
-# Coleta caminhos a partir do manifesto de dotfiles
-config_paths=()
+# Coleta caminhos via helper do gabrln
+mapfile -t config_paths < <(_collect_backup_paths)
 
-# ~/.config/<config>
-while IFS= read -r cfg; do
-  [[ -n "$cfg" ]] && config_paths+=("$USER_HOME/.config/$cfg")
-done < <(python3 -c '
-import sys, tomllib
-file = sys.argv[1]
-with open(file, "rb") as f:
-    data = tomllib.load(f)
-for c in data.get("directories", {}).get("configs", []):
-    print(c)
-' "$MANIFESTS_DIR/dotfiles.toml")
-
-# zsh (caso especial)
-config_paths+=("$USER_HOME/.config/zsh")
-
-# arquivos avulsos
-while IFS= read -r f; do
-  [[ -n "$f" ]] && config_paths+=("$f")
-done < <(python3 -c '
-import sys, tomllib, os
-file = sys.argv[1]
-home = sys.argv[2]
-with open(file, "rb") as f:
-    data = tomllib.load(f)
-for src, dst in data.get("files", {}).items():
-    expanded = os.path.expandvars(dst)
-    if expanded.startswith("~"):
-        expanded = home + expanded[1:]
-    print(expanded)
-' "$MANIFESTS_DIR/dotfiles.toml" "$USER_HOME")
-
-# arquivos de sistema
-config_paths+=("/etc/greetd")
-config_paths+=("/etc/pam.d/greetd")
+# Filtra os que existem (backup_create já filtra, mas logamos quais serão tentados)
+log_info "Caminhos a copiar: ${#config_paths[@]}"
 
 backup_name=$(backup_create "pre-install" "${config_paths[@]}")
 log_success "Snapshot criado: $backup_name"
