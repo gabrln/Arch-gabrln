@@ -7,7 +7,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
-from installer.errors import fatal, ModuleFailure
+from installer.errors import fatal, ModuleFailure, register_cleanup
 from installer.logger import log, set_suppress_stderr
 from installer.modules.base import Module, RunContext
 from installer.progress import LiveDisplay, OutputCapture, is_tty
@@ -37,6 +37,11 @@ class ModuleRunner:
         total = len(self.modules)
         tui = LiveDisplay(total)
         tui.start()
+        # Ensure tui.stop() runs on ANY exit path, including
+        # SystemExit raised by fatal(). Without this, fatal()
+        # inside a module leaves the terminal frozen on the
+        # alternate screen buffer.
+        register_cleanup(tui.stop)
 
         for idx, module in enumerate(self.modules, 1):
             manifest_path = self._resolve_manifest(module)
