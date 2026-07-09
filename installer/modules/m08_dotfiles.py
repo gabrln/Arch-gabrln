@@ -45,9 +45,21 @@ def _atomic_copytree(src: Path, dst: Path, user: str) -> bool:
                 dst.unlink()
             else:
                 shutil.rmtree(dst)
-        (staging / dst.name).rename(dst)
+        shutil.move(str(staging / dst.name), str(dst))
         return True
     except OSError as exc:
+        if "Invalid cross-device link" in str(exc) or exc.errno == 18:
+            try:
+                if dst.exists() or dst.is_symlink():
+                    if dst.is_symlink() or dst.is_file():
+                        dst.unlink()
+                    else:
+                        shutil.rmtree(dst)
+                shutil.copytree(staging / dst.name, dst)
+                return True
+            except OSError as exc2:
+                log("warn", f"Cross-device fallback copy failed: {exc2}")
+                return False
         log("warn", f"Atomic copy failed: {exc}")
         return False
     finally:
@@ -85,7 +97,10 @@ def _copy_zsh_with_plugins_backup(
     if plugins_backup and (plugins_backup / "plugins").is_dir():
         if plugins_dst.exists():
             shutil.rmtree(plugins_dst)
-        (plugins_backup / "plugins").rename(plugins_dst)
+        try:
+            (plugins_backup / "plugins").rename(plugins_dst)
+        except OSError:
+            shutil.copytree(plugins_backup / "plugins", plugins_dst)
         _chown(plugins_dst, ctx.real_user)
     _chown(zsh_dst, ctx.real_user)
     if plugins_backup:
