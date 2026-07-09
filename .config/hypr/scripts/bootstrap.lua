@@ -31,12 +31,12 @@ local function open_terminal_with(cmd)
     -- Checa se o binario existe antes de tentar abrir
     local bin = full:match("^(%S+)")
     if bin and exec_capture("command -v " .. bin) ~= "" then
-      hl.exec(full)
+      hl.exec_cmd(full)
       return true
     end
   end
   -- Fallback: notificacao. O usuario roda manualmente.
-  hl.exec([[notify-send -u critical "Arch-gabrln bootstrap" "Plugin hyprpm faltando. Rode manualmente: ]] .. cmd .. [["]])
+  hl.exec_cmd([[notify-send -u critical "Noceasy bootstrap" "Plugin hyprpm faltando. Rode manualmente: ]] .. cmd .. [["]])
   return false
 end
 
@@ -48,7 +48,7 @@ local PLUGINS = {
 
 for _, plugin in ipairs(PLUGINS) do
   if plugin_installed(plugin.name) then
-    -- Ja instalado: silent path, custo ~50ms.
+    -- Already installed: silent path, ~50ms cost.
     goto continue
   end
 
@@ -58,4 +58,20 @@ for _, plugin in ipairs(PLUGINS) do
   )
   open_terminal_with(cmd)
   ::continue::
+end
+
+-- Apply scrolloverview plugin config. Done here (not in settings.lua)
+-- because hyprpm plugins are only loaded AFTER hyprpm enable, so
+-- plugin-specific keywords would otherwise be rejected on first boot.
+-- Safe to re-run; keywords are idempotent.
+if plugin_installed("scrolloverview") and hl.dsp and hl.dsp.exec_raw then
+    local function kw(k, v) hl.dispatch(hl.dsp.exec_raw("keyword " .. k .. " " .. v)) end
+    kw("plugin:scrolloverview:gesture_distance", "300")
+    kw("plugin:scrolloverview:scale", "0.5")
+    kw("plugin:scrolloverview:workspace_gap", "100")
+    kw("plugin:scrolloverview:layout", "vertical")
+    kw("plugin:scrolloverview:wallpaper", "0")
+    kw("plugin:scrolloverview:blur", "false")
+    kw("plugin:scrolloverview:input:scrolling_mode", "1")
+    kw("scrolloverview-gesture", "3, up, overview")
 end

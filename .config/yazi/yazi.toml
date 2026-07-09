@@ -42,7 +42,10 @@ open_pdf = [
   { run = 'zathura "$@"', desc = "zathura" }
 ]
 open_archive = [
-  { run = 'file-roller "$@"', desc = "file-roller" }
+  # Delegate to the system archiver via xdg-open so the actual
+  # binary is decided by /etc/mimeapps.list and ~/.config/mimeapps.list.
+  # The fallback unzips in-place if no GUI archiver is configured.
+  { run = 'xdg-open "$@" || unzip -o "$1" -d "${1%%.*}"', desc = "system archiver" }
 ]
 open_default = [
   { run = 'xdg-open "$@"', desc = "system default" }

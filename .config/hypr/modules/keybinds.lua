@@ -1,9 +1,8 @@
 -- =========================================================================
--- Atalhos e Teclas de Atalho do Hyprland (Módulo Lua)
+-- Hyprland keybindings (Lua module)
 -- =========================================================================
 
 local mod = "SUPER"
-local hl = _G.hl ---@diagnostic disable-line: undefined-global
 
 
 -- Função auxiliar para alternar scratchpad, abrindo se não estiver rodando
@@ -23,10 +22,11 @@ hl.bind(mod .. " + E",      hl.dsp.exec_cmd("kitty -e yazi"))
 hl.bind(mod .. " + SHIFT + E", hl.dsp.exec_cmd("thunar"))
 hl.bind(mod .. " + SHIFT + D", hl.dsp.exec_cmd("~/.config/hypr/scripts/WindowInfo.lua"))
 
--- Fechar janelas e gerenciamento de sessão
+-- Close windows and session management.
+-- Session exit goes through the Noctalia session menu (Super+Shift+P)
+-- to avoid an accidental direct exit via Ctrl+Alt+Del.
 hl.bind(mod .. " + Q",         hl.dsp.window.close())
 hl.bind("ALT + F4",            hl.dsp.exec_cmd("~/.config/hypr/scripts/AltF4.lua"))
-hl.bind("CTRL + ALT + Delete", hl.dsp.exit())
 hl.bind("CTRL + ALT + L",      hl.dsp.exec_cmd("noctalia msg session lock"))
 
 -- Controles de interface do Noctalia
@@ -55,7 +55,7 @@ hl.bind(mod .. " + SHIFT + J", hl.dsp.window.move({ workspace = "e+1" }))
 
 -- Redimensionamento, apresentação e grupos de janelas
 hl.bind(mod .. " + F",         hl.dsp.window.fullscreen())
-hl.bind(mod .. " + M",         hl.dsp.layout("colresize toend")) -- Maximizar largura da coluna
+hl.bind(mod .. " + M",         hl.dsp.layout("fit active")) -- Fit the active column to the screen (scrolling layout "maximize")
 hl.bind(mod .. " + C",         hl.dsp.window.center())
 hl.bind(mod .. " + Space",     hl.dsp.window.float({ action = "toggle" }))
 hl.bind(mod .. " + ALT + Space", hl.dsp.window.pin({ action = "toggle" })) -- Fixar janela flutuante em todas workspaces
