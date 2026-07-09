@@ -20,6 +20,7 @@ class RunContext:
     real_user: str
     user_home: Path
     state: State
+    sudo_password: str | None = None
 
     @property
     def home(self) -> Path:

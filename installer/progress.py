@@ -453,6 +453,21 @@ class LiveDisplay:
             self._live.stop()
             self._live = None
 
+    def prompt_password(self) -> str:
+        """Pause the TUI, read a password from the real terminal, resume.
+
+        Stops the Live display (exiting alt-screen), reads the password
+        on the real TTY via ``getpass`` (hidden input), then restarts
+        the Live display so the TUI continues.
+        """
+        import getpass
+        self.stop()
+        try:
+            password = getpass.getpass("Senha [sudo]: ")
+        finally:
+            self.start()
+        return password
+
     # ── Module lifecycle ────────────────────────────────────────────
 
     def update_module(self, name: str, idx: int) -> None:

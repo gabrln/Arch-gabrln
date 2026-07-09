@@ -43,6 +43,21 @@ class ModuleRunner:
         # alternate screen buffer.
         register_cleanup(tui.stop)
 
+        # ── Privilege escalation setup ────────────────────────────────
+        from installer import privesc
+        tool = privesc.get_tool()
+        if privesc.check_cached(tool):
+            ctx.sudo_password = None
+        else:
+            password = tui.prompt_password()
+            if not privesc.validate_password(password, tool):
+                tui.stop()
+                fatal(
+                    "Falha na validação da senha sudo. "
+                    "O instalador não pode continuar sem privilégios root."
+                )
+            ctx.sudo_password = password
+
         for idx, module in enumerate(self.modules, 1):
             manifest_path = self._resolve_manifest(module)
 
