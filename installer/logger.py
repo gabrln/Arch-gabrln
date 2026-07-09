@@ -64,7 +64,15 @@ _suppress_stderr = False  # True while a module runs (logs go to file only)
 
 
 def _use_color() -> bool:
-    return _is_tty()
+    # Logger writes to stderr — check that stream specifically.
+    # progress.is_tty() checks stdout (where the TUI renders).
+    # When stdout is redirected but stderr is a terminal, logs
+    # should still show colors.
+    if os.environ.get("NO_COLOR"):
+        return False
+    if os.environ.get("TERM", "") == "dumb":
+        return False
+    return sys.stderr.isatty()
 
 
 def _timestamp() -> str:
