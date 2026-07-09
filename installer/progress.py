@@ -199,8 +199,10 @@ class OutputCapture:
                     self._state.lines.append(decoded)
                     if len(self._state.lines) > 8:
                         self._state.lines = self._state.lines[-8:]
-                if self._live:
-                    self._live.refresh()
+                # State is mutated; the Live refresh thread picks
+                # it up on the next tick (≤83 ms). No explicit
+                # refresh needed here — avoids re-entrancy with
+                # Live's own render loop.
         finally:
             self._in_write = False
         return n
