@@ -191,9 +191,10 @@ if [[ -n "$NOCEASY_SHA256" ]]; then
 fi
 
 success "Repository ready in $REPO_DIR (version: $NOCEASY_VERSION)"
-info "Running Python framework..."
 
 # --- Delegate to Python entrypoint -------------------------------------------
+# Clear screen so the TUI starts on a blank terminal.
+clear
 
 cd "$REPO_DIR"
 export SUDO_USER USER_HOME REPO_DIR
