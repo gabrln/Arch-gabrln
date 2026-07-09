@@ -19,21 +19,27 @@ def _pacman_missing(pkgs: list[str]) -> list[str]:
 def _install_chunk(chunk: list[str], user: str) -> bool:
     """Install one chunk of AUR packages. Returns True on success."""
     # bash -c with $@ preserves each arg as a separate xargs item
+    # Capture output so yay's verbose build messages don't fight
+    # with the Rich progress bar (both use stderr).
     proc = run_as_user(
         ["bash", "-c",
          "printf '%s\\n' \"$@\" | xargs yay -S "
          "--needed --noconfirm --removemake",
          "bash", *chunk],
-        user=user, login=False, check=False,
+        user=user, login=False, check=False, capture=True,
     )
+    if proc.returncode != 0 and proc.stderr:
+        log("warn", f"yay stderr: {proc.stderr.strip()[:200]}")
     return proc.returncode == 0
 
 
 def _install_one(pkg: str, user: str) -> bool:
     proc = run_as_user(
         ["yay", "-S", "--needed", "--noconfirm", "--removemake", pkg],
-        user=user, login=False, check=False,
+        user=user, login=False, check=False, capture=True,
     )
+    if proc.returncode != 0 and proc.stderr:
+        log("warn", f"yay stderr for {pkg}: {proc.stderr.strip()[:200]}")
     return proc.returncode == 0
 
 
