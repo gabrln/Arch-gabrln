@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Generate .config/hypr/scripts/KeyHints.lua from modules/keybinds.lua.
 
 The generated file is a self-contained Lua script that displays all
@@ -10,20 +11,47 @@ into categories that the user can search with fzf.
 
 Idempotent. Re-run any time `keybinds.lua` changes:
 
+    # from the repo
     python3 installer/dev/gen_keyhints.py
+
+    # or, if installed system-wide by the framework (typically in
+    # ~/.local/bin/gen_keyhints), with an explicit repo path or via
+    # the NOCEASY_REPO env var:
+    gen_keyhints --repo ~/Projects/Noceasy
+    NOCEASY_REPO=~/Projects/Noceasy gen_keyhints
+
+The script is also available as `gen_keyhints --check` for CI /
+pre-commit, which exits 1 if KeyHints.lua is out of date.
 """
 
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import sys
 from pathlib import Path
 
-# Paths are resolved from REPO_DIR (parent of installer/).
-REPO = Path(__file__).resolve().parents[2]
-KEYBINDS = REPO / ".config/hypr/modules/keybinds.lua"
-OUT_FILE = REPO / ".config/hypr/scripts/KeyHints.lua"
+# Resolve the Noceasy repo. When the script lives at
+# `<repo>/installer/dev/gen_keyhints.py`, `parents[2]` is the repo root.
+# When it has been copied to `~/.local/bin/gen_keyhints` by the installer,
+# that path doesn't exist, so we fall back to the default
+# `~/Projects/Noceasy` (or whatever the user passed via --repo or the
+# NOCEASY_REPO env var).
+_DEFAULT_REPO = Path.home() / "Projects" / "Noceasy"
+
+try:
+    REPO = Path(__file__).resolve().parents[2]
+    # Sanity check: does this look like the Noceasy repo? If not (e.g. the
+    # script was copied to ~/.local/bin/), the parents[2] path will be
+    # something unrelated, so fall back to the default.
+    if not (REPO / ".config" / "hypr" / "modules" / "keybinds.lua").is_file():
+        REPO = Path(os.environ.get("NOCEASY_REPO", _DEFAULT_REPO))
+except (IndexError, OSError):
+    REPO = Path(os.environ.get("NOCEASY_REPO", _DEFAULT_REPO))
+
+KEYBINDS = REPO / ".config" / "hypr" / "modules" / "keybinds.lua"
+OUT_FILE = REPO / ".config" / "hypr" / "scripts" / "KeyHints.lua"
 
 
 # ---------------------------------------------------------------------------
@@ -476,22 +504,35 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true",
                         help="Exit 1 if the generated file is out of date.")
+    parser.add_argument(
+        "--repo", type=Path, default=REPO,
+        help="Path to the Noceasy repo (default: auto-detected, then "
+             "$NOCEASY_REPO, then ~/Projects/Noceasy).",
+    )
     args = parser.parse_args()
 
-    binds = parse_keybinds(KEYBINDS)
+    keybinds = args.repo / ".config" / "hypr" / "modules" / "keybinds.lua"
+    out_file = args.repo / ".config" / "hypr" / "scripts" / "KeyHints.lua"
+
+    if not keybinds.is_file():
+        print(f"error: keybinds.lua not found at {keybinds}. "
+              f"Pass --repo <path> or set NOCEASY_REPO.", file=sys.stderr)
+        return 2
+
+    binds = parse_keybinds(keybinds)
     rendered = render(binds)
 
     if args.check:
-        current = OUT_FILE.read_text() if OUT_FILE.exists() else ""
+        current = out_file.read_text() if out_file.exists() else ""
         if current != rendered:
             print(f"KeyHints.lua is out of date. Re-run gen_keyhints.py.",
                   file=sys.stderr)
             return 1
         return 0
 
-    OUT_FILE.write_text(rendered)
-    OUT_FILE.chmod(0o755)
-    print(f"Wrote {OUT_FILE} ({len(binds)} bindings across "
+    out_file.write_text(rendered)
+    out_file.chmod(0o755)
+    print(f"Wrote {out_file} ({len(binds)} bindings across "
           f"{len({b[1].split(']')[0][1:] for b in binds})} categories).")
     return 0
 

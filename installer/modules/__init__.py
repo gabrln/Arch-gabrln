@@ -23,10 +23,11 @@ from installer.modules.m13_wallpapers import WallpapersModule
 from installer.modules.m14_icons_cursors_fonts import IconsCursorsFontsModule
 from installer.modules.m15_system_tweaks import SystemTweaksModule
 from installer.modules.m16_services import ServicesModule
+from installer.modules.m17_dev_tools import DevToolsModule
 
 
 def build_default_pipeline() -> list[Module]:
-    """Return the 16 modules in install order."""
+    """Return the 17 modules in install order."""
     return [
         PreflightModule(),
         BackupModule(),
@@ -44,6 +45,10 @@ def build_default_pipeline() -> list[Module]:
         IconsCursorsFontsModule(),
         SystemTweaksModule(),
         ServicesModule(manifest="services.toml"),
+        # Last: sync dev tools to ~/.local/bin so the user can run
+        # them by name on subsequent edits without re-cd'ing into
+        # the repo. No-op when installer/dev/ is empty.
+        DevToolsModule(),
     ]
 
 

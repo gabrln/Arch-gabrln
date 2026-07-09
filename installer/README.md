@@ -86,6 +86,28 @@ auto-approves the real user (set in the install bootstrap).
 Subcommands: `refresh-icon-cache`, `update-hyprpm`, `enable-service`,
 `restart-user-service`, `set-shell`.
 
+## Dev tools
+
+Module `m17_dev_tools` syncs every `*.py` in `installer/dev/` to
+`~/.local/bin/<stem>` (the `.py` extension is stripped and the
+target is made executable). The dev scripts are versioned in the
+repo but installed system-wide, so they appear on `$PATH` for the
+real user and survive `git pull` (next `install.sh` re-syncs).
+
+Currently shipped:
+
+- `gen_keyhints` — regenerates `~/.config/hypr/scripts/KeyHints.lua`
+  from `keybinds.lua`. Usage:
+  ```bash
+  gen_keyhints                   # uses ~/Projects/Noceasy
+  gen_keyhints --repo ~/dotfiles # custom repo path
+  NOCEASY_REPO=~/dotfiles gen_keyhints --check  # CI / pre-commit
+  ```
+
+To add another dev tool, drop a `*.py` file with a `#!/usr/bin/env python3`
+shebang into `installer/dev/`; it will be picked up on the next
+`install.sh` run. The module is a no-op when the directory is empty.
+
 ## Validation
 
 ```bash
