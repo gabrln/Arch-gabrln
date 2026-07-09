@@ -112,3 +112,19 @@ run_cleanup() (polkit rules + log file close)
   ↓
 sys.exit(1)
 ```
+
+## Troubleshooting
+
+| Error | Fix |
+|---|---|
+| `Unsupported distribution` | Only Arch and CachyOS are supported. |
+| `Python 3.11+ required` | `pacman -S python` (Arch) or update your base. |
+| `python-rich not found` | `pacman -S python-rich`. The bootstrap installs it automatically when missing, but a sandboxed install can fail silently. |
+| `pacman: unable to find linux-cachyos` | You're on Arch, not CachyOS — the manifest filters these packages out automatically. Harmless. |
+| `polkit: ... authentication required` | Enable `polkit-gnome-authentication-agent-1` in your autostart (e.g. `~/.config/hypr/modules/autostart.lua`). |
+| `hyprpm: command not found` | Run `sudo pacman -S hyprland`; the package bundles `hyprpm`. If you re-installed without re-running the framework, re-run `install.sh`. |
+| `RuntimeError: hl.exec (no such field)` or `hl.exec: not a function` | The hyprland config (or a script under `~/.config/hypr/scripts/`) is calling a function that does not exist in your installed Hyprland version. The version on `main` targets Hyprland 0.55+; older versions need the legacy `bind = ...` syntax. |
+| `Noceasy bootstrap: Plugin hyprpm faltando` (notification) | First boot, before `hyprpm enable scrolloverview` has run. Open a terminal and run `hyprpm update && hyprpm add https://github.com/yayuuu/hyprland-scroll-overview.git && hyprpm enable scrolloverview && hyprpm reload`. The framework will do this automatically on the next `install.sh` run. |
+| `warning: hyprpm installed but not functional` | `hyprpm` was installed by a previous run, but the plugin headers are stale. Run `hyprpm update -f` and re-run `install.sh`. |
+| Stale `installer/state/state.json` blocks a re-run | Delete the file: `sudo rm installer/state/state.json` (or run `python3 -m installer --force`). |
+| Logs in `installer/logs/` | Look for the most recent `installer-YYYYMMDD-HHMMSS.log`. Each curl-tool install also writes its own log named `curl-tools-<name>-<pid>.log`. |

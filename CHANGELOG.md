@@ -3,6 +3,72 @@
 All notable changes to Noceasy are documented here. The format is
 loosely based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [v0.3.0] - 2026-07-09
+
+### Fixed
+- **`bootstrap.lua` used nonexistent `hl.exec()`**, which would have
+  crashed on first boot when `scrolloverview` was not yet installed.
+  Renamed to `hl.exec_cmd()` (the actual Hyprland 0.55+ API name).
+- **`require("noctalia")` would fail in `hyprland.lua`** on a fresh
+  install or after Noctalia regenerated its theme file, aborting the
+  entire config load. Now prepends `package.path` and wraps in `pcall`
+  so a missing/regenerated `noctalia.lua` degrades gracefully.
+- **`idle_inhibit` window-rule regex** was matching any class containing
+  substrings like `mpv` or `zen` (e.g. `*zenity*` matched because it
+  contains `zen`). Tightened to anchored alternation.
+- **Game-mode class match** anchored `dota` to `dota2` to avoid false
+  positives like `autoplace.exe`.
+- **Notifications** in `automation.lua` were in PT-BR; translated to
+  English. Removed two orphan `paplay` calls in the battery monitor.
+- **Stale `SUPER + F2` mic-mute entry** in `KeyHints.lua`; the real
+  binding is `SUPER + SHIFT + M` plus `XF86AudioMicMute`.
+- **Bootstrap notification** still said "Arch-gabrln"; renamed to
+  "Noceasy".
+
+### Changed
+- **scrolloverview plugin keywords** moved out of `settings.lua` and
+  into `scripts/bootstrap.lua`, applied after `hyprpm enable` so the
+  red error banner is gone on first boot.
+- **SUPER + M** now uses `hl.dsp.layout("fit active")` (the real
+  "maximize" in scrolling layout) instead of `colresize toend`.
+- **Ctrl + Alt + Del** removed; session exit goes through the Noctalia
+  session menu (Super + Shift + P).
+- **Package manifest pruned** from 98 to 79 entries. Removed: snapper,
+  duf, gping, procs, file-roller, rclone, vesktop, prismlauncher,
+  spotify-launcher, protonup-qt, xdg-user-dirs-gtk, hwinfo, meld,
+  fsarchiver, pv, python-defusedxml, python-packaging, rsync,
+  spice-vdagent, qemu-guest-agent. Added `engrampa` (replaces
+  file-roller). Kept per request: nano, openssh, wget, seahorse,
+  nwg-look, swayimg, cava.
+- **`mimeapps.list`** dropped the `vesktop` Discord handler and now
+  points archive MIME types at `engrampa.desktop`.
+- **`yazi.toml`** `open_archive` now delegates to `xdg-open` with an
+  `unzip` fallback when no GUI archiver is registered.
+- **`hyprland.lua`** comments translated to English.
+
+### Added
+- `installer/dev/gen_keyhints.py` — regenerates `KeyHints.lua` from
+  `keybinds.lua` using a paren-balanced Lua parser. Handles
+  `mod .. " + B"` concatenation patterns, the `for i = 1, N` loop
+  shortcut (emits a single `SUPER + [1-9]` entry), and a `--check`
+  mode for CI.
+- `installer/manifests/hyprpm.toml` — declarative plugin list
+  (single source of truth; `bootstrap.lua` mirrors it inline to avoid
+  Python imports at compositor startup).
+
+### Removed
+- Root-level `gabrln` wrapper script (dead, dispatched to an
+  already-deleted target).
+- `xdg-user-dirs-gtk` and the `qt5ct/qt5ct` circular symlink.
+- `installer/logs/` shipped logs (gitignored going forward).
+
+### Validation
+- `Hyprland --verify-config` on the full config: "config ok".
+- `lua loadfile(...)` on all 4 scripts in `~/.config/hypr/scripts/`: OK.
+- pcall on `hl.dsp.layout("+col")`, `"colresize toend"`, `"fit active"`,
+  `"swapnext"`, etc.: all valid in Hyprland 0.55+.
+- 9 commits, +727 / -268 lines.
+
 ## [v0.2.0] - 2026-07-09
 
 ### Changed
@@ -38,5 +104,6 @@ loosely based on [Keep a Changelog](https://keepachangelog.com/).
 - **Migrated from bash to Python**: 6 bash lib files and 15 bash modules removed; replaced by ~2500 LOC of typed Python.
 - Logic preserved: state skip-if-done, atomic backups with collision suffix, `sudo` -> `runuser` + polkit migration.
 
+[v0.3.0]: https://github.com/gabrln/Noceasy/compare/v0.2.0...v0.3.0
 [v0.2.0]: https://github.com/gabrln/Noceasy/compare/v0.1.0...v0.2.0
 [v0.1.0]: https://github.com/gabrln/Noceasy/releases/tag/v0.1.0
