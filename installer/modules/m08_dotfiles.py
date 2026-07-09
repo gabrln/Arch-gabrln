@@ -183,4 +183,10 @@ class DotfilesModule(Module):
         for d in xdg:
             _create_xdg_dir(d, ctx)
 
+        # If Hyprland is running, its inotify watcher may have tried
+        # to reload while files were being written and entered an error
+        # state. Force a clean reload now that everything is in place.
+        run_as_user("hyprctl reload 2>/dev/null || true",
+                     user=ctx.real_user, check=False)
+
         log("success", "Dotfiles applied.")
