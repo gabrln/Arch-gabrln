@@ -5,7 +5,6 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional
 
 from installer.errors import fatal
 from installer.logger import log
@@ -25,8 +24,8 @@ class ModuleRunner:
 
     def __init__(
         self,
-        modules: List[Module],
-        options: Optional[RunnerOptions] = None,
+        modules: list[Module],
+        options: RunnerOptions | None = None,
     ):
         self.modules = modules
         self.options = options or RunnerOptions()
@@ -84,7 +83,7 @@ class ModuleRunner:
             state=self.state,
         )
 
-    def _resolve_manifest(self, module: Module) -> Optional[Path]:
+    def _resolve_manifest(self, module: Module) -> Path | None:
         if not module.manifest:
             return None
         from installer.config import MANIFESTS_DIR

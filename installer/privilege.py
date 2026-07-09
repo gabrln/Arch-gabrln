@@ -23,7 +23,7 @@ import os
 import shutil
 import subprocess
 from pathlib import Path
-from typing import Optional, Sequence, Union
+
 
 from installer.config import (
     POLKIT_DIR,
@@ -43,12 +43,12 @@ _polkit_installed = False
 # ---------------------------------------------------------------------------
 
 def run_as_user(
-    cmd: Union[str, Sequence[str]],
+    cmd: str | Sequence[str],
     user: str,
     login: bool = True,
     check: bool = True,
     capture: bool = False,
-    env: Optional[dict] = None,
+    env: dict | None = None,
 ) -> subprocess.CompletedProcess:
     """Execute `cmd` as `user` via runuser.
 

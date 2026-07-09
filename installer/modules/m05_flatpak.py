@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import subprocess
 import time
-from typing import List
+
 
 from installer.config import NETWORK_RETRY_ATTEMPTS, NETWORK_RETRY_BASE_SECONDS
 from installer.logger import log
@@ -51,7 +51,7 @@ class FlatpakModule(Module):
             log("warn", "No Flatpak packages to install.")
             return
 
-        missing: List[str] = []
+        missing: list[str] = []
         for pkg in packages:
             if subprocess.run(["flatpak", "info", pkg],
                                 check=False, capture_output=True).returncode != 0:

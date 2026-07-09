@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import os
 import sys
-from typing import Optional
+
 
 from rich.console import Console
 from rich.progress import (
@@ -33,7 +33,7 @@ def _is_tty() -> bool:
     return sys.stderr.isatty()
 
 
-def make_progress(total: int, label: str = "install") -> Optional[Progress]:
+def make_progress(total: int, label: str = "install") -> Progress | None:
     """Create a Rich Progress bar (or None if not TTY).
 
     Use as a context manager:

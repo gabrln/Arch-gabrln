@@ -8,7 +8,6 @@ import re
 import subprocess
 import time
 from pathlib import Path
-from typing import Optional
 
 from installer.config import (
     NETWORK_RETRY_ATTEMPTS,
@@ -53,7 +52,7 @@ def _aria2_download(url: str, out: Path, timeout: int = 300) -> bool:
     ).returncode == 0
 
 
-def _extract_drive_confirm(html: str) -> tuple[Optional[str], Optional[str]]:
+def _extract_drive_confirm(html: str) -> tuple[str | None, str | None]:
     """Parse a Google Drive download page for UUID and confirm token."""
     uuid = None
     confirm = None
@@ -66,7 +65,7 @@ def _extract_drive_confirm(html: str) -> tuple[Optional[str], Optional[str]]:
     return uuid, confirm
 
 
-def _build_drive_url(file_id: str, uuid: Optional[str], confirm: Optional[str]) -> str:
+def _build_drive_url(file_id: str, uuid: str | None, confirm: str | None) -> str:
     if uuid:
         c = confirm or "t"
         return (f"https://drive.usercontent.google.com/download?"

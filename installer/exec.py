@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import subprocess
 from pathlib import Path
-from typing import Mapping, Optional, Sequence, Union
+from typing import Mapping, Sequence
 
 from installer.errors import fatal
 from installer.logger import log
@@ -27,9 +27,9 @@ from installer.privilege import run_as_user
 def run(
     argv: Sequence[str],
     *,
-    timeout: Optional[int] = None,
-    cwd: Optional[Path] = None,
-    env: Optional[Mapping[str, str]] = None,
+    timeout: int | None = None,
+    cwd: Path | None = None,
+    env: Mapping[str, str] | None = None,
     log_cmd: bool = False,
 ) -> subprocess.CompletedProcess:
     """Run a command, capturing output and never raising on failure.
@@ -53,7 +53,7 @@ def run(
 def run_capture(
     argv: Sequence[str],
     *,
-    timeout: Optional[int] = None,
+    timeout: int | None = None,
 ) -> subprocess.CompletedProcess:
     """Like run() but always returns stdout/stderr as strings."""
     return run(argv, timeout=timeout)
@@ -62,7 +62,7 @@ def run_capture(
 def run_or_die(
     argv: Sequence[str],
     *,
-    message: Optional[str] = None,
+    message: str | None = None,
 ) -> subprocess.CompletedProcess:
     """Run a command. If it fails, log + fatal (no exception raised)."""
     proc = run(argv)

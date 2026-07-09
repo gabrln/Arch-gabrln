@@ -7,7 +7,7 @@ import shutil
 import subprocess
 import time
 from pathlib import Path
-from typing import List, Optional, Sequence
+from typing import Sequence
 
 from installer.config import (
     DEFAULT_MIN_FREE_BYTES,
@@ -99,7 +99,7 @@ def retry_with_backoff(callable_fn, *args,
     return False
 
 
-def backup_user_files() -> Optional[str]:
+def backup_user_files() -> str | None:
     """Snapshot the user's existing config files before they're overwritten.
 
     Returns the snapshot name (or None if no paths to back up).
@@ -110,7 +110,7 @@ def backup_user_files() -> Optional[str]:
 
     cache = get_cache()
     home = Path(os.environ["USER_HOME"])
-    paths: List[Path] = []
+    paths: list[Path] = []
 
     for cfg in cache.get_list("dotfiles.toml", "directories.configs"):
         paths.append(home / ".config" / cfg)

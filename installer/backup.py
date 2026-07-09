@@ -18,7 +18,6 @@ import tempfile
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional
 
 from installer.config import BACKUPS_DIR, get_config
 from installer.logger import log
@@ -70,10 +69,10 @@ def _strip_collision_suffix(name: str) -> str:
 @dataclass
 class _CreatedBackup:
     name: str
-    copied: List[Path]
+    copied: list[Path]
 
 
-def create(label: str, paths: List[Path]) -> _CreatedBackup:
+def create(label: str, paths: list[Path]) -> _CreatedBackup:
     """Create a snapshot. Logs progress; returns the snapshot name."""
     if not BACKUPS_DIR.exists():
         init_backups()
@@ -83,7 +82,7 @@ def create(label: str, paths: List[Path]) -> _CreatedBackup:
     dest.mkdir(parents=True, exist_ok=True)
 
     log("info", f"Creating backup '{name}'...")
-    copied: List[Path] = []
+    copied: list[Path] = []
 
     for path in paths:
         if not path.exists():
@@ -137,7 +136,7 @@ def _apply_retention(label: str, max_keep: int) -> None:
         shutil.rmtree(old, ignore_errors=True)
 
 
-def list_snapshots(label: Optional[str] = None) -> List[str]:
+def list_snapshots(label: str | None = None) -> list[str]:
     """List snapshot names, most recent first. Optionally filtered."""
     if not BACKUPS_DIR.exists():
         return []
@@ -220,7 +219,7 @@ def _confirm(prompt: str, default_yes: bool = False) -> bool:
     return response in ("y", "s", "yes", "sim")
 
 
-def _resolve_target(name: str) -> Optional[Path]:
+def _resolve_target(name: str) -> Path | None:
     """Map a backup item basename to its original target path."""
     user_home = Path(os.environ.get("USER_HOME", "/root"))
     stripped = _strip_collision_suffix(name)

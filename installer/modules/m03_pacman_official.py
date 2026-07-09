@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import shutil
 from pathlib import Path
-from typing import List
+
 
 from installer.errors import fatal
 from installer.exec import run
@@ -28,7 +28,7 @@ def _cachyos_present() -> bool:
     return False
 
 
-def _pacman_missing(pkgs: List[str]) -> List[str]:
+def _pacman_missing(pkgs: list[str]) -> list[str]:
     out = run(["pacman", "-T", *pkgs])
     return out.stdout.strip().split() if out.stdout else []
 

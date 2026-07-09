@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
 
 from installer.state import State
 
@@ -40,9 +39,9 @@ class Module:
     """
 
     name: str = "unnamed"
-    manifest: Optional[str] = None  # e.g. "packages.toml"
+    manifest: str | None = None  # e.g. "packages.toml"
 
-    def __init__(self, manifest: Optional[str] = None) -> None:
+    def __init__(self, manifest: str | None = None) -> None:
         if manifest is not None:
             self.manifest = manifest
 

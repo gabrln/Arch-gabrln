@@ -6,12 +6,12 @@ import atexit
 import signal
 import sys
 import traceback
-from typing import Callable, List
+from typing import Callable
 
 from installer.logger import log
 
 
-_cleanup_hooks: List[Callable[[], None]] = []
+_cleanup_hooks: list[Callable[[], None]] = []
 
 
 def register_cleanup(fn: Callable[[], None]) -> None:

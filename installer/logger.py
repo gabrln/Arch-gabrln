@@ -17,7 +17,7 @@ import sys
 from dataclasses import dataclass
 from enum import IntEnum
 from pathlib import Path
-from typing import Optional
+
 
 from rich.console import Console
 
@@ -53,12 +53,12 @@ _STYLES = {
 @dataclass
 class _LogState:
     console: Console
-    file_console: Optional[Console]
+    file_console: Console | None
     level: LogLevel
-    log_file: Optional[Path]
+    log_file: Path | None
 
 
-_state: Optional[_LogState] = None
+_state: _LogState | None = None
 
 
 def _use_color() -> bool:
@@ -132,7 +132,7 @@ def log(level: str, message: str) -> None:
                               highlight=False)
 
 
-def get_log_file() -> Optional[Path]:
+def get_log_file() -> Path | None:
     if _state is None:
         return None
     return _state.log_file

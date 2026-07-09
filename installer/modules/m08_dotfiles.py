@@ -8,7 +8,6 @@ import subprocess
 import tempfile
 import time
 from pathlib import Path
-from typing import Optional
 
 from installer.config import REPO_DIR
 from installer.errors import fatal
@@ -65,7 +64,7 @@ def _copy_zsh_with_plugins_backup(
     zsh_src: Path, zsh_dst: Path, plugins_dst: Path, ctx: RunContext,
 ) -> None:
     """Copy zsh config while preserving the user's existing plugins/."""
-    plugins_backup: Optional[Path] = None
+    plugins_backup: Path | None = None
     if plugins_dst.is_dir():
         plugins_backup = Path(tempfile.mkdtemp(prefix="gabrln-zsh-"))
         try:

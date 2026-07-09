@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 import tempfile
 from pathlib import Path
-from typing import List
+
 
 from installer.config import LOGS_DIR
 from installer.logger import log
@@ -15,7 +15,7 @@ from installer.privilege import run_as_user
 from installer.toml_cache import get_cache
 
 
-def _parse_tools() -> List[dict]:
+def _parse_tools() -> list[dict]:
     """Parse the entire curl-tools.toml into a list of dicts."""
     return get_cache().load("curl-tools.toml").get("tools", [])
 
@@ -28,7 +28,7 @@ def _expand_path(template: str, user_home: Path) -> str:
     return expanded
 
 
-def _is_installed(binaries: List[str], fallback_paths: List[str]) -> bool:
+def _is_installed(binaries: list[str], fallback_paths: list[str]) -> bool:
     """True if any binary in PATH or any fallback file exists."""
     for b in binaries:
         if b and is_command(b):

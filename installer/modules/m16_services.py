@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import List
+
 
 from installer.exec import run
 from installer.logger import log
@@ -18,7 +18,7 @@ class ServicesModule(Module):
     def run(self, ctx: RunContext) -> None:
         log("info", "Reading services from manifest...")
 
-        services: List[str] = get_cache().get_list_field(
+        services: list[str] = get_cache().get_list_field(
             "services.toml", "services", "name")
         if not services:
             log("warn", "No services configured. Skipping.")

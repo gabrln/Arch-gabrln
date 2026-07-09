@@ -14,7 +14,6 @@ import tempfile
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
 
 from installer.config import STATE_DIR, STATE_FILE, LOCK_TIMEOUT_SECONDS
 from installer.logger import log
@@ -91,7 +90,7 @@ class State:
             atomic_write_json(self.path, {})
             self.path.chmod(0o600)
         self._lock_path = self.dir / ".state.lock"
-        self._lock_fd: Optional[int] = None
+        self._lock_fd: int | None = None
 
     def __enter__(self) -> "State":
         self._lock_fd = os.open(str(self._lock_path),
@@ -130,7 +129,7 @@ class State:
             data.setdefault(module, {})[field] = value
             atomic_write_json(self.path, data)
 
-    def is_up_to_date(self, module: str, manifest: Optional[Path]) -> bool:
+    def is_up_to_date(self, module: str, manifest: Path | None) -> bool:
         data = read_json_or_default(self.path, {})
         if data.get(module, {}).get("status") != "done":
             return False
@@ -140,7 +139,7 @@ class State:
         stored = data.get(module, {}).get("manifest_hash", "")
         return current == stored
 
-    def mark_done(self, module: str, manifest: Optional[Path]) -> None:
+    def mark_done(self, module: str, manifest: Path | None) -> None:
         with self:
             data = read_json_or_default(self.path, {})
             entry = data.setdefault(module, {})

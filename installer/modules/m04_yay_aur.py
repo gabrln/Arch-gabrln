@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import subprocess
-from typing import List
+
 
 from installer.config import YAY_CHUNK_SIZE
 from installer.errors import fatal
@@ -13,7 +13,7 @@ from installer.privilege import run_as_user
 from installer.toml_cache import get_cache
 
 
-def _pacman_missing(pkgs: List[str]) -> List[str]:
+def _pacman_missing(pkgs: list[str]) -> list[str]:
     try:
         out = subprocess.run(
             ["pacman", "-T", *pkgs],
@@ -24,7 +24,7 @@ def _pacman_missing(pkgs: List[str]) -> List[str]:
         return []
 
 
-def _install_chunk(chunk: List[str], user: str) -> bool:
+def _install_chunk(chunk: list[str], user: str) -> bool:
     """Install one chunk of AUR packages. Returns True on success."""
     # bash -c with $@ preserves each arg as a separate xargs item
     proc = run_as_user(
