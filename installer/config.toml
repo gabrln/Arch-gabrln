@@ -41,21 +41,8 @@ auto_backup = true
 # Número máximo de backups automáticos retidos (0 = ilimitado)
 max_backups = 3
 
-# Em install/update, abortar no primeiro erro de módulo
-# (false = marca failed e continua)
-abort_on_module_error = true
-
 # Limpar cache TOML e arquivos temporários a cada execução
 cleanup_temp_on_exit = true
-
-# Em cmd_update, rodar pacman -Syu
-update_pacman = true
-
-# Em cmd_update, rodar flatpak update
-update_flatpak = true
-
-# Em cmd_update, rodar hyprpm update
-update_hyprpm = true
 
 [features]
 # Baixar e extrair pacote de wallpapers extras durante a instalação
