@@ -12,7 +12,7 @@
 # Behavior:
 #   1. Detects arch, OS, current user
 #   2. Ensures git and python (>= 3.11)
-#   3. Installs python-rich (framework dep)
+#   3. Installs python-rich (framework dep) via sudo
 #   4. Clones (or updates) the repo in ~/Projects/Noceasy
 #   5. Validates SHA256 of the commit if NOCEASY_SHA256 is set
 #   6. exec python3 -m installer "$@"
@@ -105,11 +105,6 @@ if [[ "$PYTHON_MAJOR" -lt 3 ]] || { [[ "$PYTHON_MAJOR" -eq 3 ]] && [[ "$PYTHON_M
   error "Python 3.11+ required (found: $PYTHON_VERSION)."
 fi
 
-# Ensure runuser (part of util-linux; always present on Arch)
-if ! command -v runuser &>/dev/null; then
-  error "Command 'runuser' not found. Install 'util-linux'."
-fi
-
 # Ensure rich (framework TUI dep)
 if ! python3 -c "import rich" &>/dev/null; then
   info "Installing python-rich..."
@@ -130,52 +125,40 @@ fi
 
 if [[ -d "$REPO_DIR/.git" ]]; then
   info "Updating repository in $REPO_DIR..."
-  chown -R "$REAL_USER:$REAL_USER" "$REPO_DIR" 2>/dev/null || true
 
   if [[ -n "$NOCEASY_SHA256" ]]; then
-      runuser -u "$REAL_USER" -- bash -lc "git -C '$REPO_DIR' fetch --unshallow" \
-        >/dev/null 2>&1 || error "git fetch failed"
+    git -C "$REPO_DIR" fetch --unshallow >/dev/null 2>&1 || error "git fetch failed"
   fi
 
-  runuser -u "$REAL_USER" -- bash -lc "git -C '$REPO_DIR' -c safe.directory='*' pull" \
+  git -C "$REPO_DIR" -c safe.directory='*' pull \
     >/dev/null 2>&1 || error "git pull failed in $REPO_DIR"
 
   # If NOCEASY_VERSION is a tag/SHA, check it out
   if [[ "$NOCEASY_VERSION" != "main" ]] && [[ "$NOCEASY_VERSION" != "master" ]]; then
     info "Checking out $NOCEASY_VERSION..."
-    runuser -u "$REAL_USER" -- bash -lc "git -C '$REPO_DIR' checkout '$NOCEASY_VERSION'" \
+    git -C "$REPO_DIR" checkout "$NOCEASY_VERSION" \
       || error "git checkout failed for $NOCEASY_VERSION"
   fi
 else
   info "Cloning repository (version: $NOCEASY_VERSION) to $REPO_DIR..."
-  if [[ ! -d "$USER_HOME" ]]; then
-    error "HOME for user '$REAL_USER' does not exist: $USER_HOME"
-  fi
-
-  if ! mkdir -p "$USER_HOME/Projects" 2>/dev/null; then
-    runuser -u "$REAL_USER" -- bash -lc "mkdir -p '$USER_HOME/Projects'" \
-      || error "Failed to create $USER_HOME/Projects"
-  fi
-  chown -R "$REAL_USER:$REAL_USER" "$USER_HOME/Projects"
+  mkdir -p "$USER_HOME/Projects"
 
   if [[ -n "$NOCEASY_SHA256" ]]; then
-    runuser -u "$REAL_USER" -- bash -lc "git clone '$REPO_URL' '$REPO_DIR'" \
+    git clone "$REPO_URL" "$REPO_DIR" \
       >/dev/null 2>&1 || error "git clone failed to $REPO_DIR"
-    runuser -u "$REAL_USER" -- bash -lc "git -C '$REPO_DIR' checkout '$NOCEASY_VERSION'" \
+    git -C "$REPO_DIR" checkout "$NOCEASY_VERSION" \
       >/dev/null 2>&1 || error "git checkout failed for $NOCEASY_VERSION"
   else
-    runuser -u "$REAL_USER" -- bash -lc "git clone --depth=1 --branch '$NOCEASY_VERSION' '$REPO_URL' '$REPO_DIR'" \
+    git clone --depth=1 --branch "$NOCEASY_VERSION" "$REPO_URL" "$REPO_DIR" \
       >/dev/null 2>&1 || error "git clone failed to $REPO_DIR"
   fi
-
-  chown -R "$REAL_USER:$REAL_USER" "$REPO_DIR"
 fi
 
 # --- Optional SHA256 validation ----------------------------------------------
 
 if [[ -n "$NOCEASY_SHA256" ]]; then
   info "Validating commit SHA256..."
-  ACTUAL_SHA=$(runuser -u "$REAL_USER" -- bash -lc "git -C '$REPO_DIR' rev-parse HEAD" | tr -d '[:space:]')
+  ACTUAL_SHA=$(git -C "$REPO_DIR" rev-parse HEAD | tr -d '[:space:]')
   if [[ "$ACTUAL_SHA" != "$NOCEASY_SHA256" ]]; then
     error "SHA256 mismatch: expected $NOCEASY_SHA256, got $ACTUAL_SHA"
   fi
@@ -187,13 +170,12 @@ success "Repository ready in $REPO_DIR (version: $NOCEASY_VERSION)"
 # --- Delegate to Python entrypoint -------------------------------------------
 
 cd "$REPO_DIR"
-export SUDO_USER USER_HOME REPO_DIR
+export USER_HOME REPO_DIR
 
 # Disable 'set -e' for this call so we can inspect the exit code
 # and print a clear error instead of silently returning to the shell.
 set +e
 env \
-  SUDO_USER="$SUDO_USER" \
   USER_HOME="$USER_HOME" \
   REPO_DIR="$REPO_DIR" \
   NO_COLOR="${NO_COLOR:-}" \
