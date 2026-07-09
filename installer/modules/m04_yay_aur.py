@@ -54,17 +54,43 @@ def _setup_askpass(sudo_password: str | None) -> dict[str, str]:
     setting ``SUDO_ASKPASS`` to a script that echoes the password,
     sudo -A can authenticate non-interactively.
 
-    The script is created in /tmp with mode 0700 (user-owned).
+    Security notes:
+    - Password is passed via env var (SUDO_ASKPASS_PW), never
+      interpolated into the script text (prevents shell injection).
+    - File is created with 0700 via os.open() (atomic permission,
+      no race window).
+    - File is cleaned up in a try/finally block in YayAurModule.run().
     """
     env = os.environ.copy()
     if sudo_password is None:
         return env
 
-    askpass = Path("/tmp/.pw_askpass.sh")
-    askpass.write_text(f"#!/bin/sh\nprintf '%s\\n' '{sudo_password}'\n")
-    askpass.chmod(0o700)
-    env["SUDO_ASKPASS"] = str(askpass)
+    # Create with restrictive permissions atomically (no race window
+    # between creation and chmod).
+    fd = os.open(
+        "/tmp/.noceasy-askpass.sh",
+        os.O_WRONLY | os.O_CREAT | os.O_TRUNC,
+        0o700,
+    )
+    try:
+        os.write(fd, b"#!/bin/sh\nprintf '%s\\n' \"$SUDO_ASKPASS_PW\"\n")
+    finally:
+        os.close(fd)
+
+    # Pass password via env var — the script reads it from there,
+    # never from its own text. Prevents shell injection even if
+    # the password contains quotes, semicolons, backticks, etc.
+    env["SUDO_ASKPASS"] = "/tmp/.noceasy-askpass.sh"
+    env["SUDO_ASKPASS_PW"] = sudo_password
     return env
+
+
+def _teardown_askpass() -> None:
+    """Remove the temporary SUDO_ASKPASS script."""
+    try:
+        Path("/tmp/.noceasy-askpass.sh").unlink(missing_ok=True)
+    except OSError:
+        pass
 
 
 def _install_streamed(cmd: list[str], sudo_password: str | None) -> bool:
@@ -184,15 +210,18 @@ class YayAurModule(Module):
         # Report real progress to the TUI: N packages to build.
         print(f"@PROGRESS:{len(missing)}")
 
-        for i in range(0, len(missing), YAY_CHUNK_SIZE):
-            chunk = missing[i:i + YAY_CHUNK_SIZE]
-            if _install_chunk(chunk, ctx.sudo_password):
-                print(f"@ADVANCE:{len(chunk)}")
-                continue
-            for pkg in chunk:
-                if not _install_one(pkg, ctx.sudo_password):
-                    print(f"  failed: {pkg}")
-                print("@ADVANCE:1")
+        try:
+            for i in range(0, len(missing), YAY_CHUNK_SIZE):
+                chunk = missing[i:i + YAY_CHUNK_SIZE]
+                if _install_chunk(chunk, ctx.sudo_password):
+                    print(f"@ADVANCE:{len(chunk)}")
+                    continue
+                for pkg in chunk:
+                    if not _install_one(pkg, ctx.sudo_password):
+                        print(f"  failed: {pkg}")
+                    print("@ADVANCE:1")
+        finally:
+            _teardown_askpass()
 
         still_missing = _pacman_missing(missing)
         if still_missing:
