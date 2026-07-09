@@ -37,9 +37,10 @@ NOCEASY_VERSION=v0.1.0 NOCEASY_SHA256=5ba80b0... bash install.sh
 GitHub compromise). Both are optional; the defaults are `main` and
 "no check".
 
-The installer runs as the **real user** — `sudo` is only invoked inside
-individual modules via `privesc.run_privileged()` for operations that
-need root (pacman, useradd, etc.). No polkit agent is required.
+The installer runs as the **real user** — privilege escalation is
+handled per-operation by `privesc.run_privileged()`, which auto-detects
+`sudo`/`doas`/`run0` and asks for the password once at startup. The
+user never needs to invoke the installer with `sudo`.
 
 ## Library quick reference
 
@@ -152,8 +153,8 @@ sys.exit(1)
 | `Unsupported distribution` | Only Arch and CachyOS are supported. |
 | `Python 3.11+ required` | `pacman -S python` (Arch) or update your base. |
 | `python-rich not found` | `pacman -S python-rich`. The bootstrap installs it automatically when missing, but a sandboxed install can fail silently. |
-| `No privilege-escalation tool found` | Install `sudo` (preferred), `doas`, or ensure `run0` (systemd ≥ 256) is available. |
-| `Falha na validação da senha sudo` | The password was rejected by sudo/doas/run0. Re-run and enter the correct password for your user. |
+| `No privilege-escalation tool found` | Install `sudo`, `doas`, or ensure `run0` (systemd ≥ 256) is available. The installer auto-detects which one is present. |
+| `Falha na validação da senha` | The password was rejected. Re-run and enter the correct password for your user. |
 | `no cached credentials and no password provided` | A privileged command needs root but no password was supplied. This typically means `check_cached()` returned False and no password was passed. Re-run the installer. |
 | `pacman: unable to find linux-cachyos` | You're on Arch, not CachyOS — the manifest filters these packages out automatically. Harmless. |
 | `RuntimeError: hl.exec (no such field)` or `hl.exec: not a function` | The hyprland config (or a script under `~/.config/hypr/scripts/`) is calling a function that does not exist in your installed Hyprland version. The version on `main` targets Hyprland 0.55+; older versions need the legacy `bind = ...` syntax. |
