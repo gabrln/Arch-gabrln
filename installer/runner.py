@@ -114,12 +114,8 @@ class ModuleRunner:
     # ── Helpers ─────────────────────────────────────────────────────
 
     def _build_context(self) -> RunContext:
-        real_user = os.environ.get("SUDO_USER", "")
-        user_home = os.environ.get("USER_HOME", "")
-        if not real_user or not user_home:
-            from installer.config import STATE_DIR as _sd
-            real_user = real_user or "root"
-            user_home = user_home or str(Path(_sd).parent)
+        from installer.privilege import detect_real_user
+        real_user, user_home = detect_real_user()
         return RunContext(
             real_user=real_user,
             user_home=Path(user_home),
