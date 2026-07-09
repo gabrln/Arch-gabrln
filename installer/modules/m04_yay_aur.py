@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-import subprocess
-
-
 from installer.config import YAY_CHUNK_SIZE
 from installer.errors import fatal
+from installer.exec import run
 from installer.logger import log
 from installer.modules.base import Module, RunContext
 from installer.privilege import run_as_user
@@ -14,14 +12,8 @@ from installer.toml_cache import get_cache
 
 
 def _pacman_missing(pkgs: list[str]) -> list[str]:
-    try:
-        out = subprocess.run(
-            ["pacman", "-T", *pkgs],
-            check=False, capture_output=True, text=True,
-        )
-        return out.stdout.strip().split()
-    except FileNotFoundError:
-        return []
+    out = run(["pacman", "-T", *pkgs])
+    return out.stdout.strip().split() if out.stdout else []
 
 
 def _install_chunk(chunk: list[str], user: str) -> bool:

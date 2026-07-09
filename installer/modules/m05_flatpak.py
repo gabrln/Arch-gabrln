@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-import subprocess
 import time
 
-
 from installer.config import NETWORK_RETRY_ATTEMPTS, NETWORK_RETRY_BASE_SECONDS
+from installer.exec import run
 from installer.logger import log
 from installer.modules.base import Module, RunContext
 from installer.modules.mixins import is_command
@@ -16,10 +15,7 @@ from installer.toml_cache import get_cache
 def _install_with_retry(remote: str, pkg: str) -> bool:
     """Try `flatpak install` with exponential backoff. Returns True on success."""
     for attempt in range(NETWORK_RETRY_ATTEMPTS):
-        if subprocess.run(
-            ["flatpak", "install", "-y", "--system", remote, pkg],
-            check=False, capture_output=True,
-        ).returncode == 0:
+        if run(["flatpak", "install", "-y", "--system", remote, pkg]).returncode == 0:
             return True
         if attempt < NETWORK_RETRY_ATTEMPTS - 1:
             time.sleep(NETWORK_RETRY_BASE_SECONDS ** attempt)
@@ -40,11 +36,8 @@ class FlatpakModule(Module):
             "flatpak.toml", "remote.url",
             "https://dl.flathub.org/repo/flathub.flatpakrepo")
         remote_name = get_cache().get("flatpak.toml", "remote.name", "flathub")
-        subprocess.run(
-            ["flatpak", "remote-add", "--if-not-exists", "--system",
-             remote_name, remote_url],
-            check=False, capture_output=True,
-        )
+        run(["flatpak", "remote-add", "--if-not-exists", "--system",
+             remote_name, remote_url])
 
         packages = get_cache().get_list_field("flatpak.toml", "packages", "name")
         if not packages:
@@ -53,8 +46,7 @@ class FlatpakModule(Module):
 
         missing: list[str] = []
         for pkg in packages:
-            if subprocess.run(["flatpak", "info", pkg],
-                                check=False, capture_output=True).returncode != 0:
+            if run(["flatpak", "info", pkg]).returncode != 0:
                 missing.append(pkg)
 
         if not missing:

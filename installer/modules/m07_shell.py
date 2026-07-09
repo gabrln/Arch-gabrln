@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import subprocess
 from pathlib import Path
 
 from installer.config import (
@@ -10,6 +9,7 @@ from installer.config import (
     NETWORK_RETRY_BASE_SECONDS,
 )
 from installer.errors import fatal
+from installer.exec import run
 from installer.logger import log
 from installer.modules.base import Module, RunContext
 from installer.modules.mixins import chown_user, retry_with_backoff
@@ -18,33 +18,23 @@ from installer.toml_cache import get_cache
 
 
 def _getent_shell(user: str) -> str:
-    try:
-        out = subprocess.run(
-            ["getent", "passwd", user],
-            check=True, capture_output=True, text=True,
-        )
+    out = run(["getent", "passwd", user])
+    if out.returncode == 0:
         parts = out.stdout.strip().split(":")
         if len(parts) >= 7:
             return parts[6]
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        pass
     return ""
 
 
 def _set_user_shell_env(user: str) -> None:
     """Update SHELL in the systemd user manager if the user is logged in."""
-    try:
-        uid = subprocess.run(
-            ["id", "-u", user],
-            check=True, capture_output=True, text=True,
-        ).stdout.strip()
-    except (subprocess.CalledProcessError, FileNotFoundError):
+    out = run(["id", "-u", user])
+    if out.returncode != 0:
         return
-
+    uid = out.stdout.strip()
     runtime_dir = f"/run/user/{uid}"
     if not Path(runtime_dir).is_dir():
         return
-
     run_as_user(
         ["systemctl", "--user", "set-environment", "SHELL=/usr/bin/zsh"],
         user=user, check=False,
@@ -74,8 +64,7 @@ class ShellModule(Module):
         current = _getent_shell(ctx.real_user)
         if current != "/usr/bin/zsh":
             log("info", f"Changing default shell of {current} to /usr/bin/zsh...")
-            subprocess.run(["chsh", "-s", "/usr/bin/zsh", ctx.real_user],
-                            check=False, capture_output=True)
+            run(["chsh", "-s", "/usr/bin/zsh", ctx.real_user])
         else:
             log("info", "Default shell is already zsh.")
 
