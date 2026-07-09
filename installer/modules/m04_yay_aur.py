@@ -18,24 +18,21 @@ _SUDOERS_NOCEASY = Path("/etc/sudoers.d/00-noceasy-yay")
 _SUDOERS_CONTENT = "{user} ALL=(ALL) NOPASSWD: /usr/bin/pacman, /usr/bin/makepkg\n"
 
 # Lines from yay that we want to show the user.
-_INTERESTING_PREFIXES = (
-    "==> Making package:",
-    "==> Retrieving sources",
-    "==> Validating source",
-    "==> Sources are already downloaded",
-    "==> Updating",
-    "  ->",
-    "::",
-)
-
-
 def _pacman_missing(pkgs: list[str]) -> list[str]:
     out = run(["pacman", "-T", *pkgs])
     return out.stdout.strip().split() if out.stdout else []
 
 
 def _install_streamed(cmd: list[str], user: str) -> bool:
-    """Run a command as the real user, streaming filtered output in real-time."""
+    """Run a command as the real user, streaming output in real-time.
+
+    Only the '==> Making package: X' line from each build is shown
+    on the terminal (one line per package). Everything else goes to
+    the log file. This gives a DankLinux-style clean output:
+
+      building noctalia-git
+      building bibata-cursor-theme-bin
+    """
     argv = ["runuser", "-u", user, "--", *cmd]
     proc = subprocess.Popen(
         argv,
@@ -48,8 +45,10 @@ def _install_streamed(cmd: list[str], user: str) -> bool:
         assert proc.stdout is not None
         for line in proc.stdout:
             line = line.rstrip()
-            if any(line.startswith(p) for p in _INTERESTING_PREFIXES):
-                print(f"  {line}")
+            # Only show the package name that is being built.
+            if line.startswith("==>") and "Making package:" in line:
+                pkg_name = line.split("Making package:")[1].split()[0]
+                print(f"  building {pkg_name}")
     except (OSError, ValueError):
         pass
     return proc.wait() == 0
@@ -129,10 +128,9 @@ class YayAurModule(Module):
                 chunk = missing[i:i + YAY_CHUNK_SIZE]
                 if _install_chunk(chunk, ctx.real_user):
                     continue
-                print("  yay failed in a chunk; falling back to per-package.")
                 for pkg in chunk:
                     if not _install_one(pkg, ctx.real_user):
-                        print(f"  yay failed for {pkg} (continuing).")
+                        print(f"  failed: {pkg}")
         finally:
             _revoke_pacman_nopasswd()
 
