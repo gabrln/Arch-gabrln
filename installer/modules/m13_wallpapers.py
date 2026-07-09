@@ -118,37 +118,36 @@ class WallpapersModule(Module):
         log("info", "Downloading extra wallpapers...")
         wp_tmp = Path(f"/tmp/wallpapers_extra.{os.getpid()}.zip")
 
-        html = _fetch_drive_html(file_id)
-        uuid, confirm = _extract_drive_confirm(html)
-        url = _build_drive_url(file_id, uuid, confirm)
-        log("info", f"URL: {url}")
+        try:
+            html = _fetch_drive_html(file_id)
+            uuid, confirm = _extract_drive_confirm(html)
+            url = _build_drive_url(file_id, uuid, confirm)
+            log("info", f"URL: {url}")
 
-        if not _aria2_download(url, wp_tmp):
-            log("warn", "Download failed. Skipping extraction.")
+            if not _aria2_download(url, wp_tmp):
+                log("warn", "Download failed. Skipping extraction.")
+                return
+
+            if not _verify_sha256(wp_tmp, expected_sha):
+                return
+
+            # Sanity: must be a real zip
+            size = wp_tmp.stat().st_size
+            if size < 1024:
+                log("warn",
+                    f"File too small ({size} bytes). Probably an error page.")
+                return
+
+            mime = _detect_mime(wp_tmp)
+            if "zip" not in mime and "archive" not in mime:
+                log("warn", f"Not a zip ({mime}). See {wp_tmp}.")
+                return
+
+            log("info", f"Extracting {size // (1024 * 1024)} MB to {wp_dir}...")
+            privesc.run_privileged(
+                ["bash", "-c", f"unzip -o -j '{wp_tmp}' -d '{wp_dir}' 2>/dev/null || true"],
+                ctx.sudo_password,
+            )
+            log("success", f"Wallpapers extracted to {wp_dir}.")
+        finally:
             wp_tmp.unlink(missing_ok=True)
-            return
-
-        if not _verify_sha256(wp_tmp, expected_sha):
-            wp_tmp.unlink(missing_ok=True)
-            return
-
-        # Sanity: must be a real zip
-        size = wp_tmp.stat().st_size
-        if size < 1024:
-            log("warn",
-                f"File too small ({size} bytes). Probably an error page.")
-            wp_tmp.unlink(missing_ok=True)
-            return
-
-        mime = _detect_mime(wp_tmp)
-        if "zip" not in mime and "archive" not in mime:
-            log("warn", f"Not a zip ({mime}). See {wp_tmp}.")
-            return
-
-        log("info", f"Extracting {size // (1024 * 1024)} MB to {wp_dir}...")
-        privesc.run_privileged(
-            ["bash", "-c", f"unzip -o -j '{wp_tmp}' -d '{wp_dir}' 2>/dev/null || true"],
-            ctx.sudo_password,
-        )
-        wp_tmp.unlink(missing_ok=True)
-        log("success", f"Wallpapers extracted to {wp_dir}.")
