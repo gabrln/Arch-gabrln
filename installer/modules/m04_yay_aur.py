@@ -173,29 +173,37 @@ def _grant_pacman_nopasswd(user: str) -> None:
     it actually grants passwordless access right away and fail fast
     with an actionable message if it doesn't.
     """
-    if _SUDOERS_NOCEASY.is_file() and _verify_nopasswd(user):
-        return
+    print("@STEP:Configuring passwordless sudo for pacman...")
 
     if _SUDOERS_NOCEASY.is_file():
+        print(f"Checking existing {_SUDOERS_NOCEASY}...")
+        if _verify_nopasswd(user):
+            print("Existing sudoers grant works, continuing.")
+            return
         log("warn", f"{_SUDOERS_NOCEASY} exists but NOPASSWD isn't "
                      "effective for this user; recreating it.")
+        print(f"{_SUDOERS_NOCEASY} exists but doesn't grant passwordless "
+              "access; recreating it.")
         try:
             _SUDOERS_NOCEASY.unlink()
         except OSError:
             pass
 
+    print(f"Writing {_SUDOERS_NOCEASY}...")
     try:
         _SUDOERS_NOCEASY.write_text(_SUDOERS_CONTENT.format(user=user))
         _SUDOERS_NOCEASY.chmod(0o440)
     except OSError as exc:
         fatal(f"Could not create {_SUDOERS_NOCEASY}: {exc}")
 
+    print("Validating sudoers syntax (visudo -cf)...")
     visudo = run(["visudo", "-cf", str(_SUDOERS_NOCEASY)], timeout=5)
     if visudo.returncode != 0:
         _SUDOERS_NOCEASY.unlink(missing_ok=True)
         fatal(f"sudoers validation failed for {_SUDOERS_NOCEASY}: "
               f"{visudo.stderr.strip()}")
 
+    print("Verifying passwordless access (sudo -n pacman --version)...")
     if not _verify_nopasswd(user):
         _SUDOERS_NOCEASY.unlink(missing_ok=True)
         fatal(
@@ -206,6 +214,7 @@ def _grant_pacman_nopasswd(user: str) -> None:
             "another /etc/sudoers.d/ file that overrides this one "
             f"(run `sudo -u {user} sudo -l` to see the effective rules)."
         )
+    print("Passwordless sudo for pacman/makepkg is confirmed working.")
 
 
 def _revoke_pacman_nopasswd() -> None:
