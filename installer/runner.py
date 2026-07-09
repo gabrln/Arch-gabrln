@@ -33,47 +33,40 @@ class ModuleRunner:
 
     def run_all(self) -> None:
         ctx = self._build_context()
-        progress = make_progress(total=len(self.modules), label="install")
+        self._loop(ctx)
 
-        if progress is not None:
-            with progress:
-                self._loop(ctx, progress)
-        else:
-            self._loop(ctx, progress=None)
-
-    def _loop(self, ctx: RunContext, progress) -> None:
+    def _loop(self, ctx: RunContext) -> None:
         total = len(self.modules)
-        task = None
-        if progress is not None:
-            task = progress.add_task("starting", total=total)
+        width = len(str(total))
 
         for idx, module in enumerate(self.modules, 1):
             manifest_path = self._resolve_manifest(module)
-
-            if progress is not None and task is not None:
-                progress.update(task, description=module.name)
+            tag = f"[{idx:>{width}}/{total}]"
 
             try:
                 if not self.options.force and \
                         self.state.is_up_to_date(module.name, manifest_path):
-                    log("info", f"Module {module.name} already up to date. Skipping.")
+                    print(f"{tag} {module.name:<28} skip (up to date)")
                 elif self.options.dry_run:
-                    log("step", f"[dry-run] {module.name} would be executed")
+                    print(f"{tag} {module.name:<28} dry-run")
                 else:
-                    log("step", f"Running module {module.name}")
+                    print(f"{tag} {module.name:<28} running...", end=" ",
+                          flush=True)
                     module.pre_check(ctx)
                     module.run(ctx)
                     module.post_check(ctx)
                     self.state.mark_done(module.name, manifest_path)
+                    print("done")
             except ModuleFailure as exc:
+                print("FAILED")
                 self.state.mark_failed(exc.module_name, exc.reason)
                 fatal(str(exc))
             except Exception as exc:
+                print("FAILED")
                 self.state.mark_failed(module.name, str(exc))
                 fatal(f"Module {module.name} failed: {exc}")
-            finally:
-                if progress is not None and task is not None:
-                    progress.update(task, completed=idx)
+
+        print(f"\n[OK] All {total} modules processed.")
 
     def _build_context(self) -> RunContext:
         real_user = os.environ.get("SUDO_USER", "")
