@@ -42,12 +42,16 @@ class ModuleRunner:
             self._loop(ctx, progress=None)
 
     def _loop(self, ctx: RunContext, progress) -> None:
-        for module in self.modules:
+        total = len(self.modules)
+        task = None
+        if progress is not None:
+            task = progress.add_task("starting", total=total)
+
+        for idx, module in enumerate(self.modules, 1):
             manifest_path = self._resolve_manifest(module)
 
-            task = None
-            if progress is not None:
-                task = progress.add_task(module.name, total=1)
+            if progress is not None and task is not None:
+                progress.update(task, description=module.name)
 
             try:
                 if not self.options.force and \
@@ -69,7 +73,7 @@ class ModuleRunner:
                 fatal(f"Module {module.name} failed: {exc}")
             finally:
                 if progress is not None and task is not None:
-                    progress.update(task, completed=1)
+                    progress.update(task, completed=idx)
 
     def _build_context(self) -> RunContext:
         real_user = os.environ.get("SUDO_USER", "")
