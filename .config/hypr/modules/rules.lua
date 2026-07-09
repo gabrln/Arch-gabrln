@@ -21,8 +21,14 @@ hl.window_rule({ match = { class = "google-chrome" }, maximize = true })
 hl.window_rule({ match = { class = "code" },          maximize = true })
 hl.window_rule({ match = { class = "obsidian" },      maximize = true })
 
--- Bloquear suspensão da tela durante reprodução de mídia ou jogos em tela cheia
-hl.window_rule({ match = { class = ".*(celluloid|mpv|vlc|spotify|LibreWolf|floorp|brave-browser|firefox|chromium|zen|vivaldi|steam_app|gamescope|lutris|heroic|dota2|cs2|wine).*" }, idle_inhibit = "fullscreen" })
+-- Inhibit screen idle (screensaver / suspend) while media is playing or a
+-- game is running fullscreen. The regex is matched against window class;
+-- keep it tight to avoid blocking idle on unrelated windows that happen
+-- to contain the substring.
+hl.window_rule({
+    match = { class = ".*(celluloid|^mpv$|vlc|spotify|librewolf|floorp|brave-browser|firefox|chromium|zen-browser|vivaldi|steam_app_.*|gamescope|lutris|heroic|dota2|cs2|wine.*).*" },
+    idle_inhibit = "fullscreen",
+})
 
 -- Diálogos flutuantes e utilitários
 hl.window_rule({ match = { title = ".*(Open|Save|Select|File|Dialog|Properties|Preferences|Settings|Rename|Authentication).*" }, float = true })
