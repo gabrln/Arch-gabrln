@@ -48,12 +48,16 @@ TOKYO_NIGHT = {
     "track":       "#3b4261",  # bar track (unfilled)
 }
 
-# Panel width: terminals are character cells, not pixels, so a literal
+# Panel size: terminals are character cells, not pixels, so a literal
 # "900x900" box has no direct equivalent. We instead pick a fixed
-# column width that reads well (76 cols ≈ a squarish info box at
-# typical font aspect ratios) and center it in the available
-# terminal area, both horizontally and vertically.
+# column width and row height that read as a squarish info box at
+# typical font aspect ratios (character cells are roughly 1:2
+# width:height, so a wider-than-tall box still LOOKS square), and
+# center it in the available terminal area, both horizontally and
+# vertically. The box size is fixed regardless of content — it never
+# grows as modules complete or output accumulates.
 PANEL_WIDTH = 76
+PANEL_HEIGHT = 20
 
 
 # ── TTY detection (single source of truth) ───────────────────────────
@@ -155,11 +159,13 @@ class LivePanelRenderer:
     """
 
     def __init__(self, state: ProgressState, progress,
-                 width: int = PANEL_WIDTH, height: int | None = None) -> None:
+                 width: int = PANEL_WIDTH, box_height: int = PANEL_HEIGHT,
+                 align_height: int | None = None) -> None:
         self._state = state
         self._progress = progress  # rich.progress.Progress or None
         self._width = width
-        self._height = height
+        self._box_height = box_height    # fixed box size (never grows)
+        self._align_height = align_height  # terminal rows, for centering only
 
     def render(self):
         """Return the Rich renderable for the current state, centered."""
@@ -186,9 +192,10 @@ class LivePanelRenderer:
             parts.append(Text(f"$ {self._state.cmd}", style=c["comment"]))
             parts.append("")
 
-        # Live output (last 8 lines)
+        # Live output (last 8 lines — older lines scroll off as new
+        # ones arrive, keeping the box height fixed).
         if self._state.lines:
-            parts.append(Text("Live Output:", style=c["comment"]))
+            parts.append(Text("Live Output:", style=f"bold {c['comment']}"))
             for line in self._state.lines:
                 parts.append(Text(f"  {line}", style=c["fg_dark"]))
 
@@ -197,18 +204,25 @@ class LivePanelRenderer:
             f"[bold {c['title']}]Noceasy Installer[/bold {c['title']}] "
             f"[{c['comment']}]{self._state.module_idx}/{self._state.total_modules}[/{c['comment']}]"
         )
+        # style=fg-on-bg paints the WHOLE panel interior with the theme's
+        # dark background + light foreground, so it reads as a distinct
+        # "boxed" area rather than just a colored border on the
+        # terminal's own (unstyled) background.
         panel = Panel(
             Group(*parts),
             title=title,
             border_style=border,
             width=self._width,
-            style=f"on {c['bg']}",
+            height=self._box_height,
+            style=f"{c['fg']} on {c['bg']}",
         )
         # Center horizontally AND vertically within the terminal.
         # Align needs an explicit height to center vertically —
         # without it, it only sizes to the renderable's own content
-        # height and never uses the terminal's full height.
-        return Align.center(panel, vertical="middle", height=self._height)
+        # height and never uses the terminal's full height. This is
+        # the TERMINAL's height, distinct from the panel's own fixed
+        # box_height above.
+        return Align.center(panel, vertical="middle", height=self._align_height)
 
 
 # ── OutputCapture ────────────────────────────────────────────────────
@@ -288,7 +302,8 @@ class LiveDisplay:
         self._task_id = None
         self._final: list[str] = []
         self._panel_width = PANEL_WIDTH
-        self._panel_height: int | None = None
+        self._panel_height = PANEL_HEIGHT  # fixed box size, never grows
+        self._term_rows: int | None = None  # terminal height, for centering only
 
     # ── Lifecycle ───────────────────────────────────────────────────
 
@@ -323,16 +338,18 @@ class LiveDisplay:
             color_system="truecolor",
         )
 
-        # Fit the panel to the terminal: cap at PANEL_WIDTH, but
-        # shrink on narrow terminals so it never overflows/wraps.
+        # Fit the panel width to the terminal (shrink on narrow
+        # terminals so it never overflows/wraps), but keep the panel
+        # HEIGHT fixed at PANEL_HEIGHT regardless of terminal size or
+        # content — that's the "squarish fixed box" requirement.
         term_cols, term_rows = shutil.get_terminal_size(fallback=(PANEL_WIDTH + 4, 24))
         self._panel_width = max(40, min(PANEL_WIDTH, term_cols - 4))
-        self._panel_height = term_rows
+        self._term_rows = term_rows
 
         c = TOKYO_NIGHT
         self._progress = Progress(
             SpinnerColumn(style=c["border"]),
-            TextColumn(f"[{c['fg']}]{{task.description}}"),
+            TextColumn(f"[bold {c['cyan']}]{{task.description}}"),
             BarColumn(bar_width=30, complete_style=c["border"],
                      finished_style=c["success"], style=c["track"]),
             TextColumn(f"[{c['comment']}]" + "{task.percentage:>3.0f}%"),
@@ -366,7 +383,13 @@ class LiveDisplay:
     # ── Module lifecycle ────────────────────────────────────────────
 
     def update_module(self, name: str, idx: int) -> None:
-        """Switch to a new module. Resets state, creates a new progress task."""
+        """Switch to a new module. Resets state, replaces the progress task.
+
+        Removes the previous module's task entirely (not just stops
+        it) so Progress only ever renders ONE row — otherwise every
+        completed module leaves a permanent bar behind and the panel
+        grows taller with each step instead of staying a fixed size.
+        """
         self._state.module_idx = idx
         self._state.module_name = name
         self._state.step = f"Installing {name}"
@@ -376,7 +399,7 @@ class LiveDisplay:
         self._state.task_total = 1
         self._state.task_done = 0
         if self._progress and self._task_id is not None:
-            self._progress.stop_task(self._task_id)
+            self._progress.remove_task(self._task_id)
         if self._progress:
             self._task_id = self._progress.add_task(name, total=1)
         self._refresh()
@@ -424,6 +447,8 @@ class LiveDisplay:
             ].total if self._task_id is not None else 1
         renderer = LivePanelRenderer(
             self._state, self._progress,
-            width=self._panel_width, height=self._panel_height,
+            width=self._panel_width,
+            box_height=self._panel_height,
+            align_height=self._term_rows,
         )
         return renderer.render()
