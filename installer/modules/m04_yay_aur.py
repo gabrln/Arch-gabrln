@@ -35,7 +35,18 @@ _STEP_UPDATE_INTERVAL = 0.1  # seconds
 
 
 def _pacman_missing(pkgs: list[str]) -> list[str]:
-    out = run(["pacman", "-T", *pkgs])
+    # `pacman -T` is a read-only, offline query -- it should return in
+    # well under a second even for hundreds of packages. A generous
+    # timeout here turns a silent, indefinite hang (previously: no
+    # timeout at all) into a clear, actionable failure instead of a
+    # panel that just sits there with no visible cause.
+    try:
+        out = run(["pacman", "-T", *pkgs], timeout=30)
+    except subprocess.TimeoutExpired:
+        fatal("'pacman -T' timed out after 30s while checking installed "
+              "AUR packages -- the pacman database may be locked by "
+              "another process.")
+        return []  # unreachable: fatal() exits the process
     return out.stdout.strip().split() if out.stdout else []
 
 
@@ -211,6 +222,12 @@ class YayAurModule(Module):
     manifest = "aur.toml"
 
     def run(self, ctx: RunContext) -> None:
+        # Fires immediately, before anything else, so the panel shows
+        # life right away instead of sitting at a static 0/1 while
+        # manifest loading / `pacman -T` run in the background -- if
+        # this line never appears, the hang is before even this point
+        # (module dispatch itself), which narrows things down a lot.
+        print("@STEP:Checking AUR packages...")
         log("info", "Reading AUR packages from manifest...")
         pkgs = get_cache().get_list_field("aur.toml", "packages", "name")
         if not pkgs:

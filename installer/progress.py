@@ -476,6 +476,7 @@ class LiveDisplay:
         if self._progress and self._task_id is not None:
             self._progress.update(
                 self._task_id,
+                description=self._state.step or self._state.module_name,
                 total=self._state.task_total,
                 completed=self._state.task_total,
             )
@@ -496,13 +497,19 @@ class LiveDisplay:
         """Public refresh — called by OutputCapture after marker updates.
 
         ProgressState is the single source of truth (updated by
-        parse_marker() from @PROGRESS:/@ADVANCE: markers). This
-        pushes state.task_total/task_done INTO the rich.progress.Task
-        — never the other way around.
+        parse_marker() from @STEP:/@PROGRESS:/@ADVANCE: markers). This
+        pushes state fields INTO the rich.progress.Task — never the
+        other way around.
+
+        Pushing `description` here is what makes @STEP: markers
+        actually visible: the task's description is otherwise fixed
+        at whatever add_task() was given in update_module() (the
+        static module name) and never changes on its own.
         """
         if self._progress and self._task_id is not None:
             self._progress.update(
                 self._task_id,
+                description=self._state.step or self._state.module_name,
                 total=self._state.task_total,
                 completed=min(self._state.task_done, self._state.task_total),
             )
