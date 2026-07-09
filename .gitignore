@@ -59,3 +59,10 @@ known_hosts
 # ===== Python cache =====
 __pycache__/
 *.pyc
+
+# ===== Test/debug scripts =====
+_*.sh
+do_install.sh
+noceasy_install.sh
+run_install.sh
+run.sh
