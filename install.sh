@@ -196,10 +196,15 @@ success "Repository ready in $REPO_DIR (version: $NOCEASY_VERSION)"
 
 cd "$REPO_DIR"
 export SUDO_USER USER_HOME REPO_DIR
-exec env \
+env \
   SUDO_USER="$SUDO_USER" \
   USER_HOME="$USER_HOME" \
   REPO_DIR="$REPO_DIR" \
   NO_COLOR="${NO_COLOR:-}" \
   NOCEASY_VERSION="$NOCEASY_VERSION" \
   python3 -m installer "$@"
+
+PY_EXIT=$?
+if [[ $PY_EXIT -ne 0 ]]; then
+  error "Python installer exited with code $PY_EXIT"
+fi
