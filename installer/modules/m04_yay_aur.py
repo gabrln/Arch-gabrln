@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+import os
+import tempfile
+from pathlib import Path
+
 from installer.config import YAY_CHUNK_SIZE
 from installer.errors import fatal
 from installer.exec import run
@@ -11,6 +15,21 @@ from installer.privilege import run_as_user
 from installer.toml_cache import get_cache
 
 
+_SUDOERS_NOCEASY = Path("/etc/sudoers.d/00-noceasy-yay")
+_SUDOERS_CONTENT = "{user} ALL=(ALL) NOPASSWD: /usr/bin/pacman, /usr/bin/makepkg\n"
+
+# Lines from yay that we want to show the user.
+_INTERESTING_PREFIXES = (
+    "==> Making package:",
+    "==> Retrieving sources",
+    "==> Validating source",
+    "==> Sources are already downloaded",
+    "==> Updating",
+    "  ->",
+    "::",
+)
+
+
 def _pacman_missing(pkgs: list[str]) -> list[str]:
     out = run(["pacman", "-T", *pkgs])
     return out.stdout.strip().split() if out.stdout else []
@@ -18,9 +37,6 @@ def _pacman_missing(pkgs: list[str]) -> list[str]:
 
 def _install_chunk(chunk: list[str], user: str) -> bool:
     """Install one chunk of AUR packages. Returns True on success."""
-    # bash -c with $@ preserves each arg as a separate xargs item
-    # Capture output so yay's verbose build messages don't fight
-    # with the Rich progress bar (both use stderr).
     proc = run_as_user(
         ["bash", "-c",
          "printf '%s\\n' \"$@\" | xargs yay -S "
@@ -28,8 +44,7 @@ def _install_chunk(chunk: list[str], user: str) -> bool:
          "bash", *chunk],
         user=user, login=False, check=False, capture=True,
     )
-    if proc.returncode != 0 and proc.stderr:
-        log("warn", f"yay stderr: {proc.stderr.strip()[:200]}")
+    _show_build_output(proc)
     return proc.returncode == 0
 
 
@@ -38,9 +53,48 @@ def _install_one(pkg: str, user: str) -> bool:
         ["yay", "-S", "--needed", "--noconfirm", "--removemake", pkg],
         user=user, login=False, check=False, capture=True,
     )
-    if proc.returncode != 0 and proc.stderr:
-        log("warn", f"yay stderr for {pkg}: {proc.stderr.strip()[:200]}")
+    _show_build_output(proc)
     return proc.returncode == 0
+
+
+def _show_build_output(proc) -> None:
+    """Extract and display interesting lines from yay's captured output."""
+    output = (proc.stdout or "") + (proc.stderr or "")
+    for line in output.splitlines():
+        line = line.rstrip()
+        if any(line.startswith(p) for p in _INTERESTING_PREFIXES):
+            log("info", f"  {line}")
+
+
+def _grant_pacman_nopasswd(user: str) -> None:
+    """Add a temporary sudoers entry so yay can install without password.
+
+    yay calls `sudo pacman -U` internally. Without this entry, the user
+    is prompted for their password during AUR builds. The entry is
+    removed after the build (or on any exit path).
+    """
+    if _SUDOERS_NOCEASY.is_file():
+        return  # already granted
+    try:
+        _SUDOERS_NOCEASY.write_text(_SUDOERS_CONTENT.format(user=user))
+        _SUDOERS_NOCEASY.chmod(0o440)
+        # Validate the syntax before activating.
+        visudo = run(["visudo", "-cf", str(_SUDOERS_NOCEASY)],
+                     timeout=5)
+        if visudo.returncode != 0:
+            log("warn", f"sudoers validation failed: {visudo.stderr.strip()}")
+            _SUDOERS_NOCEASY.unlink(missing_ok=True)
+    except OSError as exc:
+        log("warn", f"Could not create {_SUDOERS_NOCEASY}: {exc}")
+
+
+def _revoke_pacman_nopasswd() -> None:
+    """Remove the temporary sudoers entry."""
+    if _SUDOERS_NOCEASY.is_file():
+        try:
+            _SUDOERS_NOCEASY.unlink()
+        except OSError:
+            pass
 
 
 class YayAurModule(Module):
@@ -64,15 +118,19 @@ class YayAurModule(Module):
             f"Installing missing AUR packages via yay: {' '.join(missing)}")
         log("info", f"Running yay -S in chunks of {YAY_CHUNK_SIZE}...")
 
-        # yay refuses to run as root, so use runuser.
-        for i in range(0, len(missing), YAY_CHUNK_SIZE):
-            chunk = missing[i:i + YAY_CHUNK_SIZE]
-            if _install_chunk(chunk, ctx.real_user):
-                continue
-            log("warn", "yay failed in a chunk; falling back to per-package.")
-            for pkg in chunk:
-                if not _install_one(pkg, ctx.real_user):
-                    log("warn", f"yay failed for {pkg} (continuing).")
+        _grant_pacman_nopasswd(ctx.real_user)
+        try:
+            for i in range(0, len(missing), YAY_CHUNK_SIZE):
+                chunk = missing[i:i + YAY_CHUNK_SIZE]
+                if _install_chunk(chunk, ctx.real_user):
+                    continue
+                log("warn",
+                    "yay failed in a chunk; falling back to per-package.")
+                for pkg in chunk:
+                    if not _install_one(pkg, ctx.real_user):
+                        log("warn", f"yay failed for {pkg} (continuing).")
+        finally:
+            _revoke_pacman_nopasswd()
 
         still_missing = _pacman_missing(missing)
         if still_missing:
