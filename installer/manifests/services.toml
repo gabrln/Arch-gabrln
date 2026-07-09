@@ -15,11 +15,3 @@ description = "Network management"
 [[services]]
 name = "greetd.service"
 description = "Display manager"
-
-[[services]]
-name = "spice-vdagentd.service"
-description = "SPICE agent"
-
-[[services]]
-name = "qemu-guest-agent.service"
-description = "QEMU guest agent"

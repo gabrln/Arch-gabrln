@@ -67,11 +67,6 @@ group = "base"
 description = "Z shell"
 
 [[packages]]
-name = "snapper"
-group = "base"
-description = "Btrfs snapshot manager"
-
-[[packages]]
 name = "just"
 group = "base"
 description = "Command runner"
@@ -251,24 +246,9 @@ group = "apps"
 description = "Wayland clipboard utilities"
 
 [[packages]]
-name = "duf"
-group = "apps"
-description = "Disk usage viewer"
-
-[[packages]]
-name = "gping"
-group = "apps"
-description = "Graphical ping"
-
-[[packages]]
 name = "tealdeer"
 group = "apps"
 description = "TLDR client"
-
-[[packages]]
-name = "procs"
-group = "apps"
-description = "Modern ps"
 
 [[packages]]
 name = "cava"
@@ -291,14 +271,9 @@ group = "media"
 description = "Document viewer"
 
 [[packages]]
-name = "file-roller"
+name = "engrampa"
 group = "media"
-description = "Archive manager"
-
-[[packages]]
-name = "rclone"
-group = "media"
-description = "Cloud sync"
+description = "MATE archive manager (replaces file-roller)"
 
 [[packages]]
 name = "firefox"
@@ -324,11 +299,6 @@ description = "GTK theme switcher"
 name = "xdg-user-dirs"
 group = "media"
 description = "XDG user dirs"
-
-[[packages]]
-name = "xdg-user-dirs-gtk"
-group = "media"
-description = "XDG user dirs GTK"
 
 [[packages]]
 name = "xdg-desktop-portal-gtk"
@@ -371,26 +341,6 @@ group = "themes"
 description = "Qt6 configuration tool (pacman/extra) - vanilla; qt6ct-kde quebrou em 0.11-6 com segfault em Wayland"
 
 [[packages]]
-name = "prismlauncher"
-group = "themes"
-description = "Minecraft launcher"
-
-[[packages]]
-name = "spotify-launcher"
-group = "themes"
-description = "Spotify launcher"
-
-[[packages]]
-name = "vesktop"
-group = "themes"
-description = "Discord client (Vencord) - pacote do repo CachyOS"
-
-[[packages]]
-name = "protonup-qt"
-group = "themes"
-description = "Proton GE installer - pacote do repo CachyOS"
-
-[[packages]]
 name = "gnome-keyring"
 group = "themes"
 description = "Keyring daemon"
@@ -416,11 +366,6 @@ group = "themes"
 description = "Hyprland desktop portal"
 
 [[packages]]
-name = "rsync"
-group = "system"
-description = "File sync"
-
-[[packages]]
 name = "wget"
 group = "system"
 description = "File download"
@@ -431,49 +376,9 @@ group = "system"
 description = "SSH client/server"
 
 [[packages]]
-name = "pv"
-group = "system"
-description = "Pipe viewer"
-
-[[packages]]
-name = "hwinfo"
-group = "system"
-description = "Hardware info"
-
-[[packages]]
-name = "meld"
-group = "system"
-description = "Diff viewer"
-
-[[packages]]
-name = "fsarchiver"
-group = "system"
-description = "Filesystem archiver"
-
-[[packages]]
 name = "nano"
 group = "system"
 description = "Simple editor"
-
-[[packages]]
-name = "python-defusedxml"
-group = "system"
-description = "Safe XML processing"
-
-[[packages]]
-name = "python-packaging"
-group = "system"
-description = "Python packaging utilities"
-
-[[packages]]
-name = "spice-vdagent"
-group = "system"
-description = "SPICE agent"
-
-[[packages]]
-name = "qemu-guest-agent"
-group = "system"
-description = "QEMU guest agent"
 
 [[packages]]
 name = "lua"
