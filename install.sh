@@ -141,12 +141,12 @@ if [[ -d "$REPO_DIR/.git" ]]; then
   chown -R "$REAL_USER:$REAL_USER" "$REPO_DIR" 2>/dev/null || true
 
   if [[ -n "$NOCEASY_SHA256" ]]; then
-    runuser -u "$REAL_USER" -- bash -lc "git -C '$REPO_DIR' fetch --unshallow" \
-      || error "git fetch failed"
+      runuser -u "$REAL_USER" -- bash -lc "git -C '$REPO_DIR' fetch --unshallow" \
+        >/dev/null 2>&1 || error "git fetch failed"
   fi
 
   runuser -u "$REAL_USER" -- bash -lc "git -C '$REPO_DIR' -c safe.directory='*' pull" \
-    || error "git pull failed in $REPO_DIR"
+    >/dev/null 2>&1 || error "git pull failed in $REPO_DIR"
 
   # If NOCEASY_VERSION is a tag/SHA, check it out
   if [[ "$NOCEASY_VERSION" != "main" ]] && [[ "$NOCEASY_VERSION" != "master" ]]; then
@@ -168,12 +168,12 @@ else
 
   if [[ -n "$NOCEASY_SHA256" ]]; then
     runuser -u "$REAL_USER" -- bash -lc "git clone '$REPO_URL' '$REPO_DIR'" \
-      || error "git clone failed to $REPO_DIR"
+      >/dev/null 2>&1 || error "git clone failed to $REPO_DIR"
     runuser -u "$REAL_USER" -- bash -lc "git -C '$REPO_DIR' checkout '$NOCEASY_VERSION'" \
-      || error "git checkout failed for $NOCEASY_VERSION"
+      >/dev/null 2>&1 || error "git checkout failed for $NOCEASY_VERSION"
   else
     runuser -u "$REAL_USER" -- bash -lc "git clone --depth=1 --branch '$NOCEASY_VERSION' '$REPO_URL' '$REPO_DIR'" \
-      || error "git clone failed to $REPO_DIR"
+      >/dev/null 2>&1 || error "git clone failed to $REPO_DIR"
   fi
 
   chown -R "$REAL_USER:$REAL_USER" "$REPO_DIR"

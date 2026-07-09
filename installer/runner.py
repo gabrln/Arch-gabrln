@@ -1,9 +1,8 @@
 """Module orchestration: the loop that runs the modules in order.
 
-Uses rich.live.Live for a DankInstall-style progress display:
-spinner, progress bar, and filtered live output — all in a
-single re-rendering block that replaces the previous frame
-(no scrolling, no interleaving).
+Uses rich.live.Live + rich.progress.Progress for a DankInstall-style
+progress display: real-time progress tracking, spinner, and filtered
+live output — all inside a single panel that redraws in place.
 """
 
 from __future__ import annotations
@@ -25,18 +24,20 @@ class RunnerOptions:
     force: bool = False
 
 
-# ── DankInstall-style TUI progress (rich.live) ──────────────────────
+# ── DankInstall-style TUI ───────────────────────────────────────────
 
 def _is_tty() -> bool:
     return sys.stdout.isatty() and not os.environ.get("NO_COLOR")
 
 
 class _OutputCapture:
-    """Captures stdout/stderr and routes special markers to the Live display.
+    """Captures stdout/stderr and routes markers to the Live display.
 
-    Markers:  @STEP:text  -> update step description
-             @CMD:text   -> update command info
-    Anything else goes to build_lines on the Live display.
+    Markers:
+        @STEP:text   -> update step description
+        @CMD:text    -> update command info line
+        @PROGRESS:n  -> advance progress by n steps
+    Anything else goes to the live output area.
     """
 
     def __init__(self, live_ctx) -> None:
@@ -60,6 +61,16 @@ class _OutputCapture:
                     self._live.set_step(decoded[6:])
                 elif decoded.startswith("@CMD:"):
                     self._live.set_cmd(decoded[5:])
+                elif decoded.startswith("@PROGRESS:"):
+                    try:
+                        self._live.set_task_total(int(decoded[11:]))
+                    except ValueError:
+                        pass
+                elif decoded.startswith("@ADVANCE:"):
+                    try:
+                        self._live.advance(int(decoded[10:]))
+                    except ValueError:
+                        pass
                 else:
                     self._live.add_line(decoded)
         finally:
@@ -77,37 +88,59 @@ class _OutputCapture:
 
 
 class _LiveDisplay:
-    """Wraps rich.live.Live with a DankInstall-style panel.
+    """DankInstall-style progress display using rich.live + rich.progress.
 
-    Renders:
-      ⠹ Building noctalia-git
-      [████████████░░░░░░░░░░░░░░░░░░] 42%
-      $ yay -S --needed --noconfirm
-      Live Output:
-        ==> Making package: noctalia-git
+    Layout:
+      ╭─ Noceasy Installer 5/17 ──────────────────────────╮
+      │ ⠹ Building noctalia-git                           │
+      │                                                    │
+      │ [████████████████░░░░░░░░░░░░░░] 3/5 packages 60% │
+      │                                                    │
+      │ $ yay -S --needed --noconfirm --removemake        │
+      │                                                    │
+      │ Live Output:                                       │
+      │   ==> Making package: noctalia-git                 │
+      │   -> Updating noctalia git repo...                 │
+      ╰────────────────────────────────────────────────────╯
+
+    Modules report real progress via @PROGRESS:n markers.
+    When no real progress is available, a module-level bar is shown.
     """
 
-    SPINNER = "dots"
-
     def __init__(self, total: int) -> None:
-        from rich.console import Console
-        from rich.live import Live
         self._total = total
         self._idx = 0
         self._module = ""
         self._step = ""
         self._cmd = ""
         self._lines: list[str] = []
-        self._live: Live | None = None
-        self._console: Console | None = None
-        self._final: list[str] = []
+        self._live = None
+        self._console = None
+        self._progress = None
+        self._task_id = None
+        self._task_total = 0
+        self._task_done = 0
+        self._use_module_bar = False  # True when no real progress
+
+    # ── Public API ──────────────────────────────────────────────
 
     def start(self) -> None:
         if not _is_tty():
             return
         from rich.console import Console
         from rich.live import Live
+        from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn
+
         self._console = Console(stderr=False)
+        self._progress = Progress(
+            SpinnerColumn(),
+            TextColumn('[bold cyan]{task.description}'),
+            BarColumn(bar_width=30),
+            TextColumn('{task.percentage:>3.0f}%'),
+            TextColumn('({task.completed}/{task.total})'),
+            transient=False,
+            console=self._console,
+        )
         self._live = Live(
             self._build_renderable(),
             console=self._console,
@@ -117,11 +150,19 @@ class _LiveDisplay:
         self._live.start()
 
     def update_module(self, name: str, idx: int) -> None:
+        """Switch to a new module. Creates a new progress task."""
         self._module = name
         self._idx = idx
         self._step = f"Installing {name}"
         self._cmd = ""
         self._lines.clear()
+        self._use_module_bar = True
+        self._task_total = 1
+        self._task_done = 0
+        if self._progress and self._task_id is not None:
+            self._progress.stop_task(self._task_id)
+        if self._progress:
+            self._task_id = self._progress.add_task(name, total=1)
         self._refresh()
 
     def set_step(self, step: str) -> None:
@@ -132,6 +173,22 @@ class _LiveDisplay:
         self._cmd = cmd
         self._refresh()
 
+    def set_task_total(self, n: int) -> None:
+        """Set the real total for the current module's progress task."""
+        self._task_total = n
+        self._task_done = 0
+        self._use_module_bar = False
+        if self._progress and self._task_id is not None:
+            self._progress.update(self._task_id, total=n, completed=0)
+        self._refresh()
+
+    def advance(self, n: int = 1) -> None:
+        """Advance the current module's progress by n steps."""
+        self._task_done += n
+        if self._progress and self._task_id is not None:
+            self._progress.update(self._task_id, completed=self._task_done)
+        self._refresh()
+
     def add_line(self, line: str) -> None:
         self._lines.append(line)
         if len(self._lines) > 8:
@@ -139,18 +196,15 @@ class _LiveDisplay:
         self._refresh()
 
     def finish(self) -> None:
+        """Complete the current module's progress."""
+        if self._progress and self._task_id is not None:
+            self._progress.update(self._task_id, completed=self._task_total)
+        self._refresh()
+
+    def stop(self) -> None:
+        """Stop the Live display."""
         if self._live:
             self._live.stop()
-        self._final.append(
-            f"[{self._idx}/{self._total}] {self._module:<28} done"
-        )
-        if self._console:
-            self._console.print(
-                f"[{self._idx}/{self._total}] {self._module:<28} [green]done[/green]"
-            )
-
-    def flush_final(self) -> None:
-        pass  # finish() already prints per-module
 
     def _refresh(self) -> None:
         if self._live:
@@ -158,22 +212,14 @@ class _LiveDisplay:
 
     def _build_renderable(self):
         from rich.panel import Panel
-        from rich.spinner import Spinner
+        from rich.console import Group
         from rich.text import Text
-        from rich.progress import Progress, BarColumn, TextColumn
 
         parts = []
 
-        # Spinner + step
-        parts.append(Spinner(self.SPINNER, text=f" {self._step}"))
-        parts.append("")
-
-        # Progress bar
-        pct = self._idx / self._total if self._total else 0
-        filled = int(30 * pct)
-        empty = 30 - filled
-        bar = f"[{filled * '█'}{empty * '░'}] {pct * 100:.0f}%"
-        parts.append(Text(bar))
+        # Progress bar (from rich.progress.Progress)
+        if self._progress:
+            parts.append(self._progress)
         parts.append("")
 
         # Command info
@@ -181,13 +227,12 @@ class _LiveDisplay:
             parts.append(Text(f"$ {self._cmd}", style="dim"))
             parts.append("")
 
-        # Live output
+        # Live output (last 8 lines)
         if self._lines:
             parts.append(Text("Live Output:", style="dim"))
             for line in self._lines:
                 parts.append(Text(f"  {line}"))
 
-        from rich.console import Group
         return Panel(
             Group(*parts),
             title=f"Noceasy Installer [dim]{self._idx}/{self._total}[/dim]",
@@ -222,11 +267,11 @@ class ModuleRunner:
                 if not self.options.force and \
                         self.state.is_up_to_date(module.name, manifest_path):
                     tui.update_module(module.name, idx)
-                    tui.add_line("skip (up to date)")
+                    tui.set_step(f"{module.name} — skip (up to date)")
                     tui.finish()
                 elif self.options.dry_run:
                     tui.update_module(module.name, idx)
-                    tui.add_line("dry-run")
+                    tui.set_step(f"{module.name} — dry-run")
                     tui.finish()
                 else:
                     tui.update_module(module.name, idx)
@@ -242,7 +287,7 @@ class ModuleRunner:
                         module.post_check(ctx)
                         self.state.mark_done(module.name, manifest_path)
                     except (ModuleFailure, Exception) as exc:
-                        tui.finish()
+                        tui.stop()
                         sys.stdout = old_stdout
                         sys.stderr = old_stderr
                         set_suppress_stderr(False)
@@ -258,11 +303,15 @@ class ModuleRunner:
                         set_suppress_stderr(False)
                         tui.finish()
             except Exception as exc:
-                tui.finish()
+                tui.stop()
                 fatal(f"Module {module.name} failed: {exc}")
 
-        tui.flush_final()
-        print(f"[OK] All {total} modules processed.")
+        tui.stop()
+        # Final summary
+        from rich.console import Console
+        Console(stderr=False).print(
+            f"\n[bold green]✓ All {total} modules processed successfully.[/bold green]"
+        )
 
     def _build_context(self) -> RunContext:
         real_user = os.environ.get("SUDO_USER", "")

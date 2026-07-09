@@ -124,15 +124,20 @@ class YayAurModule(Module):
             f"Installing missing AUR packages via yay: {' '.join(missing)}")
         log("info", f"Running yay -S in chunks of {YAY_CHUNK_SIZE}...")
 
+        # Report real progress to the TUI: N packages to build.
+        print(f"@PROGRESS:{len(missing)}")
+
         _grant_pacman_nopasswd(ctx.real_user)
         try:
             for i in range(0, len(missing), YAY_CHUNK_SIZE):
                 chunk = missing[i:i + YAY_CHUNK_SIZE]
                 if _install_chunk(chunk, ctx.real_user):
+                    print(f"@ADVANCE:{len(chunk)}")
                     continue
                 for pkg in chunk:
                     if not _install_one(pkg, ctx.real_user):
                         print(f"  failed: {pkg}")
+                    print("@ADVANCE:1")
         finally:
             _revoke_pacman_nopasswd()
 
