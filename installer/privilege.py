@@ -168,13 +168,13 @@ def setup_polkit_policy(real_user: str) -> None:
 
     # 3. Helper binary (only if missing)
     if not POLKIT_HELPER_PATH.exists():
-        src = POLKIT_DIR / "gabrln-helper"
+        src = POLKIT_DIR / "noceasy-helper"
         if src.is_file():
             try:
                 shutil.copy2(src, POLKIT_HELPER_PATH)
                 POLKIT_HELPER_PATH.chmod(0o755)
             except OSError as exc:
-                log("warn", f"Could not install gabrln-helper: {exc}")
+                log("warn", f"Could not install noceasy-helper: {exc}")
 
     _polkit_installed = True
     log("info", f"Polkit policy installed for {real_user}.")
