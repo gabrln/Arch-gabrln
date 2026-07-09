@@ -253,7 +253,19 @@ class LiveDisplay:
         from rich.live import Live
         from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn
 
-        self._console = Console(stderr=False)
+        # CRITICAL: rich.console.Console resolves sys.stdout
+        # DYNAMICALLY on every write (it stores a file only if
+        # explicitly given). If we let it default, then once the
+        # runner swaps sys.stdout = OutputCapture during module
+        # execution, the Live background thread starts writing its
+        # render frames into OutputCapture instead of the real
+        # terminal — the panel appears frozen because nothing
+        # after this point reaches the terminal.
+        #
+        # Fix: capture the real stdout now (before any swap) and
+        # pin the Console to that exact file handle.
+        real_stdout = sys.stdout
+        self._console = Console(file=real_stdout, force_terminal=True)
         self._progress = Progress(
             SpinnerColumn(),
             TextColumn("[bold cyan]{task.description}"),
