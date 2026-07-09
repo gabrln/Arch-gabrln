@@ -196,6 +196,10 @@ success "Repository ready in $REPO_DIR (version: $NOCEASY_VERSION)"
 
 cd "$REPO_DIR"
 export SUDO_USER USER_HOME REPO_DIR
+
+# Disable 'set -e' for this call so we can inspect the exit code
+# and print a clear error instead of silently returning to the shell.
+set +e
 env \
   SUDO_USER="$SUDO_USER" \
   USER_HOME="$USER_HOME" \
@@ -203,8 +207,9 @@ env \
   NO_COLOR="${NO_COLOR:-}" \
   NOCEASY_VERSION="$NOCEASY_VERSION" \
   python3 -m installer "$@"
-
 PY_EXIT=$?
+set -e
+
 if [[ $PY_EXIT -ne 0 ]]; then
   error "Python installer exited with code $PY_EXIT"
 fi
