@@ -59,6 +59,7 @@ class _LogState:
 
 
 _state: _LogState | None = None
+_suppress_stderr = False  # True while a module runs (logs go to file only)
 
 
 def _use_color() -> bool:
@@ -101,8 +102,21 @@ def setup_logging(log_dir: Path, level: LogLevel = LogLevel.NORMAL) -> None:
                        level=level, log_file=log_file)
 
 
+def set_suppress_stderr(suppress: bool) -> None:
+    """Temporarily suppress TTY output. Logs still go to the file.
+
+    Call this with True before running a module so that the module's
+    verbose log() calls don't fight with the runner's clean stdout
+    progress lines. Reset to False afterward.
+    """
+    global _suppress_stderr
+    _suppress_stderr = suppress
+
+
 def _should_print(level_name: str) -> bool:
     assert _state is not None
+    if _suppress_stderr:
+        return False
     if _state.level == LogLevel.QUIET and level_name not in ("error", "step"):
         return False
     if level_name == "debug" and _state.level < LogLevel.DEBUG:

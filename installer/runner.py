@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from installer.errors import fatal, ModuleFailure
-from installer.logger import log
+from installer.logger import log, set_suppress_stderr
 from installer.modules.base import Module, RunContext
 from installer.progress import make_progress
 from installer.state import State
@@ -52,10 +52,14 @@ class ModuleRunner:
                 else:
                     print(f"{tag} {module.name:<28} running...", end=" ",
                           flush=True)
-                    module.pre_check(ctx)
-                    module.run(ctx)
-                    module.post_check(ctx)
-                    self.state.mark_done(module.name, manifest_path)
+                    set_suppress_stderr(True)
+                    try:
+                        module.pre_check(ctx)
+                        module.run(ctx)
+                        module.post_check(ctx)
+                        self.state.mark_done(module.name, manifest_path)
+                    finally:
+                        set_suppress_stderr(False)
                     print("done")
             except ModuleFailure as exc:
                 print("FAILED")

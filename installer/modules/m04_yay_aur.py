@@ -49,7 +49,7 @@ def _install_streamed(cmd: list[str], user: str) -> bool:
         for line in proc.stdout:
             line = line.rstrip()
             if any(line.startswith(p) for p in _INTERESTING_PREFIXES):
-                log("info", f"  {line}")
+                print(f"  {line}")
     except (OSError, ValueError):
         pass
     return proc.wait() == 0
@@ -129,11 +129,10 @@ class YayAurModule(Module):
                 chunk = missing[i:i + YAY_CHUNK_SIZE]
                 if _install_chunk(chunk, ctx.real_user):
                     continue
-                log("warn",
-                    "yay failed in a chunk; falling back to per-package.")
+                print("  yay failed in a chunk; falling back to per-package.")
                 for pkg in chunk:
                     if not _install_one(pkg, ctx.real_user):
-                        log("warn", f"yay failed for {pkg} (continuing).")
+                        print(f"  yay failed for {pkg} (continuing).")
         finally:
             _revoke_pacman_nopasswd()
 
