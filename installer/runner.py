@@ -102,7 +102,9 @@ class _LiveTUI:
         if not _is_tty():
             return
         self._running = True
-        sys.stdout.write("\033[?25l")  # hide cursor
+        # Clear the screen and hide the cursor — matching DankInstall's
+        # alt-screen behavior where the TUI owns the entire terminal.
+        sys.stdout.write("\033[2J\033[H\033[?25l")
         sys.stdout.flush()
         self._stop_event.clear()
         self._thread = threading.Thread(target=self._spin, daemon=True)
