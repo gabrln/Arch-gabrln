@@ -407,7 +407,11 @@ class LiveDisplay:
     def finish(self) -> None:
         """Complete the current module's progress (success)."""
         if self._progress and self._task_id is not None:
-            self._progress.update(self._task_id, completed=self._state.task_total)
+            self._progress.update(
+                self._task_id,
+                total=self._state.task_total,
+                completed=self._state.task_total,
+            )
         self._refresh()
 
     def fail(self, error: str) -> None:
@@ -424,12 +428,15 @@ class LiveDisplay:
     def refresh(self) -> None:
         """Public refresh — called by OutputCapture after marker updates.
 
-        Syncs progress.update(completed=state.task_done) so the bar
-        advances incrementally as @ADVANCE:1 markers arrive.
+        ProgressState is the single source of truth (updated by
+        parse_marker() from @PROGRESS:/@ADVANCE: markers). This
+        pushes state.task_total/task_done INTO the rich.progress.Task
+        — never the other way around.
         """
         if self._progress and self._task_id is not None:
             self._progress.update(
                 self._task_id,
+                total=self._state.task_total,
                 completed=min(self._state.task_done, self._state.task_total),
             )
         self._refresh()
@@ -441,10 +448,13 @@ class LiveDisplay:
             self._live.update(self._render())
 
     def _render(self):
-        if self._progress:
-            self._state.task_total = self._progress.tasks[
-                self._task_id
-            ].total if self._task_id is not None else 1
+        # ProgressState (self._state) is the single source of truth
+        # for task_total/task_done — it is never read back from
+        # rich.progress.Progress. (Progress.tasks is a plain list in
+        # insertion order; indexing it with a TaskID, as a previous
+        # version of this code did, crashes with "list index out of
+        # range" as soon as a task is removed and TaskIDs no longer
+        # line up with list positions.)
         renderer = LivePanelRenderer(
             self._state, self._progress,
             width=self._panel_width,
