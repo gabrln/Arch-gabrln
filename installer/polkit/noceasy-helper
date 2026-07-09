@@ -10,7 +10,6 @@
 #
 # Subcommands:
 #   refresh-icon-cache      Update gtk-update-icon-cache
-#   update-hyprpm           Run hyprpm update -v
 #   enable-service <svc>    systemctl enable <svc>
 #   restart-user-service    systemctl --user restart
 #   set-shell <user>        chsh -s /usr/bin/zsh <user>
@@ -40,12 +39,6 @@ case "$cmd" in
       gtk-update-icon-cache -f -t "$dir" 2>/dev/null || true
     done
     log "Cache updated."
-    ;;
-
-  update-hyprpm)
-    log "Updating hyprpm..."
-    command -v hyprpm >/dev/null || die "hyprpm not installed."
-    hyprpm update -v
     ;;
 
   enable-service)
@@ -81,7 +74,6 @@ Usage: pkexec noceasy-helper <command> [args]
 
 Commands:
   refresh-icon-cache           Update system icon cache
-  update-hyprpm                Run hyprpm update -v
   enable-service <unit>        Enable a systemd unit
   restart-user-service <unit>  Restart a user service
   set-shell <user> [shell]     Change default shell

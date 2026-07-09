@@ -6,21 +6,6 @@ from installer.errors import fatal
 from installer.exec import run
 from installer.logger import log
 from installer.modules.base import Module, RunContext
-from installer.modules.mixins import is_command
-
-
-def _check_hyprpm() -> None:
-    """Verify hyprpm is functional, if installed."""
-    if not is_command("hyprpm"):
-        return
-    out = run(["hyprpm", "version"], timeout=5)
-    if out.returncode == 0 and out.stdout.strip():
-        first_line = out.stdout.strip().splitlines()[0]
-        log("info", f"hyprpm functional: {first_line}")
-    else:
-        log("warn",
-            "hyprpm installed but not functional. "
-            "Try 'hyprpm update' manually.")
 
 
 class HyprlandEnvModule(Module):
@@ -41,7 +26,5 @@ class HyprlandEnvModule(Module):
                 f"hyprland.lua not found in {ctx.user_home}/.config/hypr/. "
                 f"Hyprland configuration was not copied correctly."
             )
-
-        _check_hyprpm()
 
         log("success", "Hyprland environment validated.")
