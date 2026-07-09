@@ -12,11 +12,12 @@ install.sh                          bash bootstrap
    ├─ logger.py                    Rich logging
    ├─ errors.py                    traps, fatal, InstallerError
    ├─ exec.py                      run() subprocess helper
-   ├─ privilege.py                 runuser, real-user detection
+   ├─ privilege.py                 detect_real_user()
+   ├─ privesc.py                   on-demand privilege escalation
    ├─ toml_cache.py                manifests in memory
    ├─ state.py                     state.json atomic (flock)
    ├─ backup.py                    snapshot .1/.2 collision
-   ├─ progress.py                  Rich Progress
+   ├─ progress.py                  Rich Progress, prompt_password()
    ├─ runner.py                    ModuleRunner
    └─ modules/                     16 install steps
 ```
@@ -25,16 +26,20 @@ install.sh                          bash bootstrap
 
 ```bash
 # Pin a tag
-sudo NOCEASY_VERSION=v0.1.0 bash install.sh
+NOCEASY_VERSION=v0.1.0 bash install.sh
 
 # Pin + verify commit SHA
-sudo NOCEASY_VERSION=v0.1.0 NOCEASY_SHA256=5ba80b0... bash install.sh
+NOCEASY_VERSION=v0.1.0 NOCEASY_SHA256=5ba80b0... bash install.sh
 ```
 
 `NOCEASY_VERSION` ensures `git clone` pulls that exact tag (no surprises).
 `NOCEASY_SHA256` validates the commit SHA after clone (defense against
 GitHub compromise). Both are optional; the defaults are `main` and
 "no check".
+
+The installer runs as the **real user** — `sudo` is only invoked inside
+individual modules via `privesc.run_privileged()` for operations that
+need root (pacman, useradd, etc.). No polkit agent is required.
 
 ## Library quick reference
 
@@ -43,13 +48,14 @@ GitHub compromise). Both are optional; the defaults are `main` and
 | `cli.py` | argparse, main() |
 | `config.py` | paths, config.toml, tunable constants |
 | `logger.py` | Rich logging with NO_COLOR/TTY/levels |
-| `errors.py` | fatal(), signal handlers, InstallerError hierarchy |
+| `errors.py` | fatal(), register_cleanup(), signal handlers, InstallerError hierarchy |
 | `exec.py` | run(), run_capture(), run_or_die() |
-| `privilege.py` | run_as_user, detect_real_user |
+| `privilege.py` | detect_real_user() — resolves uid → (user, home) |
+| `privesc.py` | Tool enum, detect(), check_cached(), validate_password(), run_privileged() |
 | `toml_cache.py` | in-memory manifest cache |
 | `state.py` | state.json (flock + os.replace atomic) |
 | `backup.py` | snapshot, restore, retention |
-| `progress.py` | Rich Progress bar |
+| `progress.py` | Rich Progress bar, prompt_password() |
 | `runner.py` | ModuleRunner loop |
 
 ## Add a module
@@ -58,6 +64,7 @@ GitHub compromise). Both are optional; the defaults are `main` and
 2. Register it in `build_default_pipeline()` in `installer/modules/__init__.py`.
 
 ```python
+from installer import privesc
 from installer.errors import ModuleFailure
 from installer.exec import run
 from installer.logger import log
@@ -70,9 +77,20 @@ class MyModule(Module):
 
     def run(self, ctx: RunContext) -> None:
         log("info", "Starting ...")
+
+        # Non-privileged — use exec.run()
         proc = run(["some-command"])
         if proc.returncode != 0:
-            raise ModuleFailure(self.name, f"some-command failed")
+            raise ModuleFailure(self.name, "some-command failed")
+
+        # Privileged — use privesc.run_privileged()
+        proc = privesc.run_privileged(
+            ["pacman", "-S", "--needed", "--noconfirm", "pkg"],
+            ctx.sudo_password,
+        )
+        if proc.returncode != 0:
+            raise ModuleFailure(self.name, "privileged command failed")
+
         log("success", "Done.")
 ```
 
@@ -120,7 +138,9 @@ Runner catches, state.mark_failed(module, reason)
   ↓
 errors.fatal(...)
   ↓
-run_cleanup() (log file close)
+run_cleanup() — runs all hooks registered via register_cleanup()
+  e.g. register_cleanup(tui.stop) ensures the Rich TUI is
+  torn down even when fatal() raises SystemExit
   ↓
 sys.exit(1)
 ```
@@ -132,7 +152,10 @@ sys.exit(1)
 | `Unsupported distribution` | Only Arch and CachyOS are supported. |
 | `Python 3.11+ required` | `pacman -S python` (Arch) or update your base. |
 | `python-rich not found` | `pacman -S python-rich`. The bootstrap installs it automatically when missing, but a sandboxed install can fail silently. |
+| `No privilege-escalation tool found` | Install `sudo` (preferred), `doas`, or ensure `run0` (systemd ≥ 256) is available. |
+| `Falha na validação da senha sudo` | The password was rejected by sudo/doas/run0. Re-run and enter the correct password for your user. |
+| `no cached credentials and no password provided` | A privileged command needs root but no password was supplied. This typically means `check_cached()` returned False and no password was passed. Re-run the installer. |
 | `pacman: unable to find linux-cachyos` | You're on Arch, not CachyOS — the manifest filters these packages out automatically. Harmless. |
 | `RuntimeError: hl.exec (no such field)` or `hl.exec: not a function` | The hyprland config (or a script under `~/.config/hypr/scripts/`) is calling a function that does not exist in your installed Hyprland version. The version on `main` targets Hyprland 0.55+; older versions need the legacy `bind = ...` syntax. |
-| Stale `installer/state/state.json` blocks a re-run | Delete the file: `sudo rm installer/state/state.json` (or run `python3 -m installer --force`). |
+| Stale `installer/state/state.json` blocks a re-run | Delete the file: `rm installer/state/state.json` (or run `python3 -m installer --force`). No sudo needed — the state file is owned by the user. |
 | Logs in `installer/logs/` | Look for the most recent `installer-YYYYMMDD-HHMMSS.log`. Each curl-tool install also writes its own log named `curl-tools-<name>-<pid>.log`. |
