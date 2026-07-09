@@ -13,13 +13,13 @@ from __future__ import annotations
 import os
 import re
 import shutil
-import subprocess
 import tempfile
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
 from installer.config import BACKUPS_DIR, get_config
+from installer.exec import run
 from installer.logger import log
 
 
@@ -91,24 +91,19 @@ def create(label: str, paths: list[Path]) -> _CreatedBackup:
         base = path.name
         target_name = _unique_name(dest, base)
         target = dest / target_name
-        try:
-            if _is_system_path(path):
-                # -a --no-preserve=ownership: copy attrs but force root
-                subprocess.run(
-                    ["cp", "-a", "--no-preserve=ownership",
-                     str(path), str(target)],
-                    check=True, capture_output=True,
-                )
-            else:
-                # Preserve ownership (e.g. dotfiles in ~)
-                subprocess.run(
-                    ["cp", "-a", str(path), str(target)],
-                    check=True, capture_output=True,
-                )
+        if _is_system_path(path):
+            # -a --no-preserve=ownership: copy attrs but force root
+            argv = ["cp", "-a", "--no-preserve=ownership",
+                    str(path), str(target)]
+        else:
+            # Preserve ownership (e.g. dotfiles in ~)
+            argv = ["cp", "-a", str(path), str(target)]
+        proc = run(argv)
+        if proc.returncode == 0:
             log("info", f"  -> {path}")
             copied.append(target)
-        except subprocess.CalledProcessError as exc:
-            err = exc.stderr.decode().strip() if exc.stderr else "unknown"
+        else:
+            err = proc.stderr.strip() if proc.stderr else "unknown error"
             log("warn", f"  -> failed to copy {path}: {err}")
 
     # Apply retention

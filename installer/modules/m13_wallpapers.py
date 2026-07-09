@@ -5,15 +5,10 @@ from __future__ import annotations
 import hashlib
 import os
 import re
-import subprocess
-import time
 from pathlib import Path
 
-from installer.config import (
-    NETWORK_RETRY_ATTEMPTS,
-    NETWORK_RETRY_BASE_SECONDS,
-    get_config,
-)
+from installer.config import get_config
+from installer.exec import run
 from installer.logger import log
 from installer.modules.base import Module, RunContext
 from installer.privilege import run_as_user
@@ -31,25 +26,16 @@ def _expand_path(template: str, user_home: Path) -> Path:
 
 
 def _curl_download(url: str, out: Path, timeout: int = 120) -> bool:
-    try:
-        return subprocess.run(
-            ["curl", "-fsSL", "--retry", "3", "--retry-delay", "2",
-             "-o", str(out), url],
-            check=False, capture_output=True, timeout=timeout,
-        ).returncode == 0
-    except subprocess.TimeoutExpired:
-        return False
+    return run(["curl", "-fsSL", "--retry", "3", "--retry-delay", "2",
+                "-o", str(out), url], timeout=timeout).returncode == 0
 
 
 def _aria2_download(url: str, out: Path, timeout: int = 300) -> bool:
-    if subprocess.run(["command", "-v", "aria2c"],
-                       check=False, capture_output=True).returncode != 0:
+    if run(["command", "-v", "aria2c"]).returncode != 0:
         return _curl_download(url, out, timeout=timeout)
-    return subprocess.run(
-        ["aria2c", "--quiet=true", "--console-log-level=warn",
-         "-o", out.name, "-d", str(out.parent), url],
-        check=False, capture_output=True, timeout=timeout,
-    ).returncode == 0
+    return run(["aria2c", "--quiet=true", "--console-log-level=warn",
+                "-o", out.name, "-d", str(out.parent), url],
+                timeout=timeout).returncode == 0
 
 
 def _extract_drive_confirm(html: str) -> tuple[str | None, str | None]:
@@ -65,7 +51,8 @@ def _extract_drive_confirm(html: str) -> tuple[str | None, str | None]:
     return uuid, confirm
 
 
-def _build_drive_url(file_id: str, uuid: str | None, confirm: str | None) -> str:
+def _build_drive_url(file_id: str, uuid: str | None,
+                      confirm: str | None) -> str:
     if uuid:
         c = confirm or "t"
         return (f"https://drive.usercontent.google.com/download?"
@@ -85,27 +72,16 @@ def _verify_sha256(path: Path, expected: str) -> bool:
 
 
 def _detect_mime(path: Path) -> str:
-    try:
-        out = subprocess.run(
-            ["file", "-b", "--mime-type", str(path)],
-            check=False, capture_output=True, text=True, timeout=5,
-        )
-        return out.stdout.strip()
-    except (subprocess.TimeoutExpired, FileNotFoundError):
-        return ""
+    out = run(["file", "-b", "--mime-type", str(path)], timeout=5)
+    return out.stdout.strip() if out.stdout else ""
 
 
 def _fetch_drive_html(file_id: str) -> str:
     """GET the Drive download page to extract UUID/confirm tokens."""
-    try:
-        out = subprocess.run(
-            ["curl", "-fsSL", "--max-time", "30",
-             f"https://drive.google.com/uc?export=download&id={file_id}"],
-            check=False, capture_output=True, text=True, timeout=45,
-        )
-        return out.stdout if out.returncode == 0 else ""
-    except subprocess.TimeoutExpired:
-        return ""
+    out = run(["curl", "-fsSL", "--max-time", "30",
+               f"https://drive.google.com/uc?export=download&id={file_id}"],
+               timeout=45)
+    return out.stdout if out.returncode == 0 else ""
 
 
 class WallpapersModule(Module):
@@ -132,8 +108,7 @@ class WallpapersModule(Module):
 
         log("info", f"Ensuring wallpapers directory: {wp_dir}")
         wp_dir.mkdir(parents=True, exist_ok=True)
-        subprocess.run(["chown", f"{ctx.real_user}:{ctx.real_user}", str(wp_dir)],
-                        check=False, capture_output=True)
+        run(["chown", f"{ctx.real_user}:{ctx.real_user}", str(wp_dir)])
 
         if any(wp_dir.iterdir()):
             log("success",

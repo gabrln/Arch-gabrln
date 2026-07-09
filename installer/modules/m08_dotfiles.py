@@ -4,13 +4,13 @@ from __future__ import annotations
 
 import os
 import shutil
-import subprocess
 import tempfile
 import time
 from pathlib import Path
 
 from installer.config import REPO_DIR
 from installer.errors import fatal
+from installer.exec import run
 from installer.logger import log
 from installer.modules.base import Module, RunContext
 from installer.privilege import run_as_user
@@ -18,8 +18,7 @@ from installer.toml_cache import get_cache
 
 
 def _chown(path: Path, user: str) -> None:
-    subprocess.run(["chown", "-R", f"{user}:{user}", str(path)],
-                    check=False, capture_output=True)
+    run(["chown", "-R", f"{user}:{user}", str(path)])
 
 
 def _atomic_copytree(src: Path, dst: Path, user: str) -> bool:
