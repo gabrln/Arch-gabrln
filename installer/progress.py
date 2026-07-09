@@ -173,12 +173,13 @@ class OutputCapture:
     """File-like object that captures stdout/stderr.
 
     Routes @markers to the ProgressState and everything else to
-    the live output lines. Used as a drop-in replacement for
-    sys.stdout / sys.stderr during module execution.
+    the live output lines. After each marker update, calls
+    ``LiveDisplay.refresh()`` so the panel is repainted immediately.
     """
 
-    def __init__(self, state: ProgressState) -> None:
+    def __init__(self, state: ProgressState, live: LiveDisplay | None = None) -> None:
         self._state = state
+        self._live = live
         self._buf = b""
         self._in_write = False
 
@@ -198,6 +199,8 @@ class OutputCapture:
                     self._state.lines.append(decoded)
                     if len(self._state.lines) > 8:
                         self._state.lines = self._state.lines[-8:]
+                if self._live:
+                    self._live.refresh()
         finally:
             self._in_write = False
         return n
@@ -305,7 +308,16 @@ class LiveDisplay:
         return self._state
 
     def refresh(self) -> None:
-        """Public refresh — called by OutputCapture after marker updates."""
+        """Public refresh — called by OutputCapture after marker updates.
+
+        Syncs progress.update(completed=state.task_done) so the bar
+        advances incrementally as @ADVANCE:1 markers arrive.
+        """
+        if self._progress and self._task_id is not None:
+            self._progress.update(
+                self._task_id,
+                completed=min(self._state.task_done, self._state.task_total),
+            )
         self._refresh()
 
     # ── Internals ───────────────────────────────────────────────────

@@ -54,7 +54,7 @@ class ModuleRunner:
                 else:
                     tui.update_module(module.name, idx)
                     set_suppress_stderr(True)
-                    capture = OutputCapture(tui.state)
+                    capture = OutputCapture(tui.state, live=tui)
                     old_stdout = sys.stdout
                     old_stderr = sys.stderr
                     sys.stdout = capture
