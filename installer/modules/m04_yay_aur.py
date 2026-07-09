@@ -125,24 +125,76 @@ def _install_one(pkg: str, user: str) -> bool:
     )
 
 
+def _verify_nopasswd(user: str) -> bool:
+    """Check that `user` can invoke pacman via sudo with no password.
+
+    Uses `sudo -n` (non-interactive): on failure it exits immediately
+    with a non-zero status instead of trying to prompt for a
+    password — which would hang/timeout anyway under `curl | sudo
+    bash`, where stdin isn't a real TTY (this is exactly the failure
+    mode this check exists to catch *before* a long build, instead
+    of deep inside makepkg output).
+    """
+    try:
+        result = run(
+            ["runuser", "-u", user, "--",
+             "sudo", "-n", "/usr/bin/pacman", "--version"],
+            timeout=10,
+        )
+    except Exception:
+        return False
+    return result.returncode == 0
+
+
 def _grant_pacman_nopasswd(user: str) -> None:
     """Add a temporary sudoers entry so yay can install without password.
 
     yay calls `sudo pacman -U` internally. Without this entry, the user
     is prompted for their password during AUR builds. The entry is
     removed after the build (or on any exit path).
+
+    Merely creating the file is not proof it actually works: sudo
+    silently ignores any /etc/sudoers.d file that fails its own
+    security checks (wrong owner/perms) or that is shadowed by a
+    later-evaluated rule elsewhere (e.g. a plain `%wheel ALL=(ALL)
+    ALL` entry). Rather than discover that an hour into a build —
+    as "sudo: a password is required" with no visible cause — verify
+    it actually grants passwordless access right away and fail fast
+    with an actionable message if it doesn't.
     """
-    if _SUDOERS_NOCEASY.is_file():
+    if _SUDOERS_NOCEASY.is_file() and _verify_nopasswd(user):
         return
+
+    if _SUDOERS_NOCEASY.is_file():
+        log("warn", f"{_SUDOERS_NOCEASY} exists but NOPASSWD isn't "
+                     "effective for this user; recreating it.")
+        try:
+            _SUDOERS_NOCEASY.unlink()
+        except OSError:
+            pass
+
     try:
         _SUDOERS_NOCEASY.write_text(_SUDOERS_CONTENT.format(user=user))
         _SUDOERS_NOCEASY.chmod(0o440)
-        visudo = run(["visudo", "-cf", str(_SUDOERS_NOCEASY)], timeout=5)
-        if visudo.returncode != 0:
-            log("warn", f"sudoers validation failed: {visudo.stderr.strip()}")
-            _SUDOERS_NOCEASY.unlink(missing_ok=True)
     except OSError as exc:
-        log("warn", f"Could not create {_SUDOERS_NOCEASY}: {exc}")
+        fatal(f"Could not create {_SUDOERS_NOCEASY}: {exc}")
+
+    visudo = run(["visudo", "-cf", str(_SUDOERS_NOCEASY)], timeout=5)
+    if visudo.returncode != 0:
+        _SUDOERS_NOCEASY.unlink(missing_ok=True)
+        fatal(f"sudoers validation failed for {_SUDOERS_NOCEASY}: "
+              f"{visudo.stderr.strip()}")
+
+    if not _verify_nopasswd(user):
+        _SUDOERS_NOCEASY.unlink(missing_ok=True)
+        fatal(
+            f"Wrote {_SUDOERS_NOCEASY} but 'sudo -n pacman' still "
+            f"requires a password for {user}. AUR builds need "
+            "passwordless pacman/makepkg via sudo — check for a "
+            "conflicting rule evaluated later in /etc/sudoers or "
+            "another /etc/sudoers.d/ file that overrides this one "
+            f"(run `sudo -u {user} sudo -l` to see the effective rules)."
+        )
 
 
 def _revoke_pacman_nopasswd() -> None:
