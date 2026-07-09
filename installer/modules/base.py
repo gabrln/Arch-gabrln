@@ -56,6 +56,25 @@ class Module:
         calls fatal(). For most internal errors, raise Exception
         with a clear message; the Runner logs the module name
         automatically.
+
+        Progress reporting
+        ~~~~~~~~~~~~~~~~~~
+        During execution the module's stdout/stderr are captured by
+        an OutputCapture. Special lines ("markers") are parsed and
+        used to drive the live TUI panel. Everything else appears
+        in the Live Output area.
+
+        Markers (emit via ``print()``)::
+
+            print("@STEP:Building foo")     # update step description
+            print("@CMD:yay -S foo")        # show command being run
+            print("@PROGRESS:5")            # set total steps
+            print("@ADVANCE:1")             # advance progress by N
+
+        Most modules do not need granular progress.  The runner
+        creates a default 0→1 bar for every module; only modules
+        with quantifiable work (package builds, file downloads)
+        should emit ``@PROGRESS`` / ``@ADVANCE``.
         """
         raise NotImplementedError
 

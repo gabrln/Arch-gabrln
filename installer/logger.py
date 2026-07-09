@@ -20,6 +20,7 @@ from pathlib import Path
 
 
 from rich.console import Console
+from installer.progress import is_tty as _is_tty
 
 
 class LogLevel(IntEnum):
@@ -63,11 +64,7 @@ _suppress_stderr = False  # True while a module runs (logs go to file only)
 
 
 def _use_color() -> bool:
-    if os.environ.get("NO_COLOR"):
-        return False
-    if os.environ.get("TERM", "") == "dumb":
-        return False
-    return sys.stderr.isatty()
+    return _is_tty()
 
 
 def _timestamp() -> str:
