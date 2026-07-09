@@ -112,6 +112,10 @@ class _LiveTUI:
         self._thread: threading.Thread | None = None
         self._written_lines = 0
         self._final_output: list[str] = []
+        # Save the original stdout BEFORE any capture happens.
+        # _render() always writes here, not to sys.stdout which may
+        # be replaced by _OutputCapture during module execution.
+        self._raw_stdout: TextIO = sys.stdout
 
     # ── public API ────────────────────────────────────────────────
 
@@ -183,7 +187,12 @@ class _LiveTUI:
             time.sleep(self.SPINNER_INTERVAL)
 
     def _render(self, final: bool = False) -> None:
-        """Redraw the TUI frame."""
+        """Redraw the TUI frame.
+
+        Always writes to the saved _raw_stdout, never to sys.stdout
+        (which may be replaced by _OutputCapture during module exec).
+        """
+        out = self._raw_stdout
         if not _is_tty():
             return
         spinner = self.SPINNER_FRAMES[self._frame % len(self.SPINNER_FRAMES)]
@@ -198,18 +207,18 @@ class _LiveTUI:
 
         # Move up to overwrite previous frame
         if self._written_lines > 0:
-            sys.stdout.write(f"\033[{self._written_lines}A")
+            out.write(f"\033[{self._written_lines}A")
         # Clear each line
         for _ in range(self._written_lines):
-            sys.stdout.write("\033[2K")
-            sys.stdout.write("\033[1B")
-        sys.stdout.write("\033[H")  # home
+            out.write("\033[2K")
+            out.write("\033[1B")
+        out.write("\033[H")  # home
         # Write new frame
         self._written_lines = 0
         for line in frame.split("\n"):
-            sys.stdout.write("\033[2K" + line + "\n")
+            out.write("\033[2K" + line + "\n")
             self._written_lines += 1
-        sys.stdout.flush()
+        out.flush()
 
 
 # ── Module output capture ───────────────────────────────────────────
@@ -226,31 +235,38 @@ class _OutputCapture:
     def __init__(self, tui: _LiveTUI) -> None:
         self._tui = tui
         self._buf = b""
+        self._in_write = False  # recursion guard
 
     def write(self, s) -> int:
         n = len(s) if isinstance(s, str) else 0
-        self._buf += (s if isinstance(s, (str, bytes)) else str(s)).encode()
-        while b"\n" in self._buf:
-            line, self._buf = self._buf.split(b"\n", 1)
-            decoded = line.decode(errors="replace").rstrip()
-            if not decoded:
-                continue
-            if decoded.startswith("@STEP:"):
-                self._tui.update_step(decoded[6:])
-            elif decoded.startswith("@CMD:"):
-                self._tui.update_step(self._tui.step_text, cmd=decoded[5:])
-            else:
-                self._tui.add_build_line(decoded)
+        if self._in_write:
+            return n
+        self._in_write = True
+        try:
+            self._buf += (s if isinstance(s, (str, bytes)) else str(s)).encode()
+            while b"\n" in self._buf:
+                line, self._buf = self._buf.split(b"\n", 1)
+                decoded = line.decode(errors="replace").rstrip()
+                if not decoded:
+                    continue
+                if decoded.startswith("@STEP:"):
+                    self._tui.update_step(decoded[6:])
+                elif decoded.startswith("@CMD:"):
+                    self._tui.update_step(self._tui.step_text, cmd=decoded[5:])
+                else:
+                    self._tui.add_build_line(decoded)
+        finally:
+            self._in_write = False
         return n
 
     def flush(self) -> None:
         pass
 
     def isatty(self) -> bool:
-        return True  # So modules don't suppress output
+        return True
 
     def fileno(self):
-        return -1  # Not a real fd
+        return -1
 
 
 # ── Runner ──────────────────────────────────────────────────────────
