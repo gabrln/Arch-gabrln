@@ -108,6 +108,9 @@ hl.bind(mod .. " + P",         hl.dsp.exec_cmd("noctalia msg panel-toggle contro
 hl.bind(mod .. " + V",         hl.dsp.exec_cmd("noctalia msg panel-toggle clipboard"))
 hl.bind(mod .. " + N",         hl.dsp.exec_cmd("noctalia msg panel-toggle control-center notifications"))
 hl.bind(mod .. " + SHIFT + P", hl.dsp.exec_cmd("noctalia msg panel-toggle session"))
+-- @desc Abrir menu de sessão (lock, logout, etc)
+hl.bind(mod .. " + I",         hl.dsp.exec_cmd("noctalia msg settings-toggle"))
+-- @desc Abrir configurações do Noctalia
 
 
 -- ═══ Noctalia Features ═════════════════════════════════════════════════════
