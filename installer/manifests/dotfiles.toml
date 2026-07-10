@@ -14,6 +14,7 @@ configs = [
   "hypr",
   "noctalia",
   "nvim",
+  "qt6ct",
 ]
 
 [special]
