@@ -255,5 +255,194 @@ end
             self.assertEqual(len(binds), 9)
 
 
+class TestNoctaliaDescriptions(unittest.TestCase):
+    """Tests for Portuguese descriptions of noctalia commands."""
+
+    def test_panel_toggle_launcher(self):
+        self.assertEqual(
+            gkh._generate_description('exec_cmd("noctalia msg panel-toggle launcher")'),
+            "Abrir launcher",
+        )
+
+    def test_panel_toggle_control_center(self):
+        self.assertEqual(
+            gkh._generate_description('exec_cmd("noctalia msg panel-toggle control-center")'),
+            "Abrir centro de controle",
+        )
+
+    def test_panel_toggle_clipboard(self):
+        self.assertEqual(
+            gkh._generate_description('exec_cmd("noctalia msg panel-toggle clipboard")'),
+            "Abrir clipboard",
+        )
+
+    def test_panel_toggle_notifications(self):
+        self.assertEqual(
+            gkh._generate_description('exec_cmd("noctalia msg panel-toggle control-center notifications")'),
+            "Abrir notificações",
+        )
+
+    def test_settings_toggle(self):
+        self.assertEqual(
+            gkh._generate_description('exec_cmd("noctalia msg settings-toggle")'),
+            "Abrir configurações",
+        )
+
+    def test_nightlight_toggle(self):
+        self.assertEqual(
+            gkh._generate_description('exec_cmd("noctalia msg nightlight-toggle")'),
+            "Toggle nightlight",
+        )
+
+    def test_caffeine_toggle(self):
+        self.assertEqual(
+            gkh._generate_description('exec_cmd("noctalia msg caffeine-toggle")'),
+            "Toggle caffeine",
+        )
+
+    def test_wallpaper_random(self):
+        self.assertEqual(
+            gkh._generate_description('exec_cmd("noctalia msg wallpaper-random")'),
+            "Wallpaper aleatório",
+        )
+
+    def test_theme_mode_toggle(self):
+        self.assertEqual(
+            gkh._generate_description('exec_cmd("noctalia msg theme-mode-toggle")'),
+            "Toggle tema claro/escuro",
+        )
+
+    def test_session_lock(self):
+        self.assertEqual(
+            gkh._generate_description('exec_cmd("noctalia msg session lock")'),
+            "Bloquear tela",
+        )
+
+    def test_volume_up(self):
+        self.assertEqual(
+            gkh._generate_description('exec_cmd("noctalia msg volume-up")'),
+            "Aumentar volume",
+        )
+
+    def test_volume_down(self):
+        self.assertEqual(
+            gkh._generate_description('exec_cmd("noctalia msg volume-down")'),
+            "Diminuir volume",
+        )
+
+    def test_volume_mute(self):
+        self.assertEqual(
+            gkh._generate_description('exec_cmd("noctalia msg volume-mute")'),
+            "Silenciar volume",
+        )
+
+    def test_mic_mute(self):
+        self.assertEqual(
+            gkh._generate_description('exec_cmd("noctalia msg mic-mute")'),
+            "Silenciar microfone",
+        )
+
+    def test_brightness_up(self):
+        self.assertEqual(
+            gkh._generate_description('exec_cmd("noctalia msg brightness-up")'),
+            "Aumentar brilho",
+        )
+
+    def test_brightness_down(self):
+        self.assertEqual(
+            gkh._generate_description('exec_cmd("noctalia msg brightness-down")'),
+            "Diminuir brilho",
+        )
+
+    def test_media_toggle(self):
+        self.assertEqual(
+            gkh._generate_description('exec_cmd("noctalia msg media toggle")'),
+            "Play/Pausar",
+        )
+
+    def test_media_next(self):
+        self.assertEqual(
+            gkh._generate_description('exec_cmd("noctalia msg media next")'),
+            "Próxima faixa",
+        )
+
+    def test_media_previous(self):
+        self.assertEqual(
+            gkh._generate_description('exec_cmd("noctalia msg media previous")'),
+            "Faixa anterior",
+        )
+
+    def test_media_stop(self):
+        self.assertEqual(
+            gkh._generate_description('exec_cmd("noctalia msg media stop")'),
+            "Parar reprodução",
+        )
+
+    def test_screenshot_fullscreen(self):
+        self.assertEqual(
+            gkh._generate_description('exec_cmd("noctalia msg screenshot-fullscreen")'),
+            "Captura de tela fullscreen",
+        )
+
+    def test_screenshot_region(self):
+        self.assertEqual(
+            gkh._generate_description('exec_cmd("noctalia msg screenshot-region")'),
+            "Captura de tela região",
+        )
+
+    def test_screenshot_pick(self):
+        self.assertEqual(
+            gkh._generate_description('exec_cmd("noctalia msg screenshot-fullscreen pick")'),
+            "Captura de tela com seletor",
+        )
+
+    def test_unknown_noctalia_fallback(self):
+        self.assertEqual(
+            gkh._generate_description('exec_cmd("noctalia msg unknown-cmd")'),
+            "Executar unknown-cmd",
+        )
+
+
+class TestCategoryConsistency(unittest.TestCase):
+    """Verify all entries have consistent description format."""
+
+    def test_all_entries_have_description(self):
+        """Every bind must produce a non-empty description."""
+        keybinds_path = Path(__file__).resolve().parents[2] / ".config" / "hypr" / "modules" / "keybinds.lua"
+        if not keybinds_path.is_file():
+            self.skipTest("keybinds.lua not found")
+
+        binds = gkh.parse_keybinds(keybinds_path)
+        self.assertGreater(len(binds), 0)
+        for key, desc, action, group in binds:
+            self.assertTrue(desc, f"Empty description for {key}")
+            self.assertGreater(len(desc), 2, f"Description too short for {key}: {desc!r}")
+
+    def test_noctalia_entries_have_clean_descriptions(self):
+        """Noctalia entries should not have raw 'Launch noctalia msg ...' descriptions."""
+        keybinds_path = Path(__file__).resolve().parents[2] / ".config" / "hypr" / "modules" / "keybinds.lua"
+        if not keybinds_path.is_file():
+            self.skipTest("keybinds.lua not found")
+
+        binds = gkh.parse_keybinds(keybinds_path)
+        for key, desc, action, group in binds:
+            if "noctalia msg" in action:
+                self.assertNotIn(
+                    "Launch noctalia msg", desc,
+                    f"Noctalia entry {key} has raw 'Launch noctalia msg' description: {desc!r}",
+                )
+
+    def test_all_entries_have_group(self):
+        """Every bind must belong to a group (no None groups)."""
+        keybinds_path = Path(__file__).resolve().parents[2] / ".config" / "hypr" / "modules" / "keybinds.lua"
+        if not keybinds_path.is_file():
+            self.skipTest("keybinds.lua not found")
+
+        binds = gkh.parse_keybinds(keybinds_path)
+        for key, desc, action, group in binds:
+            self.assertIsNotNone(group, f"No group for {key}: {desc!r}")
+            self.assertTrue(group, f"Empty group for {key}: {desc!r}")
+
+
 if __name__ == "__main__":
     unittest.main()
