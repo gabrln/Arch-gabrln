@@ -59,6 +59,19 @@ known_hosts
 # ===== Python cache =====
 __pycache__/
 *.pyc
+*.pyo
+
+# ===== Python venvs =====
+.venv/
+venv/
+
+# ===== Pytest =====
+.pytest_cache/
+
+# ===== Build artifacts =====
+*.egg-info/
+dist/
+build/
 
 # ===== Test/debug scripts =====
 _*.sh
