@@ -3,6 +3,7 @@
 -- =========================================================================
 
 local mod = "SUPER"
+local scripts_dir = os.getenv("HOME") .. "/.config/hypr/scripts"
 
 
 -- ── Helpers ───────────────────────────────────────────────────────────
@@ -41,8 +42,8 @@ hl.bind("CTRL + ALT + Up",    hl.dsp.window.resize({ x = 0,  y = -100, relative 
 hl.bind("CTRL + ALT + Down",  hl.dsp.window.resize({ x = 0,  y = 100, relative = true }))
 
 -- Grupos e redimensionamento
-hl.bind(mod .. " + R",         hl.dsp.layout("colresize +conf"))
-hl.bind(mod .. " + SHIFT + R", hl.dsp.layout("colresize -conf"))
+hl.bind(mod .. " + R",         hl.dsp.layout("colresize +0.1"))
+hl.bind(mod .. " + SHIFT + R", hl.dsp.layout("colresize -0.1"))
 hl.bind(mod .. " + G",         hl.dsp.group.toggle())
 hl.bind(mod .. " + ALT + H",   hl.dsp.group.prev())
 hl.bind(mod .. " + ALT + L",   hl.dsp.group.next())
@@ -51,8 +52,8 @@ hl.bind(mod .. " + ALT + L",   hl.dsp.group.next())
 -- ═══ Focus ═════════════════════════════════════════════════════════════════
 -- @group Windows
 
-hl.bind(mod .. " + H", hl.dsp.focus({ direction = "left" }))
-hl.bind(mod .. " + L", hl.dsp.focus({ direction = "right" }))
+hl.bind(mod .. " + H", hl.dsp.layout("focus l"))
+hl.bind(mod .. " + L", hl.dsp.layout("focus r"))
 hl.bind(mod .. " + J", hl.dsp.focus({ workspace = "e+1" }))
 hl.bind(mod .. " + K", hl.dsp.focus({ workspace = "e-1" }))
 
@@ -84,15 +85,16 @@ end
 hl.bind(mod .. " + 0",         hl.dsp.focus({ workspace = 10 }))
 hl.bind(mod .. " + SHIFT + 0", hl.dsp.window.move({ workspace = 10 }))
 
-hl.bind(mod .. " + mouse_down",         hl.dsp.focus({ workspace = "e-1" }), { mouse = true })
-hl.bind(mod .. " + mouse_up",           hl.dsp.focus({ workspace = "e+1" }), { mouse = true })
-hl.bind(mod .. " + SHIFT + mouse_down", hl.dsp.window.move({ workspace = "e-1" }), { mouse = true })
-hl.bind(mod .. " + SHIFT + mouse_up",   hl.dsp.window.move({ workspace = "e+1" }), { mouse = true })
+hl.bind(mod .. " + mouse_down",         hl.dsp.focus({ workspace = "e-1" }))
+hl.bind(mod .. " + mouse_up",           hl.dsp.focus({ workspace = "e+1" }))
+hl.bind(mod .. " + SHIFT + mouse_down", hl.dsp.window.move({ workspace = "e-1" }))
+hl.bind(mod .. " + SHIFT + mouse_up",   hl.dsp.window.move({ workspace = "e+1" }))
 
 
 -- ═══ Scratchpads ══════════════════════════════════════════════════════
 
-hl.bind(mod .. " + grave",  function() toggle_scratchpad("kitty-drop", "kitty --class kitty-drop") end)
+hl.bind(mod .. " + T",            function() toggle_scratchpad("kitty-drop", "kitty --class kitty-drop") end)
+hl.bind(mod .. " + SHIFT + Return", function() toggle_scratchpad("kitty-drop", "kitty --class kitty-drop") end)
 hl.bind(mod .. " + F1",     function() toggle_scratchpad("btop-scratch", "kitty --class btop-scratch -e btop") end)
 hl.bind(mod .. " + Slash",  function() toggle_scratchpad("keyhints-scratch", "kitty --class keyhints-scratch -e ~/.config/hypr/scripts/KeyHints_runner.lua") end)
 
@@ -163,8 +165,8 @@ hl.bind("ALT + Print",             hl.dsp.exec_cmd("noctalia msg screenshot-full
 
 -- ═══ Scripts ════════════════════════════════════════════════════════════════
 
-hl.bind("ALT + F4",            hl.dsp.exec_cmd("~/.config/hypr/scripts/AltF4.lua"))
-hl.bind(mod .. " + SHIFT + D", hl.dsp.exec_cmd("~/.config/hypr/scripts/WindowInfo.lua"))
+hl.bind("ALT + F4",            hl.dsp.exec_cmd(scripts_dir .. "/AltF4.lua"))
+hl.bind(mod .. " + SHIFT + D", hl.dsp.exec_cmd(scripts_dir .. "/WindowInfo.lua"))
 
 
 -- ═══ Mouse ════════════════════════════════════════════════════════════
