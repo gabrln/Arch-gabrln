@@ -75,7 +75,11 @@ build/
 
 # ===== Test/debug scripts =====
 _*.sh
+go.sh
+t.sh
 do_install.sh
 noceasy_install.sh
 run_install.sh
 run.sh
+run_tests.sh
+install_and_test.sh
