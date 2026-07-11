@@ -33,4 +33,6 @@ extra = [
   "$HOME/Pictures/Screenshots",
   "$HOME/Pictures/Wallpapers",
   "$HOME/Projects",
+  "$HOME/Documents/Notes",
+  "$HOME/AppImage",
 ]
