@@ -9,7 +9,7 @@ return {
   { "SUPER + Space", "Toggle floating/centralizar", "window.float({ action = \"toggle\" })) hl.dispatch(hl.dsp.window.resize({ x = 1280, y = 720 })) hl.dispatch(hl.dsp.window.center()", "Windows" },
   { "SUPER + ALT + Space", "Toggle pinned", "window.pin({ action = \"toggle\" })", "Windows" },
   { "SUPER + C", "Centralizar janela", "window.center()", "Windows" },
-  { "SUPER + R", "Aumentar coluna", "layout(\"colresize +0.1\")", "Windows" },
+  { "SUPER + R", "Ciclar largura da coluna (0.5 → 0.8 → 1.0)", "layout(\"colresize +conf\")", "Windows" },
   { "SUPER + SHIFT + R", "Recarregar config Hyprland", "exec_cmd(\"hyprctl reload\")", "Windows" },
   { "SUPER + G", "Toggle grupo", "group.toggle()", "Windows" },
   { "SUPER + ALT + H", "Grupo anterior", "group.prev()", "Windows" },
