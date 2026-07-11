@@ -72,6 +72,7 @@ local fzf_cmd = table.concat({
     '--prompt=" 🔍 Buscar: "',
     "--height=80%",
     "--info=inline",
+    "--ansi",
 }, " ")
 
 local handle = io.popen(string.format("cat %s | %s", tmp_file, fzf_cmd))

@@ -19,6 +19,8 @@ hl.bind(mod .. " + E",      hl.dsp.exec_cmd("kitty -e yazi"))
 -- @desc Abrir gerenciador de arquivos yazi
 hl.bind(mod .. " + SHIFT + E", hl.dsp.exec_cmd("thunar"))
 -- @desc Abrir thunar
+hl.bind(mod .. " + A",      hl.dsp.exec_cmd("herdr"))
+-- @desc Abrir herdr
 
 
 -- ═══ Windows ═════════════════════════════════════════════════════════════
