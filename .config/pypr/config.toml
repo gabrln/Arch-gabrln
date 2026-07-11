@@ -14,8 +14,6 @@ animation = "fromTop"
 size = "75% 60%"
 margin = 50
 lazy = true
-unfocus = "hide"
-hysteresis = 0.3
 pinned = true
 
 [scratchpads.btop]
