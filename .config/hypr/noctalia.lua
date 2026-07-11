@@ -11,8 +11,6 @@ local function apply_theme()
             col = {
                 active_border = primary,
                 inactive_border = surface,
-                nogroup_border = surface,
-                nogroup_border_active = primary,
             },
         },
 
