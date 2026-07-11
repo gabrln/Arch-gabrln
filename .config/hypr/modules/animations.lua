@@ -14,9 +14,11 @@ hl.curve("smoothOut", { type = "bezier", points = { { 0.5,  0.0 }, { 0.99, 0.99 
 hl.curve("smoothIn",  { type = "bezier", points = { { 0.5, -0.5 }, { 0.68, 1.5 } } })
 
 -- Window animations: standardised, fast and minimal
-hl.animation({ leaf = "windowsIn",        enabled = true, speed = 2,  bezier = "wind",      style = "slide" })
+-- windowsIn com popin evita flicker ao abrir janela em layout tiled
+-- windowsMove sem slide: suave para resize sem snap
+hl.animation({ leaf = "windowsIn",        enabled = true, speed = 3,  bezier = "wind",      style = "popin" })
 hl.animation({ leaf = "windowsOut",       enabled = true, speed = 2,  bezier = "wind",      style = "slide" })
-hl.animation({ leaf = "windowsMove",      enabled = true, speed = 2,  bezier = "wind",      style = "slide" })
+hl.animation({ leaf = "windowsMove",      enabled = true, speed = 3,  bezier = "smoothOut" })
 hl.animation({ leaf = "border",           enabled = true, speed = 1,  bezier = "liner" })
 hl.animation({ leaf = "fade",             enabled = true, speed = 2,  bezier = "smoothOut" })
 hl.animation({ leaf = "workspaces",       enabled = true, speed = 2,  bezier = "wind",      style = "slide" })
