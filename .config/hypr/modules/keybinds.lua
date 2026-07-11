@@ -7,15 +7,6 @@ local config_home = os.getenv("XDG_CONFIG_HOME") or (os.getenv("HOME") .. "/.con
 local scripts_dir = config_home .. "/hypr/scripts"
 
 
--- ── Helpers ───────────────────────────────────────────────────────────
-
-local function toggle_scratchpad(name, cmd)
-    local windows = hl.get_windows({ class = name })
-    if #windows == 0 then
-        hl.exec_cmd(cmd)
-    end
-    hl.dispatch(hl.dsp.workspace.toggle_special(name))
-end
 
 
 -- ═══ Apps ════════════════════════════════════════════════════════════════
@@ -123,16 +114,31 @@ hl.bind(mod .. " + SHIFT + mouse_down", hl.dsp.window.move({ workspace = "e-1" }
 hl.bind(mod .. " + SHIFT + mouse_up",   hl.dsp.window.move({ workspace = "e+1" }))
 
 
--- ═══ Scratchpads ══════════════════════════════════════════════════════
+-- ═══ Scratchpads (Pyprland) ═══════════════════════════════════════════
 
-hl.bind(mod .. " + T",            function() toggle_scratchpad("kitty-drop", "kitty --class kitty-drop") end)
+hl.bind(mod .. " + T",            hl.dsp.exec_cmd("/home/gabrln/.local/bin/pypr toggle terminal"))
 -- @desc Toggle terminal dropdown
-hl.bind(mod .. " + SHIFT + Return", function() toggle_scratchpad("kitty-drop", "kitty --class kitty-drop") end)
+hl.bind(mod .. " + SHIFT + Return", hl.dsp.exec_cmd("/home/gabrln/.local/bin/pypr toggle terminal"))
 -- @desc Toggle terminal dropdown
-hl.bind(mod .. " + F1",     function() toggle_scratchpad("btop-scratch", "kitty --class btop-scratch -e btop") end)
+hl.bind(mod .. " + F1",     hl.dsp.exec_cmd("/home/gabrln/.local/bin/pypr toggle btop"))
 -- @desc Toggle btop
-hl.bind(mod .. " + Slash",  function() toggle_scratchpad("keyhints-scratch", "kitty --class keyhints-scratch -e ~/.config/hypr/scripts/KeyHints_runner.lua") end)
+hl.bind(mod .. " + Slash",  hl.dsp.exec_cmd("/home/gabrln/.local/bin/pypr toggle keyhints"))
 -- @desc Abrir keyhints
+
+-- ═══ Pyprland Plugins ════════════════════════════════════════════════
+
+hl.bind(mod .. " + SHIFT + Slash", hl.dsp.exec_cmd("/home/gabrln/.local/bin/pypr menu"))
+-- @desc Abrir shortcuts menu
+hl.bind(mod .. " + SHIFT + C",     hl.dsp.exec_cmd("/home/gabrln/.local/bin/pypr stash_toggle calc"))
+-- @desc Toggle stash calculadora
+hl.bind(mod .. " + SHIFT + U",     hl.dsp.exec_cmd("/home/gabrln/.local/bin/pypr stash_toggle music"))
+-- @desc Toggle stash musica
+hl.bind(mod .. " + X",             hl.dsp.exec_cmd("/home/gabrln/.local/bin/pypr expose"))
+-- @desc Expose todas as janelas
+hl.bind(mod .. " + Z",             hl.dsp.exec_cmd("/home/gabrln/.local/bin/pypr zoom ++0.5"))
+-- @desc Zoom in
+hl.bind(mod .. " + SHIFT + Z",     hl.dsp.exec_cmd("/home/gabrln/.local/bin/pypr zoom"))
+-- @desc Reset zoom
 
 
 -- ═══ Noctalia Panels ═══════════════════════════════════════════════════════

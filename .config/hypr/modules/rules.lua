@@ -2,31 +2,6 @@
 -- Hyprland window and layer rules (Lua module)
 -- =========================================================================
 
--- Scratchpads (special workspaces) – size, position, and focus
-hl.window_rule({
-	match = { class = "kitty-drop" },
-	float = true,
-	size = "1600 900",
-	center = true,
-	stay_focused = true,
-	workspace = "special:kitty-drop",
-})
-hl.window_rule({
-	match = { class = "btop-scratch" },
-	float = true,
-	size = "1600 900",
-	center = true,
-	stay_focused = true,
-	workspace = "special:btop-scratch",
-})
-hl.window_rule({
-	match = { class = "keyhints-scratch" },
-	float = true,
-	size = "900 900",
-	center = true,
-	stay_focused = true,
-	workspace = "special:keyhints-scratch",
-})
 
 -- Noctalia settings panel (floating, centred)
 hl.window_rule({
