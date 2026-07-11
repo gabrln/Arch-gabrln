@@ -239,3 +239,5 @@ hl.bind(mod .. " + mouse:272", hl.dsp.window.drag(),   { mouse = true })
 -- @desc Arrastar janela
 hl.bind(mod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
 -- @desc Redimensionar janela
+hl.bind(mod .. " + S",      hl.dsp.exec_cmd("pypr toggle steam"))
+-- @desc Toggle Steam

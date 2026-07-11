@@ -41,10 +41,12 @@ process_tracking = false
 
 [scratchpads.steam]
 command = "steam"
-class = "Steam"
+class = "steam"
 animation = "fromTop"
 size = "70% 80%"
 lazy = true
+match_by = "class"
+process_tracking = false
 
 # ── Gamemode ────────────────────────────────────────────────────────────
 

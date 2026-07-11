@@ -95,4 +95,5 @@ return {
   { "SUPER + SHIFT + D", "Executar WindowInfo.lua", "exec_cmd(scripts_dir .. \"/WindowInfo.lua\")", "Scripts" },
   { "SUPER + mouse:272", "Arrastar janela", "window.drag()", "Mouse" },
   { "SUPER + mouse:273", "Redimensionar janela", "window.resize()", "Mouse" },
+  { "SUPER + S", "Toggle Steam", "exec_cmd(\"pypr toggle steam\")", "Mouse" },
 }
