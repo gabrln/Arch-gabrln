@@ -42,8 +42,8 @@ hl.bind(mod .. " + C",            hl.dsp.window.center())
 -- Grupos e redimensionamento
 hl.bind(mod .. " + R",         hl.dsp.layout("colresize +0.1"))
 -- @desc Aumentar coluna
-hl.bind(mod .. " + SHIFT + R", hl.dsp.layout("colresize -0.1"))
--- @desc Diminuir coluna
+hl.bind(mod .. " + SHIFT + R", hl.dsp.exec_cmd("hyprctl reload"))
+-- @desc Recarregar config Hyprland
 hl.bind(mod .. " + G",         hl.dsp.group.toggle())
 -- @desc Toggle grupo
 hl.bind(mod .. " + ALT + H",   hl.dsp.group.prev())
