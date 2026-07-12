@@ -26,10 +26,6 @@ def is_command(name: str) -> bool:
     return shutil.which(name) is not None
 
 
-def is_command_user(name: str, user: str) -> bool:
-    """True if `name` is in `user`'s PATH."""
-    proc = run(["command", "-v", name])
-    return proc.returncode == 0
 
 
 def has_internet() -> bool:
