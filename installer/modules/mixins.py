@@ -26,8 +26,6 @@ def is_command(name: str) -> bool:
     return shutil.which(name) is not None
 
 
-
-
 def has_internet() -> bool:
     """True if github.com is reachable."""
     return run(["curl", "-fsSI", "--max-time", "5", "https://github.com"],
