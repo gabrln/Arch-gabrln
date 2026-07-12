@@ -9,13 +9,6 @@ hl.config({
 		gaps_out = 10,
 		border_size = 1,
 		resize_on_border = true,
-		col = {
-			active_border = "rgba(cba6f7ff)",
-			inactive_border = "rgba(646789ff)",
-			-- Pyprland scratchpads usam group=deny, exigem nogroup_border explicito
-			nogroup_border = "rgba(646789ff)",
-			nogroup_border_active = "rgba(cba6f7ff)",
-		},
 	},
 	scrolling = {
 		fullscreen_on_one_column = false,
