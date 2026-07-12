@@ -9,9 +9,9 @@ from __future__ import annotations
 import tomllib
 from pathlib import Path
 from typing import Any
+
+from installer.config import MANIFESTS_DIR
 from installer.logger import log
-
-
 class TomlCache:
     """In-memory cache of manifest TOML files."""
 
