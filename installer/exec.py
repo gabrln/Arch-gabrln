@@ -55,6 +55,14 @@ def run(
             stdout="",
             stderr=f"{argv[0]}: command not found",
         )
+    except subprocess.TimeoutExpired as exc:
+        # Command exceeded timeout — return POSIX convention 124
+        return subprocess.CompletedProcess(
+            args=list(argv),
+            returncode=124,
+            stdout=exc.stdout or "",
+            stderr=f"command timed out after {exc.timeout}s",
+        )
 
 
 def run_capture(
