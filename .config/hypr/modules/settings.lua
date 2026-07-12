@@ -7,7 +7,7 @@ hl.config({
 		layout = "scrolling",
 		gaps_in = 5,
 		gaps_out = 10,
-		border_size = 1,
+		border_size = 3,
 		resize_on_border = true,
 	},
 	scrolling = {
@@ -18,7 +18,7 @@ hl.config({
 		follow_focus = true,
 	},
 	decoration = {
-		rounding = 20,
+		rounding = 8,
 		rounding_power = 2,
 
 		shadow = {
