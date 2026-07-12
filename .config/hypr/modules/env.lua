@@ -33,7 +33,9 @@ hl.env("EDITOR", "nvim")
 hl.env("TERMINAL", "kitty")
 
 -- Ensure ~/.local/bin is in PATH (for uv/pip user-installed tools like pyprland)
-hl.env("PATH", os.getenv("HOME") .. "/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/bin:/bin")
+local home = os.getenv("HOME")
+local current_path = os.getenv("PATH") or "/usr/local/sbin:/usr/local/bin:/usr/bin:/bin"
+hl.env("PATH", home .. "/.local/bin:" .. current_path)
 
 -- Ensure /usr/share is in XDG_DATA_DIRS for mime-info
 local current_data_dirs = os.getenv("XDG_DATA_DIRS") or ""
