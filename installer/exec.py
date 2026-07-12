@@ -37,15 +37,24 @@ def run(
     """
     if log_cmd:
         log("debug", " ".join(str(a) for a in argv))
-    return subprocess.run(
-        list(argv),
-        check=False,
-        capture_output=True,
-        text=True,
-        timeout=timeout,
-        cwd=cwd,
-        env=env,
-    )
+    try:
+        return subprocess.run(
+            list(argv),
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            cwd=cwd,
+            env=env,
+        )
+    except FileNotFoundError:
+        # Binary not in PATH — return POSIX convention 127
+        return subprocess.CompletedProcess(
+            args=list(argv),
+            returncode=127,
+            stdout="",
+            stderr=f"{argv[0]}: command not found",
+        )
 
 
 def run_capture(
