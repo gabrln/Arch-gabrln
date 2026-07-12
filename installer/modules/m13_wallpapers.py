@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import tempfile
 import os
 import re
 from pathlib import Path
@@ -116,7 +117,9 @@ class WallpapersModule(Module):
             return
 
         log("info", "Downloading extra wallpapers...")
-        wp_tmp = Path(f"/tmp/wallpapers_extra.{os.getpid()}.zip")
+        fd, wp_tmp_str = tempfile.mkstemp(prefix="noceasy-wallpapers-", suffix=".zip")
+        os.close(fd)
+        wp_tmp = Path(wp_tmp_str)
 
         try:
             html = _fetch_drive_html(file_id)
