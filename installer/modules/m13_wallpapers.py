@@ -18,13 +18,23 @@ from installer.toml_cache import get_cache
 
 def _expand_path(template: str, user_home: Path) -> Path:
     if template.startswith("$HOME/"):
-        return user_home / template[len("$HOME/"):]
-    if template == "$HOME":
-        return user_home
-    if template.startswith("/"):
-        return Path(template)
-    return user_home / template
+        result = user_home / template[len("$HOME/"):]
+    elif template == "$HOME":
+        result = user_home
+    elif template.startswith("/"):
+        result = Path(template)
+    else:
+        result = user_home / template
 
+    # Guard against path traversal outside user_home
+    resolved = result.resolve()
+    expected = user_home.resolve()
+    if expected not in resolved.parents and resolved != expected and not str(resolved).startswith(str(expected) + "/"):
+        raise ValueError(
+            f"Path traversal detected: {template} resolves to {resolved}, "
+            f"which is outside {expected}"
+        )
+    return result
 
 def _curl_download(url: str, out: Path, timeout: int = 120) -> bool:
     return run(["curl", "-fsSL", "--retry", "3", "--retry-delay", "2",

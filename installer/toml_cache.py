@@ -9,8 +9,7 @@ from __future__ import annotations
 import tomllib
 from pathlib import Path
 from typing import Any
-
-from installer.config import MANIFESTS_DIR
+from installer.logger import log
 
 
 class TomlCache:
@@ -22,11 +21,22 @@ class TomlCache:
 
     @staticmethod
     def _resolve(name: str) -> Path:
-        """Resolve a manifest name like 'packages.toml' to a Path."""
+        """Resolve and validate a manifest name against MANIFESTS_DIR.
+
+        Rejects absolute paths and path traversal outside MANIFESTS_DIR.
+        """
         p = Path(name)
         if p.is_absolute():
-            return p
-        return MANIFESTS_DIR / name
+            raise ValueError(
+                f"Absolute path not allowed in manifest reference: {name}"
+            )
+        resolved = (MANIFESTS_DIR / name).resolve()
+        expected = MANIFESTS_DIR.resolve()
+        if expected not in resolved.parents and resolved.parent != expected:
+            raise ValueError(
+                f"Path traversal detected in manifest reference: {name} -> {resolved}"
+            )
+        return resolved
 
     def load(self, name: str) -> dict:
         """Load and cache a manifest by name (e.g. 'packages.toml')."""
@@ -36,7 +46,8 @@ class TomlCache:
         try:
             with path.open("rb") as f:
                 self._cache[name] = tomllib.load(f)
-        except (OSError, tomllib.TOMLDecodeError):
+        except (OSError, tomllib.TOMLDecodeError) as exc:
+            log("warn", f"Failed to load manifest {name}: {exc}. Using empty config.")
             self._cache[name] = {}
         self._loaded.add(name)
         return self._cache[name]

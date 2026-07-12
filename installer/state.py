@@ -78,9 +78,13 @@ class JsonStore:
                 except BlockingIOError:
                     time.sleep(0.1)
             else:
-                log("warn",
+                os.close(self._lock_fd)
+                self._lock_fd = None
+                raise TimeoutError(
                     f"Could not acquire lock for {self.path.name} "
-                    f"after {LOCK_TIMEOUT_SECONDS}s.")
+                    f"after {LOCK_TIMEOUT_SECONDS}s. "
+                    f"Another instance of Noceasy may be running."
+                )
         return self
 
     def __exit__(self, *args) -> None:
