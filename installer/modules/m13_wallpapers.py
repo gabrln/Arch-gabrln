@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import hashlib
-import tempfile
 import os
 import re
+import shutil
+import tempfile
 from pathlib import Path
 
 from installer.config import get_config
@@ -31,7 +32,7 @@ def _curl_download(url: str, out: Path, timeout: int = 120) -> bool:
 
 
 def _aria2_download(url: str, out: Path, timeout: int = 300) -> bool:
-    if run(["command", "-v", "aria2c"]).returncode != 0:
+    if shutil.which("aria2c") is None:
         return _curl_download(url, out, timeout=timeout)
     return run(["aria2c", "--quiet=true", "--console-log-level=warn",
                 "-o", out.name, "-d", str(out.parent), url],
