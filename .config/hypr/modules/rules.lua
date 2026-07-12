@@ -48,11 +48,14 @@ hl.window_rule({
 
 -- Layer rules: blur and no-anim for noctalia panels and OSD
 hl.layer_rule({
-	match = { namespace = "^noctalia-(bar-.+|notification|dock|panel|attached-panel|osd|wallpaper|background)$" },
-	no_anim = true,
-	ignore_alpha = 0.5,
-	blur = true,
-	blur_popups = true,
+  name = "noctalia",
+  match = {
+    namespace = "^noctalia-(bar-.+|notification|dock|panel|attached-panel|osd)$",
+  },
+  no_anim = true,
+  ignore_alpha = 0.5,
+  blur = true,
+  blur_popups = true,
 })
 hl.layer_rule({ match = { namespace = "notifications" }, blur = true })
 hl.layer_rule({ match = { namespace = "logout_dialog" }, blur = true })
