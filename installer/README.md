@@ -144,5 +144,4 @@ sys.exit(1)
 | `no cached credentials and no password provided` | A privileged command needs root but no password was supplied. This typically means `check_cached()` returned False and no password was passed. Re-run the installer. |
 | `pacman: unable to find linux-cachyos` | You're on Arch, not CachyOS — the manifest filters these packages out automatically. Harmless. |
 | `RuntimeError: hl.exec (no such field)` or `hl.exec: not a function` | The hyprland config (or a script under `~/.config/hypr/scripts/`) is calling a function that does not exist in your installed Hyprland version. The version on `main` targets Hyprland 0.55+; older versions need the legacy `bind = ...` syntax. |
-| Stale `installer/state/state.json` blocks a re-run | Delete the file: `rm installer/state/state.json` (or run `python3 -m installer --force`). No sudo needed — the state file is owned by the user. |
-| Logs in `installer/logs/` | Look for the most recent `installer-YYYYMMDD-HHMMSS.log`. Each curl-tool install also writes its own log named `curl-tools-<name>-<pid>.log`. |
+| Logs in `installer/logs/` | Look for the most recent `installer-YYYYMMDD-HHMMSS.log`. |

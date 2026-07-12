@@ -26,7 +26,7 @@ from installer.modules.m17_dev_tools import DevToolsModule
 
 
 def build_default_pipeline() -> list[Module]:
-    """Return the 17 modules in install order."""
+    """Return the 16 modules in install order."""
     return [
         PreflightModule(),
         BackupModule(),
