@@ -34,9 +34,11 @@ _STEP_UPDATE_INTERVAL = 0.1  # seconds
 
 def _pacman_missing(pkgs: list[str]) -> list[str]:
     proc = run(["pacman", "-T", *pkgs], timeout=30)
-    # pacman -T: returncode 0 = all installed, 1 = some missing.
-    # Any other code (124=timeout, 127=not found) is a real failure.
-    if proc.returncode not in (0, 1):
+    # pacman -T (--deptest): 0 = all satisfied, 127 = some packages
+    # missing (official behavior since the code was changed from 1
+    # to 127 to avoid colliding with other pacman errors).
+    # Any other code (124=timeout, etc.) is a real failure.
+    if proc.returncode not in (0, 127):
         fatal(f"'pacman -T' failed unexpectedly (rc={proc.returncode}): "
               f"{proc.stderr.strip() if proc.stderr else 'unknown error'}")
     return proc.stdout.strip().split() if proc.stdout else []
