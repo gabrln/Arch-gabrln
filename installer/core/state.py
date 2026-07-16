@@ -17,9 +17,10 @@ import json
 import os
 import tempfile
 import time
+from datetime import UTC
 from pathlib import Path
 
-from installer.core.config import STATE_DIR, STATE_FILE, LOCK_TIMEOUT_SECONDS
+from installer.core.config import LOCK_TIMEOUT_SECONDS, STATE_DIR, STATE_FILE
 from installer.ui.logger import log
 
 
@@ -43,8 +44,8 @@ def hash_file(path: Path) -> str:
 
 
 def _iso_now() -> str:
-    from datetime import datetime, timezone
-    return datetime.now(timezone.utc).isoformat()
+    from datetime import datetime
+    return datetime.now(UTC).isoformat()
 
 
 # ---------------------------------------------------------------------------
@@ -68,7 +69,7 @@ class JsonStore:
 
     # -- Context manager (lock) ------------------------------------------
 
-    def __enter__(self) -> "JsonStore":
+    def __enter__(self) -> JsonStore:
         self._lock_fd = os.open(str(self._lock_path),
                                 os.O_CREAT | os.O_RDWR, 0o600)
         if fcntl is not None:

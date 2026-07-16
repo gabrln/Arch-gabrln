@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from installer import privesc
-from installer.errors import fatal
-from installer.logger import log
+from installer.core.errors import fatal
+from installer.infra.toml_cache import get_cache
 from installer.modules.base import Module, RunContext
 from installer.modules.mixins import is_command, pkg_installed
-from installer.toml_cache import get_cache
+from installer.platform import privesc
+from installer.ui.logger import log
 
 
 class PacmanBootstrapModule(Module):

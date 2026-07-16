@@ -6,10 +6,10 @@ import os
 import shutil
 from pathlib import Path
 
-from installer.logger import log
 from installer.modules.base import Module, RunContext
 from installer.modules.mixins import chown_user
-from installer import privesc
+from installer.platform import privesc
+from installer.ui.logger import log
 
 
 def _replace_with_symlink(link_path: Path, target: Path,

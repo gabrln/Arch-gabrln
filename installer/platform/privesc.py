@@ -21,14 +21,12 @@ Design notes
 from __future__ import annotations
 
 import enum
-import shlex
 import shutil
 import subprocess
-import sys
-from typing import Any, Mapping, Sequence
+from collections.abc import Mapping
+from typing import Any
 
 from installer.ui.logger import log
-
 
 # ---------------------------------------------------------------------------
 # Tool enum

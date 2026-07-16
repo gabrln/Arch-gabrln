@@ -9,11 +9,11 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from installer.config import get_config
-from installer.exec import run
-from installer.logger import log
+from installer.core.config import get_config
+from installer.infra.exec import run
+from installer.infra.toml_cache import get_cache
 from installer.modules.base import Module, RunContext
-from installer.toml_cache import get_cache
+from installer.ui.logger import log
 
 
 def _expand_path(template: str, user_home: Path) -> Path:

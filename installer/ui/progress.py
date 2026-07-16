@@ -31,7 +31,6 @@ import sys
 import time
 from dataclasses import dataclass, field
 
-
 # ── Color support detection ──────────────────────────────────────────
 
 def _supports_truecolor() -> bool:
@@ -189,8 +188,8 @@ class LivePanelRenderer:
     def render(self):
         """Return the Rich renderable for the current state, centered."""
         from rich.align import Align
-        from rich.panel import Panel
         from rich.console import Group
+        from rich.panel import Panel
         from rich.text import Text
 
         # ── Header: fixed number of rows regardless of state, so the
@@ -382,7 +381,7 @@ class LiveDisplay:
             return
         from rich.console import Console
         from rich.live import Live
-        from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn
+        from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn
 
         # CRITICAL: rich.console.Console resolves sys.stdout
         # DYNAMICALLY on every write (it stores a file only if
@@ -462,6 +461,7 @@ class LiveDisplay:
         """
         import getpass
         import sys
+
         from installer.core.errors import fatal
 
         if not sys.stdin.isatty():

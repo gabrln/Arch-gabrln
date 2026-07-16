@@ -7,11 +7,10 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from installer import privesc
-from installer.errors import fatal
-from installer.logger import log
+from installer.core.errors import fatal
 from installer.modules.base import Module, RunContext
-
+from installer.platform import privesc
+from installer.ui.logger import log
 
 PAM_FILE = Path("/etc/pam.d/greetd")
 

@@ -21,8 +21,8 @@ from pathlib import Path
 
 from installer.core.config import BACKUPS_DIR, DEFAULT_MAX_BACKUP_BYTES, get_config
 from installer.infra.exec import run
+from installer.platform import privesc
 from installer.ui.logger import log
-from installer.system import privesc
 
 
 def init_backups() -> Path:
@@ -43,7 +43,7 @@ def _unique_name(dest: Path, base: str) -> str:
 
 def _is_system_path(p: Path) -> bool:
     """System paths lose ownership; user paths keep it."""
-    s = str(p)
+    s = p.as_posix()
     return s.startswith(("/etc/", "/usr/", "/var/"))
 
 
@@ -123,6 +123,8 @@ def create(label: str, paths: list[Path], sudo_password: str | None = None) -> _
 
 def _apply_retention(label: str, max_keep: int) -> None:
     """Keep only the most recent `max_keep` snapshots with this label."""
+    if max_keep <= 0:
+        return
     snaps = sorted(
         [p for p in BACKUPS_DIR.iterdir()
          if p.is_dir() and p.name.startswith(f"{label}-")],

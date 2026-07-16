@@ -10,13 +10,12 @@ import tempfile
 import time
 from pathlib import Path
 
-from installer.exec import run
-from installer.logger import log
-from installer.errors import fatal
-from installer.config import YAY_CHUNK_SIZE
+from installer.core.config import YAY_CHUNK_SIZE
+from installer.core.errors import fatal
+from installer.infra.exec import run
+from installer.infra.toml_cache import get_cache
 from installer.modules.base import Module, RunContext
-from installer.toml_cache import get_cache
-
+from installer.ui.logger import log
 
 # Build-system progress markers we can extract from makepkg's output
 # to show *some* compile progress instead of a static spinner for

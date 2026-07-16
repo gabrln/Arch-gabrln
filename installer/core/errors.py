@@ -5,7 +5,7 @@ from __future__ import annotations
 import atexit
 import signal
 import sys
-from typing import Callable
+from collections.abc import Callable
 
 from installer.ui.logger import log, set_suppress_stderr
 

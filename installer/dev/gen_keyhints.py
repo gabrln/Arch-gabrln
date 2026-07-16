@@ -501,7 +501,7 @@ def main() -> int:
     if args.check:
         current = out_file.read_text() if out_file.exists() else ""
         if current != rendered:
-            print(f"KeyHints_data.lua is out of date. Re-run gen_keyhints.py.",
+            print("KeyHints_data.lua is out of date. Re-run gen_keyhints.py.",
                   file=sys.stderr)
             return 1
         return 0

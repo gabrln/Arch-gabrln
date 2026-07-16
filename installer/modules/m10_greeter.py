@@ -6,12 +6,12 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from installer import privesc
-from installer import backup
-from installer.config import REPO_DIR
-from installer.exec import run
-from installer.logger import log
+from installer.core.config import REPO_DIR
+from installer.infra import backup
+from installer.infra.exec import run
 from installer.modules.base import Module, RunContext
+from installer.platform import privesc
+from installer.ui.logger import log
 
 
 def _create_greeter_user(ctx: RunContext) -> None:

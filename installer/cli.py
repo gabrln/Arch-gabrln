@@ -19,15 +19,14 @@ from __future__ import annotations
 import argparse
 import os
 import sys
-from pathlib import Path
 
 from installer import __version__
-from installer.core.config import INSTALLER_DIR, REPO_DIR, LOGS_DIR
-from installer.core.errors import install_signal_handlers, fatal
-from installer.ui.logger import LogLevel, setup_logging, log, set_suppress_stderr
-from installer.system.user import detect_real_user
+from installer.core.config import INSTALLER_DIR, LOGS_DIR, REPO_DIR
+from installer.core.errors import fatal, install_signal_handlers
 from installer.core.runner import ModuleRunner, RunnerOptions
 from installer.modules import build_default_pipeline
+from installer.platform.user import detect_real_user
+from installer.ui.logger import LogLevel, log, set_suppress_stderr, setup_logging
 
 
 def _print_help_header() -> None:

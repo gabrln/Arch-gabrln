@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from installer.errors import fatal
-from installer.exec import run
-from installer.logger import log
+from installer.core.errors import fatal
+from installer.infra.exec import run
 from installer.modules.base import Module, RunContext
+from installer.ui.logger import log
 
 
 class HyprlandEnvModule(Module):

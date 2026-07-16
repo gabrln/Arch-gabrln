@@ -7,7 +7,6 @@ To add a new module:
 """
 
 from installer.modules.base import Module, RunContext
-from installer.modules.preflight import PreflightModule
 from installer.modules.m01_backup import BackupModule
 from installer.modules.m02_pacman_bootstrap import PacmanBootstrapModule
 from installer.modules.m03_pacman_official import PacmanOfficialModule
@@ -23,6 +22,7 @@ from installer.modules.m14_icons_cursors_fonts import IconsCursorsFontsModule
 from installer.modules.m15_system_tweaks import SystemTweaksModule
 from installer.modules.m16_services import ServicesModule
 from installer.modules.m17_dev_tools import DevToolsModule
+from installer.modules.preflight import PreflightModule
 
 
 def build_default_pipeline() -> list[Module]:

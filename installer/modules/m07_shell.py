@@ -4,17 +4,17 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from installer import privesc
-from installer.config import (
+from installer.core.config import (
     NETWORK_RETRY_ATTEMPTS,
     NETWORK_RETRY_BASE_SECONDS,
 )
-from installer.errors import fatal
-from installer.exec import run
-from installer.logger import log
+from installer.core.errors import fatal
+from installer.infra.exec import run
+from installer.infra.toml_cache import get_cache
 from installer.modules.base import Module, RunContext
 from installer.modules.mixins import chown_user, retry_with_backoff
-from installer.toml_cache import get_cache
+from installer.platform import privesc
+from installer.ui.logger import log
 
 
 def _getent_shell(user: str) -> str:

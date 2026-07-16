@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from installer.exec import run
-from installer.logger import log
+from installer.infra.exec import run
 from installer.modules.base import Module, RunContext
 from installer.modules.mixins import chown_user, is_command
+from installer.ui.logger import log
 
 
 class IconsCursorsFontsModule(Module):
