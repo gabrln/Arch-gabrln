@@ -363,12 +363,15 @@ class LiveDisplay:
     """
 
     def __init__(self, total: int) -> None:
+        from rich.console import Console
+        from rich.live import Live
+        from rich.progress import Progress, TaskID
         self._total = total
         self._state = ProgressState(total_modules=total)
-        self._live = None
-        self._console = None
-        self._progress = None
-        self._task_id = None
+        self._live: Live | None = None
+        self._console: Console | None = None
+        self._progress: Progress | None = None
+        self._task_id: TaskID | None = None
         self._final: list[str] = []
         self._panel_width = PANEL_WIDTH
         self._panel_height = PANEL_HEIGHT  # fixed box size, never grows
@@ -408,7 +411,7 @@ class LiveDisplay:
         self._console = Console(
             file=real_stdout,
             force_terminal=True,
-            color_system=color_system,
+            color_system=color_system,  # type: ignore[arg-type]
         )
 
         # Fit the panel width to the terminal (shrink on narrow
@@ -467,7 +470,8 @@ class LiveDisplay:
         if not sys.stdin.isatty():
             fatal(
                 "Non-interactive terminal detected (no TTY). Cannot prompt for sudo password. "
-                "Please run 'sudo -v' beforehand or run the installer directly in an interactive terminal."
+                "Please run 'sudo -v' beforehand or run the installer "
+                "directly in an interactive terminal."
             )
 
         self.stop()

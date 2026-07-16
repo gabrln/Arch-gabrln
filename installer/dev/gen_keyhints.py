@@ -102,9 +102,9 @@ def _stringify_dispatch(expr: str) -> str:
     """Convert a dispatch expression to a readable inline form.
 
     Examples:
-        hl.dispatch(hl.dsp.exec_cmd("kitty"))           -> exec_cmd("kitty")
-        hl.dsp.window.close()                            -> window.close()
-        toggle_scratchpad("kitty-drop", "kitty --class") -> toggle_scratchpad("kitty-drop", "kitty --class")
+        hl.dispatch(hl.dsp.exec_cmd("kitty"))  ->  exec_cmd("kitty")
+        hl.dsp.window.close()                  ->  window.close()
+        toggle_scratchpad("kitty-drop", ...)    ->  toggle_scratchpad(
     """
     s = expr.strip()
     # Strip single-line comments (-- ...) that may appear inside multi-line function bodies
@@ -276,7 +276,7 @@ def _parse_section_headers(text: str) -> list[tuple[int, str, str | None]]:
                 if gm:
                     display_group = gm.group(1).strip()
             # Position is the character offset (for matching against bind positions)
-            pos = sum(len(l) + 1 for l in lines[:idx])
+            pos = sum(len(line) + 1 for line in lines[:idx])
             headers.append((pos, raw_cat, display_group))
     return headers
 
@@ -396,7 +396,6 @@ def parse_keybinds(path: Path) -> list[tuple[str, str, str, str]]:
         # Handle loop variable entries: expand to 1-9
         if "{i}" in key:
             # Find which line this bind is on
-            bind_line_offset = text[:m.start()].count("\n")
             group = _find_header_for_position(headers, m.start())
             for num in range(1, 10):
                 resolved_key = key.replace("{i}", str(num))

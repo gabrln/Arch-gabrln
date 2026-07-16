@@ -94,7 +94,7 @@ class TestGenerateDescription(unittest.TestCase):
         self.assertEqual(gkh._generate_description('focus({ direction = "left" })'), "Focus left")
 
     def test_focus_workspace(self):
-        self.assertEqual(gkh._generate_description('focus({ workspace = "e+1" })'), "Focus workspace")
+        self.assertEqual(gkh._generate_description('focus({ workspace = "e+1" })'), "Focus workspace")  # noqa: E501
 
     def test_group_toggle(self):
         self.assertEqual(gkh._generate_description("group.toggle()"), "Toggle group")
@@ -107,7 +107,7 @@ class TestGenerateDescription(unittest.TestCase):
 
     def test_toggle_scratchpad(self):
         self.assertEqual(
-            gkh._generate_description('toggle_scratchpad("kitty-drop", "kitty --class kitty-drop")'),
+            gkh._generate_description('toggle_scratchpad("kitty-drop", "kitty --class kitty-drop")'),  # noqa: E501
             "Toggle kitty-drop"
         )
 
@@ -158,11 +158,11 @@ class TestSectionHeaders(unittest.TestCase):
 class TestFullPipeline(unittest.TestCase):
     def test_full_pipeline(self):
         """Parse the real keybinds.lua and verify output."""
-        keybinds_path = Path(__file__).resolve().parents[2] / ".config" / "hypr" / "modules" / "keybinds.lua"
-        if not keybinds_path.is_file():
+        kp = Path(__file__).resolve().parents[2] / ".config" / "hypr" / "modules" / "keybinds.lua"
+        if not kp.is_file():
             self.skipTest("keybinds.lua not found")
 
-        binds = gkh.parse_keybinds(keybinds_path)
+        binds = gkh.parse_keybinds(kp)
         self.assertGreater(len(binds), 0)
 
         rendered = gkh.render(binds)
@@ -278,7 +278,8 @@ class TestNoctaliaDescriptions(unittest.TestCase):
 
     def test_panel_toggle_notifications(self):
         self.assertEqual(
-            gkh._generate_description('exec_cmd("noctalia msg panel-toggle control-center notifications")'),
+            gkh._generate_description(  # noqa: E501
+                'exec_cmd("noctalia msg panel-toggle control-center notifications")'),
             "Abrir notificações",
         )
 
@@ -408,11 +409,11 @@ class TestCategoryConsistency(unittest.TestCase):
 
     def test_all_entries_have_description(self):
         """Every bind must produce a non-empty description."""
-        keybinds_path = Path(__file__).resolve().parents[2] / ".config" / "hypr" / "modules" / "keybinds.lua"
-        if not keybinds_path.is_file():
+        kp = Path(__file__).resolve().parents[2] / ".config" / "hypr" / "modules" / "keybinds.lua"
+        if not kp.is_file():
             self.skipTest("keybinds.lua not found")
 
-        binds = gkh.parse_keybinds(keybinds_path)
+        binds = gkh.parse_keybinds(kp)
         self.assertGreater(len(binds), 0)
         for key, desc, action, group in binds:
             self.assertTrue(desc, f"Empty description for {key}")
@@ -420,11 +421,11 @@ class TestCategoryConsistency(unittest.TestCase):
 
     def test_noctalia_entries_have_clean_descriptions(self):
         """Noctalia entries should not have raw 'Launch noctalia msg ...' descriptions."""
-        keybinds_path = Path(__file__).resolve().parents[2] / ".config" / "hypr" / "modules" / "keybinds.lua"
-        if not keybinds_path.is_file():
+        kp = Path(__file__).resolve().parents[2] / ".config" / "hypr" / "modules" / "keybinds.lua"
+        if not kp.is_file():
             self.skipTest("keybinds.lua not found")
 
-        binds = gkh.parse_keybinds(keybinds_path)
+        binds = gkh.parse_keybinds(kp)
         for key, desc, action, group in binds:
             if "noctalia msg" in action:
                 self.assertNotIn(
@@ -434,11 +435,11 @@ class TestCategoryConsistency(unittest.TestCase):
 
     def test_all_entries_have_group(self):
         """Every bind must belong to a group (no None groups)."""
-        keybinds_path = Path(__file__).resolve().parents[2] / ".config" / "hypr" / "modules" / "keybinds.lua"
-        if not keybinds_path.is_file():
+        kp = Path(__file__).resolve().parents[2] / ".config" / "hypr" / "modules" / "keybinds.lua"
+        if not kp.is_file():
             self.skipTest("keybinds.lua not found")
 
-        binds = gkh.parse_keybinds(keybinds_path)
+        binds = gkh.parse_keybinds(kp)
         for key, desc, action, group in binds:
             self.assertIsNotNone(group, f"No group for {key}: {desc!r}")
             self.assertTrue(group, f"Empty group for {key}: {desc!r}")

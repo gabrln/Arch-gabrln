@@ -11,7 +11,7 @@ from __future__ import annotations
 import functools
 import tomllib
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 
 def _find_repo_root() -> Path:
@@ -67,7 +67,7 @@ def get_config(path: str, default: Any = None) -> Any:
 def _resolve_path(key: str, default: str) -> Path:
     """Resolve a ``[paths]`` key from config.toml relative to REPO_DIR."""
     cfg = load_config()
-    rel = cfg.get("paths", {}).get(key, default)
+    rel = cast(str, cfg.get("paths", {}).get(key, default))
     return (REPO_DIR / rel).resolve()
 
 

@@ -29,7 +29,8 @@ def _expand_path(template: str, user_home: Path) -> Path:
     # Guard against path traversal outside user_home
     resolved = result.resolve()
     expected = user_home.resolve()
-    if expected not in resolved.parents and resolved != expected and not str(resolved).startswith(str(expected) + "/"):
+    if expected not in resolved.parents and resolved != expected \
+            and not str(resolved).startswith(str(expected) + "/"):
         raise ValueError(
             f"Path traversal detected: {template} resolves to {resolved}, "
             f"which is outside {expected}"

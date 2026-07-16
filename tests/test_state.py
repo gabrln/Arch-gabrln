@@ -2,12 +2,8 @@
 
 from __future__ import annotations
 
-import json
-import os
-import tempfile
 from pathlib import Path
 
-import pytest
 from installer.core.state import JsonStore, State, hash_file
 
 
@@ -48,8 +44,6 @@ class TestJsonStore:
         store = JsonStore(p)
         with store:
             store.write({"a": 1})
-        lock = tmp_path / ".locked.json.lock"
-        # Lock file may or may not exist after exit
         assert store.read() == {"a": 1}
 
     def test_get_and_set(self, tmp_path: Path) -> None:

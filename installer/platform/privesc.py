@@ -145,8 +145,7 @@ def validate_password(pw: str, tool: Tool) -> bool:
             argv,
             input=pw + "\n",
             text=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
             timeout=10,
         )
     except FileNotFoundError:

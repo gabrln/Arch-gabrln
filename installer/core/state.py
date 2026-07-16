@@ -7,10 +7,13 @@ Two layers:
 
 from __future__ import annotations
 
-try:
+import sys
+from typing import Any
+
+if sys.platform != "win32":
     import fcntl
-except ImportError:
-    fcntl = None  # type: ignore
+else:
+    fcntl: Any = None
 
 import hashlib
 import json
@@ -109,7 +112,7 @@ class JsonStore:
         file is created.
         """
         try:
-            return json.loads(self.path.read_text() or "{}")
+            return dict(json.loads(self.path.read_text() or "{}"))
         except (OSError, json.JSONDecodeError) as exc:
             log("warn", f"{self.path.name} corrupted: {exc}. Backing up.")
             backup = self.path.parent / \
@@ -174,18 +177,18 @@ class State:
     # -- Module status ---------------------------------------------------
 
     def is_up_to_date(self, module: str, manifest: Path | None) -> bool:
-        data = self._store.read()
+        data: dict[str, Any] = self._store.read()
         if data.get(module, {}).get("status") != "done":
             return False
         if manifest is None or not manifest.exists():
             return True
         current = hash_file(manifest)
         stored = data.get(module, {}).get("manifest_hash", "")
-        return current == stored
+        return bool(current == stored)
 
     def mark_done(self, module: str, manifest: Path | None) -> None:
         with self._store:
-            data = self._store.read()
+            data: dict[str, Any] = self._store.read()
             entry = data.setdefault(module, {})
             entry["status"] = "done"
             entry["completed_at"] = _iso_now()

@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import subprocess
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
+
 from installer.platform import privesc
 
 

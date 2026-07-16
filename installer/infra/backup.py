@@ -150,7 +150,9 @@ def _apply_retention(label: str, max_keep: int) -> None:
         while total > max_bytes and len(snaps) > 1:
             oldest = snaps.pop()
             size = _dir_size(oldest)
-            log("info", f"  -> removing old backup (size limit): {oldest.name} ({size / 1024 / 1024:.1f} MiB)")
+            log("info",
+                f"  -> removing old backup (size limit): {oldest.name} "
+                f"({size / 1024 / 1024:.1f} MiB)")
             shutil.rmtree(oldest, ignore_errors=True)
             total -= size
 

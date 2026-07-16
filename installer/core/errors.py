@@ -19,7 +19,7 @@ class InstallerError(Exception):
     pass
 
 
-class ModuleFailure(InstallerError):
+class ModuleFailure(InstallerError):  # noqa: N818
     """Raised by a Module.run() to signal failure with context."""
     def __init__(self, module_name: str, reason: str):
         super().__init__(f"Module {module_name} failed: {reason}")
@@ -32,7 +32,7 @@ class NetworkError(InstallerError):
     pass
 
 
-class PermissionError_(InstallerError):
+class PermissionError_(InstallerError):  # noqa: N801, N818
     """Raised when a privilege-related operation fails.
 
     Named with underscore to avoid shadowing builtin PermissionError.

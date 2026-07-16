@@ -3,15 +3,14 @@
 from __future__ import annotations
 
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from installer.infra.backup import (
-    _unique_name,
-    _strip_collision_suffix,
-    _is_system_path,
     _apply_retention,
     _dir_size,
-    init_backups,
+    _is_system_path,
+    _strip_collision_suffix,
+    _unique_name,
     create,
 )
 

@@ -24,7 +24,7 @@ def detect_real_user() -> tuple[str, str]:
     """
     try:
         import pwd
-        pw = pwd.getpwuid(os.getuid())
+        pw = pwd.getpwuid(os.getuid())  # type: ignore[attr-defined]
         real_user = pw.pw_name
         user_home = pw.pw_dir
     except (ImportError, AttributeError):

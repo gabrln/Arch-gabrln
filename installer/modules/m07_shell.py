@@ -19,8 +19,8 @@ from installer.ui.logger import log
 
 def _getent_shell(user: str) -> str:
     out = run(["getent", "passwd", user])
-    if out.returncode == 0:
-        parts = out.stdout.strip().split(":")
+    if out.returncode == 0 and out.stdout:
+        parts = str(out.stdout).strip().split(":")
         if len(parts) >= 7:
             return parts[6]
     return ""
