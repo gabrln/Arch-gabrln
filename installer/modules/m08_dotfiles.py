@@ -160,6 +160,10 @@ class DotfilesModule(Module):
         for src_rel, dst in dotfiles.get("files", {}).items():
             _copy_avulso(src_rel, dst, ctx)
 
+        # On target system, keep .zshenv strictly at ~/.zshenv and remove any copy from ~/.config/zsh/
+        if (zsh_dst / ".zshenv").exists():
+            (zsh_dst / ".zshenv").unlink(missing_ok=True)
+
         # XDG directories
         log("info", "Creating additional XDG directories...")
         run(["xdg-user-dirs-update"])

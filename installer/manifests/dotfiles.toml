@@ -1,7 +1,7 @@
-# Mapeamento de dotfiles do repositório para o HOME do usuário
+# Mapping of repository dotfiles to the user's HOME directory
 
 [directories]
-# Diretórios copiados de .config/<nome> para ~/.config/<nome>
+# Directories copied from .config/<name> to ~/.config/<name>
 configs = [
   "kitty",
   "herdr",
@@ -19,16 +19,16 @@ configs = [
 ]
 
 [special]
-# zsh: copiado inteiro, mas plugins/ existentes devem ser preservados
+# zsh: copied completely, but existing plugins/ directory must be preserved
 zsh = { source = "zsh", preserve = ["plugins"] }
 
 [files]
-# Arquivos avulsos copiados para destinos específicos
-".zshenv" = "$HOME/.zshenv"
+# Standalone files copied to specific destination paths (.zshenv is stored inside repo .config/zsh/ and placed at $HOME/.zshenv)
+".config/zsh/.zshenv" = "$HOME/.zshenv"
 ".config/mimeapps.list" = "$HOME/.config/mimeapps.list"
 
 [xdg_dirs]
-# Diretórios criados via xdg-user-dirs-update e mkdir
+# Directories created via xdg-user-dirs-update and mkdir
 extra = [
   "$HOME/Pictures/Screenshots",
   "$HOME/Pictures/Wallpapers",

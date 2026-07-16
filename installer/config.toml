@@ -5,13 +5,13 @@
 repo_dir = ""
 
 # Logs directory
-logs_dir = "installer/logs"
+logs_dir = ".logs"
 
 # Persistent state directory
-state_dir = "installer/state"
+state_dir = ".state"
 
 # Backups directory
-backups_dir = "installer/state/backups"
+backups_dir = ".state/backups"
 
 # Declarative manifests directory
 manifests_dir = "installer/manifests"

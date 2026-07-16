@@ -5,10 +5,10 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from installer.logger import log
+from installer.ui.logger import log
 from installer.modules.base import Module, RunContext
 from installer.modules.mixins import has_free_space, has_internet
-from installer.toml_cache import get_cache
+from installer.infra.toml_cache import get_cache
 
 
 class PreflightModule(Module):

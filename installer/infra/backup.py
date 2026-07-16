@@ -19,10 +19,10 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
-from installer.config import BACKUPS_DIR, DEFAULT_MAX_BACKUP_BYTES, get_config
-from installer.exec import run
-from installer.logger import log
-from installer import privesc
+from installer.core.config import BACKUPS_DIR, DEFAULT_MAX_BACKUP_BYTES, get_config
+from installer.infra.exec import run
+from installer.ui.logger import log
+from installer.system import privesc
 
 
 def init_backups() -> Path:

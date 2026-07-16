@@ -27,7 +27,7 @@ import subprocess
 import sys
 from typing import Any, Mapping, Sequence
 
-from installer.logger import log
+from installer.ui.logger import log
 
 
 # ---------------------------------------------------------------------------

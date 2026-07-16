@@ -9,16 +9,16 @@ import time
 from pathlib import Path
 from typing import Sequence
 
-from installer.backup import create as backup_create
-from installer.config import (
+from installer.infra.backup import create as backup_create
+from installer.core.config import (
     DEFAULT_MIN_FREE_BYTES,
     NETWORK_RETRY_ATTEMPTS,
     NETWORK_RETRY_BASE_SECONDS,
 )
-from installer.exec import run
-from installer.logger import log
-from installer import privesc
-from installer.toml_cache import get_cache
+from installer.infra.exec import run
+from installer.ui.logger import log
+from installer.system import privesc
+from installer.infra.toml_cache import get_cache
 
 
 def is_command(name: str) -> bool:

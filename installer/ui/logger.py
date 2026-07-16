@@ -19,7 +19,7 @@ from enum import IntEnum
 from pathlib import Path
 
 from rich.console import Console
-from installer.progress import is_tty as _is_tty
+from installer.ui.progress import is_tty as _is_tty
 
 
 class LogLevel(IntEnum):

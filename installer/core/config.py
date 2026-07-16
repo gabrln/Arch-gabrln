@@ -19,23 +19,22 @@ def _find_repo_root() -> Path:
     """Locate the repo root by walking up from this file.
 
     Looks for a `pyproject.toml` at the parent of `installer/`. If
-    not found (running from a system install), falls back to the
-    parent of `installer/`.
+    not found (running from a system install), falls back to two levels up.
     """
     here = Path(__file__).resolve().parent
-    for candidate in (here.parent, here):
+    for candidate in (here.parent.parent, here.parent, here):
         if (candidate / "pyproject.toml").is_file():
             return candidate
-    return here.parent
+    return here.parent.parent
 
 
 REPO_DIR: Path = _find_repo_root()
 INSTALLER_DIR: Path = REPO_DIR / "installer"
 MANIFESTS_DIR: Path = INSTALLER_DIR / "manifests"
 MODULES_DIR: Path = INSTALLER_DIR / "modules"
-STATE_DIR: Path = INSTALLER_DIR / "state"
+STATE_DIR: Path = REPO_DIR / ".state"
 BACKUPS_DIR: Path = STATE_DIR / "backups"
-LOGS_DIR: Path = INSTALLER_DIR / "logs"
+LOGS_DIR: Path = REPO_DIR / ".logs"
 CONFIG_FILE: Path = INSTALLER_DIR / "config.toml"
 STATE_FILE: Path = STATE_DIR / "state.json"
 

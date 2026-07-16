@@ -1,4 +1,4 @@
-# ===== temporários / editores =====
+# ===== Temporary / Editor files =====
 *~
 *.swp
 *.swo
@@ -6,21 +6,23 @@
 *.save
 *.tmp
 
-# ===== AI / IDE configs =====
+# ===== AI / IDE configurations =====
 .agents/
 
-# ===== caches =====
+# ===== Caches =====
 .cache/
 **/.cache/
 **/Cache/
 **/cache/
 
-# ===== logs =====
+# ===== Logs & Execution State =====
 *.log
+.logs/
+.state/
 installer/logs/
 installer/state/
 
-# ===== segredos (segurança) =====
+# ===== Secrets & Security =====
 .env
 *.key
 *.pem
@@ -28,7 +30,7 @@ id_rsa
 id_ed25519
 known_hosts
 
-# ===== configurações locais ignoradas =====
+# ===== Ignored local configurations =====
 .config/rofi/
 
 # ===== Kitty generated =====
@@ -58,24 +60,25 @@ known_hosts
 .config/zsh/.zcompdump*
 .config/zsh/*.zwc
 
-# ===== Python cache =====
+# ===== Python cache & tooling =====
 __pycache__/
 *.pyc
 *.pyo
+.python-version
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
 
-# ===== Python venvs =====
+# ===== Python virtual environments =====
 .venv/
 venv/
-
-# ===== Pytest =====
-.pytest_cache/
 
 # ===== Build artifacts =====
 *.egg-info/
 dist/
 build/
 
-# ===== Test/debug scripts =====
+# ===== Test/Debug scripts =====
 _*.sh
 go.sh
 t.sh

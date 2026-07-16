@@ -7,7 +7,7 @@ import signal
 import sys
 from typing import Callable
 
-from installer.logger import log, set_suppress_stderr
+from installer.ui.logger import log, set_suppress_stderr
 
 
 class InstallerError(Exception):
