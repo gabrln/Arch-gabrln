@@ -6,6 +6,9 @@
 *.save
 *.tmp
 
+# ===== AI / IDE configs =====
+.agents/
+
 # ===== caches =====
 .cache/
 **/.cache/
