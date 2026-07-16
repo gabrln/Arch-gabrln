@@ -15,7 +15,7 @@
 
 set -euo pipefail
 
-REPO_URL="https://github.com/gabrln/Noceasy.git"
+REPO_URL="${NOCEASY_REPO_URL:-https://github.com/gabrln/Noceasy.git}"
 REPO_BRANCH="${NOCEASY_BRANCH:-main}"
 CLONE_SUBDIR="Projects/Noceasy"
 
