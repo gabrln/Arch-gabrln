@@ -39,7 +39,7 @@ def has_free_space(paths: Sequence[Path],
         if not path.exists():
             continue
         try:
-            st = os.statvfs(path)  # type: ignore[attr-defined]
+            st = os.statvfs(path)  # type: ignore
             available = st.f_bavail * st.f_frsize
             if available < min_bytes:
                 log("warn",

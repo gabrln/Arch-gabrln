@@ -42,7 +42,7 @@ jobs:
 
       - name: Install system deps
         run: |
-          pacman -Syu --noconfirm --needed \
+          pacman -Sy --noconfirm \
             python python-pip git
           pip install uv
 

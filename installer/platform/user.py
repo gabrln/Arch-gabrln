@@ -23,8 +23,8 @@ def detect_real_user() -> tuple[str, str]:
     on non-POSIX systems (e.g., Windows during local testing/inspection).
     """
     try:
-        import pwd
-        pw = pwd.getpwuid(os.getuid())  # type: ignore[attr-defined]
+        import pwd  # type: ignore
+        pw = pwd.getpwuid(os.getuid())  # type: ignore
         real_user = pw.pw_name
         user_home = pw.pw_dir
     except (ImportError, AttributeError):
