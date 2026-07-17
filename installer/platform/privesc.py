@@ -21,14 +21,12 @@ Design notes
 from __future__ import annotations
 
 import enum
-import shlex
 import shutil
 import subprocess
-import sys
-from typing import Any, Mapping, Sequence
+from collections.abc import Mapping
+from typing import Any
 
-from installer.logger import log
-
+from installer.ui.logger import log
 
 # ---------------------------------------------------------------------------
 # Tool enum
@@ -147,8 +145,7 @@ def validate_password(pw: str, tool: Tool) -> bool:
             argv,
             input=pw + "\n",
             text=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
             timeout=10,
         )
     except FileNotFoundError:

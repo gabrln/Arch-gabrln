@@ -8,12 +8,12 @@ import tempfile
 import time
 from pathlib import Path
 
-from installer.config import REPO_DIR
-from installer.errors import fatal
-from installer.exec import run
-from installer.logger import log
+from installer.core.config import REPO_DIR
+from installer.core.errors import fatal
+from installer.infra.exec import run
+from installer.infra.toml_cache import get_cache
 from installer.modules.base import Module, RunContext
-from installer.toml_cache import get_cache
+from installer.ui.logger import log
 
 
 def _atomic_copytree(src: Path, dst: Path) -> bool:
@@ -159,6 +159,10 @@ class DotfilesModule(Module):
         dotfiles = get_cache().load("dotfiles.toml")
         for src_rel, dst in dotfiles.get("files", {}).items():
             _copy_avulso(src_rel, dst, ctx)
+
+        # Keep .zshenv at ~/.zshenv; remove any copy from ~/.config/zsh/
+        if (zsh_dst / ".zshenv").exists():
+            (zsh_dst / ".zshenv").unlink(missing_ok=True)
 
         # XDG directories
         log("info", "Creating additional XDG directories...")

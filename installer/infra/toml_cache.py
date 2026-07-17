@@ -10,8 +10,8 @@ import tomllib
 from pathlib import Path
 from typing import Any
 
-from installer.config import MANIFESTS_DIR
-from installer.logger import log
+from installer.core.config import MANIFESTS_DIR
+from installer.ui.logger import log
 
 
 class TomlCache:

@@ -4,21 +4,20 @@ from __future__ import annotations
 
 import os
 import shutil
-import subprocess
 import time
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Sequence
 
-from installer.backup import create as backup_create
-from installer.config import (
+from installer.core.config import (
     DEFAULT_MIN_FREE_BYTES,
     NETWORK_RETRY_ATTEMPTS,
     NETWORK_RETRY_BASE_SECONDS,
 )
-from installer.exec import run
-from installer.logger import log
-from installer import privesc
-from installer.toml_cache import get_cache
+from installer.infra.backup import create as backup_create
+from installer.infra.exec import run
+from installer.infra.toml_cache import get_cache
+from installer.platform import privesc
+from installer.ui.logger import log
 
 
 def is_command(name: str) -> bool:
@@ -40,7 +39,7 @@ def has_free_space(paths: Sequence[Path],
         if not path.exists():
             continue
         try:
-            st = os.statvfs(path)
+            st = os.statvfs(path)  # type: ignore
             available = st.f_bavail * st.f_frsize
             if available < min_bytes:
                 log("warn",
@@ -101,7 +100,7 @@ def _collect_backup_paths(user_home: Path) -> list[Path]:
     installer overwrites.
     """
     cache = get_cache()
-    
+
     paths: list[Path] = []
 
     # Config directories from dotfiles.toml

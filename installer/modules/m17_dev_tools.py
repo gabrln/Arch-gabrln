@@ -17,11 +17,10 @@ import os
 import shutil
 from pathlib import Path
 
-from installer.config import REPO_DIR
-from installer.logger import log
+from installer.core.config import REPO_DIR
 from installer.modules.base import Module, RunContext
 from installer.modules.mixins import chown_user
-
+from installer.ui.logger import log
 
 DEV_SRC: Path = REPO_DIR / "installer" / "dev"
 DEV_DST: Path = Path.home() / ".local" / "bin"

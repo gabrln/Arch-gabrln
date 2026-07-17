@@ -1,28 +1,16 @@
 # Noceasy framework configuration
 
 [paths]
-# Repo base directory (auto-detected by entrypoint)
-repo_dir = ""
+# Logs directory (relative to repo root)
+logs_dir = ".logs"
 
-# Logs directory
-logs_dir = "installer/logs"
+# Persistent state directory (relative to repo root)
+state_dir = ".state"
 
-# Persistent state directory
-state_dir = "installer/state"
-
-# Backups directory
-backups_dir = "installer/state/backups"
-
-# Declarative manifests directory
-manifests_dir = "installer/manifests"
-
-# Modules directory
-modules_dir = "installer/modules"
+# Backups directory (relative to repo root)
+backups_dir = ".state/backups"
 
 [install]
-# Default directory for the repo when run via curl
-clone_target = "Projects/Noceasy"
-
 # Minimum bootstrap packages (zsh, git, base-devel).
 # zsh is needed for chsh in module 07-shell.
 # git and base-devel are needed for AUR builds via yay.
@@ -32,17 +20,11 @@ bootstrap_packages = ["git", "base-devel", "zsh"]
 min_free_space = 5368709120
 
 [flags]
-# Skip already-done modules per state.json
-skip_up_to_date = true
-
 # Auto-backup before modifying dotfiles
 auto_backup = true
 
 # Max retained auto-backups (0 = unlimited)
 max_backups = 3
-
-# Clean TOML cache and temp files on every run
-cleanup_temp_on_exit = true
 
 [features]
 # Download and extract wallpaper pack during install

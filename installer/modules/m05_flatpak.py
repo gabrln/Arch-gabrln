@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import time
 
-from installer.config import NETWORK_RETRY_ATTEMPTS, NETWORK_RETRY_BASE_SECONDS
-from installer.exec import run
-from installer.logger import log
+from installer.core.config import NETWORK_RETRY_ATTEMPTS, NETWORK_RETRY_BASE_SECONDS
+from installer.infra.exec import run
+from installer.infra.toml_cache import get_cache
 from installer.modules.base import Module, RunContext
 from installer.modules.mixins import is_command
-from installer.toml_cache import get_cache
+from installer.ui.logger import log
 
 
 def _install_with_retry(remote: str, pkg: str) -> bool:

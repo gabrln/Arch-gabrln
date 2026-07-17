@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from installer.config import get_config
-from installer.logger import log
+from installer.core.config import get_config
 from installer.modules.base import Module, RunContext
 from installer.modules.mixins import backup_user_files
+from installer.ui.logger import log
 
 
 class BackupModule(Module):

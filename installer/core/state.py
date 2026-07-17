@@ -7,16 +7,24 @@ Two layers:
 
 from __future__ import annotations
 
-import fcntl
+import sys
+from typing import Any
+
+if sys.platform != "win32":
+    import fcntl
+else:
+    fcntl: Any = None
+
 import hashlib
 import json
 import os
 import tempfile
 import time
+from datetime import UTC
 from pathlib import Path
 
-from installer.config import STATE_DIR, STATE_FILE, LOCK_TIMEOUT_SECONDS
-from installer.logger import log
+from installer.core.config import LOCK_TIMEOUT_SECONDS, STATE_DIR, STATE_FILE
+from installer.ui.logger import log
 
 
 def hash_file(path: Path) -> str:
@@ -39,8 +47,8 @@ def hash_file(path: Path) -> str:
 
 
 def _iso_now() -> str:
-    from datetime import datetime, timezone
-    return datetime.now(timezone.utc).isoformat()
+    from datetime import datetime
+    return datetime.now(UTC).isoformat()
 
 
 # ---------------------------------------------------------------------------
@@ -64,32 +72,34 @@ class JsonStore:
 
     # -- Context manager (lock) ------------------------------------------
 
-    def __enter__(self) -> "JsonStore":
+    def __enter__(self) -> JsonStore:
         self._lock_fd = os.open(str(self._lock_path),
                                 os.O_CREAT | os.O_RDWR, 0o600)
-        try:
-            fcntl.flock(self._lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except BlockingIOError:
-            deadline = time.monotonic() + LOCK_TIMEOUT_SECONDS
-            while time.monotonic() < deadline:
-                try:
-                    fcntl.flock(self._lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-                    break
-                except BlockingIOError:
-                    time.sleep(0.1)
-            else:
-                os.close(self._lock_fd)
-                self._lock_fd = None
-                raise TimeoutError(
-                    f"Could not acquire lock for {self.path.name} "
-                    f"after {LOCK_TIMEOUT_SECONDS}s. "
-                    f"Another instance of Noceasy may be running."
-                )
+        if fcntl is not None:
+            try:
+                fcntl.flock(self._lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError:
+                deadline = time.monotonic() + LOCK_TIMEOUT_SECONDS
+                while time.monotonic() < deadline:
+                    try:
+                        fcntl.flock(self._lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                        break
+                    except BlockingIOError:
+                        time.sleep(0.1)
+                else:
+                    os.close(self._lock_fd)
+                    self._lock_fd = None
+                    raise TimeoutError(
+                        f"Could not acquire lock for {self.path.name} "
+                        f"after {LOCK_TIMEOUT_SECONDS}s. "
+                        f"Another instance of Noceasy may be running."
+                    )
         return self
 
     def __exit__(self, *args) -> None:
         if self._lock_fd is not None:
-            fcntl.flock(self._lock_fd, fcntl.LOCK_UN)
+            if fcntl is not None:
+                fcntl.flock(self._lock_fd, fcntl.LOCK_UN)
             os.close(self._lock_fd)
             self._lock_fd = None
 
@@ -102,7 +112,7 @@ class JsonStore:
         file is created.
         """
         try:
-            return json.loads(self.path.read_text() or "{}")
+            return dict(json.loads(self.path.read_text() or "{}"))
         except (OSError, json.JSONDecodeError) as exc:
             log("warn", f"{self.path.name} corrupted: {exc}. Backing up.")
             backup = self.path.parent / \
@@ -167,18 +177,18 @@ class State:
     # -- Module status ---------------------------------------------------
 
     def is_up_to_date(self, module: str, manifest: Path | None) -> bool:
-        data = self._store.read()
+        data: dict[str, Any] = self._store.read()
         if data.get(module, {}).get("status") != "done":
             return False
         if manifest is None or not manifest.exists():
             return True
         current = hash_file(manifest)
         stored = data.get(module, {}).get("manifest_hash", "")
-        return current == stored
+        return bool(current == stored)
 
     def mark_done(self, module: str, manifest: Path | None) -> None:
         with self._store:
-            data = self._store.read()
+            data: dict[str, Any] = self._store.read()
             entry = data.setdefault(module, {})
             entry["status"] = "done"
             entry["completed_at"] = _iso_now()

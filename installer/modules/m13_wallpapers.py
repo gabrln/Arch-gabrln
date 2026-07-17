@@ -9,11 +9,11 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from installer.config import get_config
-from installer.exec import run
-from installer.logger import log
+from installer.core.config import get_config
+from installer.infra.exec import run
+from installer.infra.toml_cache import get_cache
 from installer.modules.base import Module, RunContext
-from installer.toml_cache import get_cache
+from installer.ui.logger import log
 
 
 def _expand_path(template: str, user_home: Path) -> Path:
@@ -29,12 +29,14 @@ def _expand_path(template: str, user_home: Path) -> Path:
     # Guard against path traversal outside user_home
     resolved = result.resolve()
     expected = user_home.resolve()
-    if expected not in resolved.parents and resolved != expected and not str(resolved).startswith(str(expected) + "/"):
+    if expected not in resolved.parents and resolved != expected \
+            and not str(resolved).startswith(str(expected) + "/"):
         raise ValueError(
             f"Path traversal detected: {template} resolves to {resolved}, "
             f"which is outside {expected}"
         )
     return result
+
 
 def _curl_download(url: str, out: Path, timeout: int = 120) -> bool:
     return run(["curl", "-fsSL", "--retry", "3", "--retry-delay", "2",

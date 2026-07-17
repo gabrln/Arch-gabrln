@@ -31,7 +31,6 @@ import sys
 import time
 from dataclasses import dataclass, field
 
-
 # ── Color support detection ──────────────────────────────────────────
 
 def _supports_truecolor() -> bool:
@@ -189,8 +188,8 @@ class LivePanelRenderer:
     def render(self):
         """Return the Rich renderable for the current state, centered."""
         from rich.align import Align
-        from rich.panel import Panel
         from rich.console import Group
+        from rich.panel import Panel
         from rich.text import Text
 
         # ── Header: fixed number of rows regardless of state, so the
@@ -364,12 +363,15 @@ class LiveDisplay:
     """
 
     def __init__(self, total: int) -> None:
+        from rich.console import Console
+        from rich.live import Live
+        from rich.progress import Progress, TaskID
         self._total = total
         self._state = ProgressState(total_modules=total)
-        self._live = None
-        self._console = None
-        self._progress = None
-        self._task_id = None
+        self._live: Live | None = None
+        self._console: Console | None = None
+        self._progress: Progress | None = None
+        self._task_id: TaskID | None = None
         self._final: list[str] = []
         self._panel_width = PANEL_WIDTH
         self._panel_height = PANEL_HEIGHT  # fixed box size, never grows
@@ -382,7 +384,7 @@ class LiveDisplay:
             return
         from rich.console import Console
         from rich.live import Live
-        from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn
+        from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn
 
         # CRITICAL: rich.console.Console resolves sys.stdout
         # DYNAMICALLY on every write (it stores a file only if
@@ -409,7 +411,7 @@ class LiveDisplay:
         self._console = Console(
             file=real_stdout,
             force_terminal=True,
-            color_system=color_system,
+            color_system=color_system,  # type: ignore[arg-type]
         )
 
         # Fit the panel width to the terminal (shrink on narrow
@@ -461,6 +463,17 @@ class LiveDisplay:
         the Live display so the TUI continues.
         """
         import getpass
+        import sys
+
+        from installer.core.errors import fatal
+
+        if not sys.stdin.isatty():
+            fatal(
+                "Non-interactive terminal detected (no TTY). Cannot prompt for sudo password. "
+                "Please run 'sudo -v' beforehand or run the installer "
+                "directly in an interactive terminal."
+            )
+
         self.stop()
         try:
             password = getpass.getpass("Senha [sudo]: ")

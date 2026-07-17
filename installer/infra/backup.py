@@ -19,10 +19,10 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
-from installer.config import BACKUPS_DIR, DEFAULT_MAX_BACKUP_BYTES, get_config
-from installer.exec import run
-from installer.logger import log
-from installer import privesc
+from installer.core.config import BACKUPS_DIR, DEFAULT_MAX_BACKUP_BYTES, get_config
+from installer.infra.exec import run
+from installer.platform import privesc
+from installer.ui.logger import log
 
 
 def init_backups() -> Path:
@@ -43,7 +43,7 @@ def _unique_name(dest: Path, base: str) -> str:
 
 def _is_system_path(p: Path) -> bool:
     """System paths lose ownership; user paths keep it."""
-    s = str(p)
+    s = p.as_posix()
     return s.startswith(("/etc/", "/usr/", "/var/"))
 
 
@@ -123,6 +123,8 @@ def create(label: str, paths: list[Path], sudo_password: str | None = None) -> _
 
 def _apply_retention(label: str, max_keep: int) -> None:
     """Keep only the most recent `max_keep` snapshots with this label."""
+    if max_keep <= 0:
+        return
     snaps = sorted(
         [p for p in BACKUPS_DIR.iterdir()
          if p.is_dir() and p.name.startswith(f"{label}-")],
@@ -148,7 +150,9 @@ def _apply_retention(label: str, max_keep: int) -> None:
         while total > max_bytes and len(snaps) > 1:
             oldest = snaps.pop()
             size = _dir_size(oldest)
-            log("info", f"  -> removing old backup (size limit): {oldest.name} ({size / 1024 / 1024:.1f} MiB)")
+            log("info",
+                f"  -> removing old backup (size limit): {oldest.name} "
+                f"({size / 1024 / 1024:.1f} MiB)")
             shutil.rmtree(oldest, ignore_errors=True)
             total -= size
 
@@ -156,6 +160,7 @@ def _apply_retention(label: str, max_keep: int) -> None:
 def _dir_size(path: Path) -> int:
     """Total size of a directory in bytes."""
     return sum(f.stat().st_size for f in path.rglob("*") if f.is_file())
+
 
 def list_snapshots(label: str | None = None) -> list[str]:
     """List snapshot names, most recent first. Optionally filtered."""

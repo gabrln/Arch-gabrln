@@ -8,17 +8,26 @@ Framework internals. For end-user docs see [README.md](../README.md).
 install.sh                          bash bootstrap
 └─ python3 -m installer
    ├─ cli.py                       argparse
-   ├─ config.py                    paths, constants
-   ├─ logger.py                    Rich logging
-   ├─ errors.py                    traps, fatal, InstallerError
-   ├─ exec.py                      run() subprocess helper
-   ├─ privilege.py                 detect_real_user()
-   ├─ privesc.py                   on-demand privilege escalation
-   ├─ toml_cache.py                manifests in memory
-   ├─ state.py                     state.json atomic (flock)
-   ├─ backup.py                    snapshot .1/.2 collision
-   ├─ progress.py                  Rich Progress, prompt_password()
-   ├─ runner.py                    ModuleRunner
+   │
+   ├─ core/                        execution engine & configuration
+   │   ├─ config.py                paths, constants, config.toml loader
+   │   ├─ errors.py                traps, fatal, InstallerError
+   │   ├── runner.py               ModuleRunner loop
+   │   └── state.py                state.json atomic (flock)
+   │
+   ├─ infra/                       I/O against external resources
+   │   ├── backup.py               snapshot .1/.2 collision
+   │   ├── exec.py                 run() subprocess helper
+   │   └── toml_cache.py           manifests in memory
+   │
+   ├─ platform/                    OS / environment specific
+   │   ├── privesc.py              on-demand privilege escalation
+   │   └── user.py                 detect_real_user()
+   │
+   ├─ ui/                          user interface
+   │   ├── logger.py               Rich logging
+   │   └── progress.py             Rich Progress, prompt_password()
+   │
    └─ modules/                     16 install steps
 ```
 
@@ -29,20 +38,20 @@ user never needs to invoke the installer with `sudo`.
 
 ## Library quick reference
 
-| File | Responsibility |
-|---|---|
-| `cli.py` | argparse, main() |
-| `config.py` | paths, config.toml, tunable constants |
-| `logger.py` | Rich logging with NO_COLOR/TTY/levels |
-| `errors.py` | fatal(), register_cleanup(), signal handlers, InstallerError hierarchy |
-| `exec.py` | run(), run_capture(), run_or_die() |
-| `privilege.py` | detect_real_user() — resolves uid → (user, home) |
-| `privesc.py` | Tool enum, detect(), check_cached(), validate_password(), run_privileged() |
-| `toml_cache.py` | in-memory manifest cache |
-| `state.py` | state.json (flock + os.replace atomic) |
-| `backup.py` | snapshot, restore, retention |
-| `progress.py` | Rich Progress bar, prompt_password() |
-| `runner.py` | ModuleRunner loop |
+| Module | Path | Responsibility |
+|---|---|---|
+| `cli.py` | `installer/cli.py` | argparse, main() |
+| `config.py` | `installer/core/config.py` | paths, config.toml, tunable constants |
+| `errors.py` | `installer/core/errors.py` | fatal(), register_cleanup(), signal handlers, InstallerError hierarchy |
+| `runner.py` | `installer/core/runner.py` | ModuleRunner loop |
+| `state.py` | `installer/core/state.py` | state.json (flock + os.replace atomic) |
+| `exec.py` | `installer/infra/exec.py` | run(), run_capture(), run_or_die() |
+| `toml_cache.py` | `installer/infra/toml_cache.py` | in-memory manifest cache |
+| `backup.py` | `installer/infra/backup.py` | snapshot, restore, retention |
+| `privesc.py` | `installer/platform/privesc.py` | Tool enum, detect(), check_cached(), validate_password(), run_privileged() |
+| `user.py` | `installer/platform/user.py` | detect_real_user() — resolves uid → (user, home) |
+| `logger.py` | `installer/ui/logger.py` | Rich logging with NO_COLOR/TTY/levels |
+| `progress.py` | `installer/ui/progress.py` | Rich Progress bar, prompt_password() |
 
 ## Add a module
 
@@ -50,10 +59,10 @@ user never needs to invoke the installer with `sudo`.
 2. Register it in `build_default_pipeline()` in `installer/modules/__init__.py`.
 
 ```python
-from installer import privesc
-from installer.errors import ModuleFailure
-from installer.exec import run
-from installer.logger import log
+from installer.platform import privesc
+from installer.core.errors import ModuleFailure
+from installer.infra.exec import run
+from installer.ui.logger import log
 from installer.modules.base import Module, RunContext
 
 

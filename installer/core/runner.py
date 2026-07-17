@@ -2,17 +2,16 @@
 
 from __future__ import annotations
 
-import os
 import sys
 from dataclasses import dataclass
 from pathlib import Path
 
-from installer.errors import fatal, ModuleFailure, register_cleanup
-from installer.logger import log, set_suppress_stderr, redirect_log_output, reset_log_output
+from installer.core.errors import ModuleFailure, fatal, register_cleanup
+from installer.core.state import State
 from installer.modules.base import Module, RunContext
-from installer.progress import LiveDisplay, OutputCapture, is_tty
-from installer.privilege import detect_real_user
-from installer.state import State
+from installer.platform.user import detect_real_user
+from installer.ui.logger import redirect_log_output, reset_log_output, set_suppress_stderr
+from installer.ui.progress import LiveDisplay, OutputCapture
 
 
 @dataclass
@@ -59,9 +58,9 @@ class ModuleRunner:
 
     def _setup_privileges(self, ctx: RunContext, tui: LiveDisplay) -> None:
         """Detect the privilege-escalation tool and validate the password."""
-        from installer import privesc
+        from installer.platform import privesc
         tool = privesc.get_tool()
-        if privesc.check_cached(tool):
+        if self.options.dry_run or privesc.check_cached(tool):
             ctx.sudo_password = None
         else:
             password = tui.prompt_password()
@@ -149,7 +148,7 @@ class ModuleRunner:
     def _resolve_manifest(self, module: Module) -> Path | None:
         if not module.manifest:
             return None
-        from installer.config import MANIFESTS_DIR
+        from installer.core.config import MANIFESTS_DIR
         p = Path(module.manifest)
         if not p.is_absolute():
             p = MANIFESTS_DIR / p

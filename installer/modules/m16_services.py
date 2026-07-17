@@ -2,14 +2,11 @@
 
 from __future__ import annotations
 
-
-
-from installer import privesc
-from installer.exec import run
-from installer.logger import log
+from installer.infra.toml_cache import get_cache
 from installer.modules.base import Module, RunContext
 from installer.modules.mixins import systemd_unit_exists
-from installer.toml_cache import get_cache
+from installer.platform import privesc
+from installer.ui.logger import log
 
 
 class ServicesModule(Module):

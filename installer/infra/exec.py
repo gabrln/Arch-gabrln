@@ -15,11 +15,11 @@ handling, keep using subprocess.run directly.
 from __future__ import annotations
 
 import subprocess
+from collections.abc import Mapping, Sequence
 from pathlib import Path
-from typing import Mapping, Sequence
 
-from installer.errors import fatal
-from installer.logger import log
+from installer.core.errors import fatal
+from installer.ui.logger import log
 
 
 def run(

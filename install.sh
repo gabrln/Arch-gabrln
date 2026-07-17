@@ -15,7 +15,8 @@
 
 set -euo pipefail
 
-REPO_URL="https://github.com/gabrln/Noceasy.git"
+REPO_URL="${NOCEASY_REPO_URL:-https://github.com/gabrln/Noceasy.git}"
+REPO_BRANCH="${NOCEASY_BRANCH:-main}"
 CLONE_SUBDIR="Projects/Noceasy"
 
 # Colors
@@ -108,13 +109,15 @@ fi
 REPO_DIR="$USER_HOME/$CLONE_SUBDIR"
 
 if [[ -d "$REPO_DIR/.git" ]]; then
-  info "Updating repository in $REPO_DIR..."
-  git -C "$REPO_DIR" -c safe.directory='*' pull \
-    >/dev/null 2>&1 || error "git pull failed in $REPO_DIR"
+  info "Updating repository in $REPO_DIR (branch: $REPO_BRANCH)..."
+  git -C "$REPO_DIR" -c safe.directory='*' fetch --depth=1 origin "$REPO_BRANCH" \
+    >/dev/null 2>&1 || error "git fetch failed in $REPO_DIR"
+  git -C "$REPO_DIR" -c safe.directory='*' checkout -B "$REPO_BRANCH" FETCH_HEAD \
+    >/dev/null 2>&1 || error "git checkout failed in $REPO_DIR"
 else
-  info "Cloning repository to $REPO_DIR..."
+  info "Cloning repository to $REPO_DIR (branch: $REPO_BRANCH)..."
   mkdir -p "$USER_HOME/Projects"
-  git clone --depth=1 "$REPO_URL" "$REPO_DIR" \
+  git clone --branch "$REPO_BRANCH" --depth=1 "$REPO_URL" "$REPO_DIR" \
     >/dev/null 2>&1 || error "git clone failed to $REPO_DIR"
 fi
 
