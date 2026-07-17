@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 from pathlib import Path
-from unittest.mock import MagicMock, PropertyMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
+
 from installer.core.state import State
-from installer.modules.base import Module, RunContext
+from installer.modules.base import RunContext
 from installer.modules.m01_backup import BackupModule
 from installer.modules.m02_pacman_bootstrap import PacmanBootstrapModule
 from installer.modules.m03_pacman_official import PacmanOfficialModule
@@ -128,7 +129,7 @@ class TestYayAurModule:
             cache.return_value.get_list_field.return_value = ["pkg1"]
             mod = YayAurModule(manifest="aur.toml")
             with patch("installer.modules.m04_yay_aur._pacman_missing",
-                       return_value=["pkg1"]):
+                       side_effect=[["pkg1"], []]) as pm:
                 with patch("installer.modules.m04_yay_aur._install_chunk",
                            return_value=True) as chunk:
                     mod.run(ctx)
@@ -209,22 +210,22 @@ class TestDotfilesModule:
 
 
 class TestHyprlandEnvModule:
-    def test_runs_find_chmod(self, ctx: RunContext,
-                             mock_run: MagicMock) -> None:
-        ctx.user_home.mkdir(parents=True, exist_ok=True)
-        (ctx.user_home / ".config" / "hypr").mkdir(parents=True, exist_ok=True)
-        (ctx.user_home / ".config" / "hypr" / "hyprland.lua").touch()
+    def test_runs_find_chmod(self, ctx: RunContext) -> None:
+        cfg = ctx.user_home / ".config"
+        cfg.mkdir(parents=True, exist_ok=True)
+        (cfg / "hypr").mkdir(parents=True, exist_ok=True)
+        (cfg / "hypr" / "hyprland.lua").touch()
         mod = HyprlandEnvModule()
-        mod.run(ctx)
+        with patch("installer.modules.m09_hyprland_env.run") as mock_run:
+            mod.run(ctx)
         find_calls = [c for c in mock_run.call_args_list
                       if "find" in str(c[0][0])]
         assert find_calls
 
     def test_fails_if_no_config(self, ctx: RunContext) -> None:
-        from pathlib import Path as RealPath
-        with patch.object(RealPath, "is_file", return_value=False):
-            mod = HyprlandEnvModule()
-            with pytest.raises(Exception):
+        mod = HyprlandEnvModule()
+        with patch.object(Path, "is_file", return_value=False):
+            with pytest.raises(SystemExit):
                 mod.run(ctx)
 
 
@@ -291,11 +292,11 @@ class TestWallpapersModule:
 
 
 class TestIconsCursorsFontsModule:
-    def test_runs_fc_cache(self, ctx: RunContext,
-                           mock_run: MagicMock,
-                           mock_priv: MagicMock) -> None:
+    def test_runs_fc_cache(self, ctx: RunContext) -> None:
         mod = IconsCursorsFontsModule()
-        mod.run(ctx)
+        with patch("installer.modules.m14_icons_cursors_fonts.run") as mock_run, \
+                patch("installer.modules.m14_icons_cursors_fonts.chown_user"):
+            mod.run(ctx)
         fc_calls = [c for c in mock_run.call_args_list
                     if "fc-cache" in str(c)]
         assert fc_calls
@@ -305,23 +306,15 @@ class TestIconsCursorsFontsModule:
 
 
 class TestSystemTweaksModule:
-    def test_runs_privileged(self, ctx: RunContext,
-                             mock_priv: MagicMock) -> None:
+    def test_runs_privileged(self, ctx: RunContext) -> None:
         mod = SystemTweaksModule()
-        mod.run(ctx)
-        mkdir_calls = [c for c in mock_priv.call_args_list
-                       if "mkdir" in str(c)]
-        assert mkdir_calls
-
-    def test_mkdir_called(self, ctx: RunContext,
-                          mock_priv: MagicMock) -> None:
-        mod = SystemTweaksModule()
-        # need user dirs to exist to avoid symlink errors on Windows
-        (ctx.user_home / ".config" / "gtk-3.0").mkdir(parents=True, exist_ok=True)
-        (ctx.user_home / ".config" / "gtk-4.0").mkdir(parents=True, exist_ok=True)
-        mod.run(ctx)
-        mkdir_calls = [c[0][0] for c in mock_priv.call_args_list
-                       if "mkdir" in str(c)]
+        with patch("installer.modules.m15_system_tweaks.privesc") as mock_p, \
+                patch("installer.modules.m15_system_tweaks.chown_user"), \
+                patch("installer.modules.m15_system_tweaks."
+                      "_replace_with_symlink"):
+            mod.run(ctx)
+        mkdir_calls = [c for c in mock_p.run_privileged.call_args_list
+                       if "mkdir" in str(c[0][0])]
         assert mkdir_calls
 
 
@@ -363,11 +356,13 @@ class TestDevToolsModule:
             mod = DevToolsModule()
             mod.run(ctx)
 
-    def test_copies_scripts(self, ctx: RunContext,
-                            mock_priv: MagicMock) -> None:
-        with patch("installer.modules.m17_dev_tools.DEV_SRC") as MockSrc:
+    def test_copies_scripts(self, ctx: RunContext) -> None:
+        with patch("installer.modules.m17_dev_tools.DEV_SRC") as MockSrc, \
+                patch("installer.modules.m17_dev_tools.DEV_DST") as MockDst, \
+                patch("installer.modules.m17_dev_tools.chown_user"):
             MockSrc.is_dir.return_value = True
-            MockSrc.glob.return_value = [Path("installer/dev/tool.py")]
+            MockSrc.glob.return_value = [MagicMock(spec=Path,
+                                                     name="tool.py")]
             mod = DevToolsModule()
             mod.run(ctx)
 

@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import os
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
+
 from installer.cli import _print_help_header, build_parser, main
 
 

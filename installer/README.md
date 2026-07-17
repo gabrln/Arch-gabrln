@@ -53,6 +53,33 @@ user never needs to invoke the installer with `sudo`.
 | `logger.py` | `installer/ui/logger.py` | Rich logging with NO_COLOR/TTY/levels |
 | `progress.py` | `installer/ui/progress.py` | Rich Progress bar, prompt_password() |
 
+## Module pipeline
+
+The 16 modules run in this order (defined in `build_default_pipeline()`):
+
+| #  | Module | Name | Manifest | Responsibility |
+|----|--------|------|----------|----------------|
+| 00 | `PreflightModule` | `00-preflight` | — | Internet, disk space, env checks |
+| 01 | `BackupModule` | `01-backup` | `dotfiles.toml` | Snapshot configs before overwriting |
+| 02 | `PacmanBootstrapModule` | `02-pacman-bootstrap` | — | Sync pacman, install git/base-devel/yay |
+| 03 | `PacmanOfficialModule` | `03-pacman-official` | `packages.toml` | Install official repo packages |
+| 04 | `YayAurModule` | `04-yay-aur` | `aur.toml` | Install AUR packages via yay |
+| 05 | `FlatpakModule` | `05-flatpak` | `flatpak.toml` | Install Flatpak packages |
+| 07 | `ShellModule` | `07-shell` | `zsh-plugins.toml` | chsh → zsh, clone plugins |
+| 08 | `DotfilesModule` | `08-dotfiles` | `dotfiles.toml` | Apply `.config/` and avulso files |
+| 09 | `HyprlandEnvModule` | `09-hyprland-env` | — | chmod scripts, validate hyprland.lua |
+| 10 | `GreeterModule` | `10-greeter` | — | Deploy greetd / Noctalia Greeter |
+| 11 | `KeyringModule` | `11-keyring` | — | Inject gnome-keyring into PAM |
+| 13 | `WallpapersModule` | `13-wallpapers` | `wallpapers.toml` | Download wallpaper pack |
+| 14 | `IconsCursorsFontsModule` | `14-icons-cursors-fonts` | — | fc-cache, gtk icon cache |
+| 15 | `SystemTweaksModule` | `15-system-tweaks` | — | Root theme symlinks, orphans cleanup |
+| 16 | `ServicesModule` | `16-services` | `services.toml` | Enable systemd services |
+| 17 | `DevToolsModule` | `17-dev-tools` | — | Sync `installer/dev/` → `~/.local/bin` |
+
+The module numbering is historical; gaps (06, 12) correspond to
+modules that were removed. The pipeline order is defined in
+`installer/modules/__init__.py`.
+
 ## Add a module
 
 1. Create `installer/modules/mNN_name.py` with a `Module` subclass.
