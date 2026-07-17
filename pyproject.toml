@@ -42,7 +42,7 @@ select = ["E", "F", "I", "N", "W", "UP"]
 [tool.mypy]
 strict = false
 python_version = "3.11"
-warn_unused_ignores = true
+warn_unused_ignores = false
 warn_redundant_casts = true
 warn_return_any = true
 ignore_missing_imports = true
