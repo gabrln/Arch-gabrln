@@ -112,6 +112,14 @@ To add another dev tool, drop a `*.py` file with a `#!/usr/bin/env python3`
 shebang into `installer/dev/`; it will be picked up on the next
 `install.sh` run. The module is a no-op when the directory is empty.
 
+The dev tests (`installer/dev/test_*.py`) require the system `lua` binary
+on `$PATH` and are **not** included in the default `pytest tests/` CI job.
+To run them locally:
+
+```bash
+uv run pytest installer/dev/ -v
+```
+
 ## Validation
 
 ```bash

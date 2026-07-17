@@ -88,3 +88,7 @@ run_install.sh
 run.sh
 run_tests.sh
 install_and_test.sh
+
+# ===== Test artifacts =====
+$HOME/
+$HOME/
